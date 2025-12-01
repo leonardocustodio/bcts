@@ -1,10 +1,10 @@
-import { KnownValue } from "./known-value";
+import { KnownValue, type KnownValueInput } from "./known-value";
 
 /**
  * A store that maps between Known Values and their assigned names.
  *
  * The `KnownValuesStore` provides a bidirectional mapping between:
- * - Numeric values (number) and their corresponding KnownValue instances
+ * - Numeric values (bigint) and their corresponding KnownValue instances
  * - String names and their corresponding KnownValue instances
  *
  * This enables efficient lookup in both directions, making it possible to:
@@ -37,7 +37,8 @@ import { KnownValue } from "./known-value";
  * ```
  */
 export class KnownValuesStore {
-  private knownValuesByRawValue: Map<number, KnownValue>;
+  // Use bigint for map keys to support full 64-bit range
+  private knownValuesByRawValue: Map<bigint, KnownValue>;
   private knownValuesByAssignedName: Map<string, KnownValue>;
 
   /**
@@ -108,7 +109,7 @@ export class KnownValuesStore {
    * ```
    */
   assignedName(knownValue: KnownValue): string | undefined {
-    return this.knownValuesByRawValue.get(knownValue.value())?.assignedName();
+    return this.knownValuesByRawValue.get(knownValue.valueBigInt())?.assignedName();
   }
 
   /**
@@ -161,6 +162,26 @@ export class KnownValuesStore {
   }
 
   /**
+   * Looks up a KnownValue by its raw numeric value.
+   *
+   * @param rawValue - The numeric value to look up (number or bigint)
+   * @returns The KnownValue, or undefined if not found
+   *
+   * @example
+   * ```typescript
+   * import { KnownValuesStore, IS_A } from '@blockchain-commons/known-values';
+   *
+   * const store = new KnownValuesStore([IS_A]);
+   * const isA = store.knownValueForValue(1);
+   * console.log(isA?.name()); // "isA"
+   * ```
+   */
+  knownValueForValue(rawValue: KnownValueInput): KnownValue | undefined {
+    const key = typeof rawValue === "bigint" ? rawValue : BigInt(rawValue);
+    return this.knownValuesByRawValue.get(key);
+  }
+
+  /**
    * Retrieves a KnownValue for a raw value, using a store if provided.
    *
    * This static method allows looking up a KnownValue by its raw numeric
@@ -170,7 +191,7 @@ export class KnownValuesStore {
    * - Otherwise, a new KnownValue with no assigned name is created and
    *   returned
    *
-   * @param rawValue - The numeric value to look up
+   * @param rawValue - The numeric value to look up (number or bigint)
    * @param knownValues - Optional store to search in
    * @returns The KnownValue from the store or a new unnamed KnownValue
    *
@@ -193,9 +214,12 @@ export class KnownValuesStore {
    * console.log(unknown2.name()); // "1"
    * ```
    */
-  static knownValueForRawValue(rawValue: number, knownValues?: KnownValuesStore): KnownValue {
+  static knownValueForRawValue(
+    rawValue: KnownValueInput,
+    knownValues?: KnownValuesStore
+  ): KnownValue {
     if (knownValues !== undefined) {
-      const value = knownValues.knownValuesByRawValue.get(rawValue);
+      const value = knownValues.knownValueForValue(rawValue);
       if (value !== undefined) {
         return value;
       }
@@ -294,7 +318,7 @@ export class KnownValuesStore {
    * Internal helper method to insert a KnownValue into the store's maps.
    */
   private _insert(knownValue: KnownValue): void {
-    this.knownValuesByRawValue.set(knownValue.value(), knownValue);
+    this.knownValuesByRawValue.set(knownValue.valueBigInt(), knownValue);
     const assignedName = knownValue.assignedName();
     if (assignedName !== undefined && assignedName !== "") {
       this.knownValuesByAssignedName.set(assignedName, knownValue);

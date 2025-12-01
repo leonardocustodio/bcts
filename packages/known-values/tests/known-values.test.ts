@@ -1,4 +1,15 @@
-import { KnownValue, KnownValuesStore, IS_A, NOTE, SIGNED, KNOWN_VALUES, ID } from "../src/index";
+import {
+  KnownValue,
+  KnownValuesStore,
+  IS_A,
+  NOTE,
+  SIGNED,
+  KNOWN_VALUES,
+  ID,
+  TAG_KNOWN_VALUE,
+  KNOWN_VALUE_TAG,
+} from "../src/index";
+import { cbor, decodeCbor, MajorType, bytesToHex, hexToBytes } from "@blockchain-commons/dcbor";
 
 describe("KnownValue", () => {
   test("should create a KnownValue with just a value", () => {
@@ -148,5 +159,198 @@ describe("Global KNOWN_VALUES Registry", () => {
     expect(store.knownValueNamed("entity")?.value()).toBe(10);
     expect(store.knownValueNamed("name")?.value()).toBe(11);
     expect(store.knownValueNamed("isA")?.value()).toBe(1);
+  });
+});
+
+describe("KnownValue CBOR Encoding", () => {
+  test("should export TAG_KNOWN_VALUE constant", () => {
+    expect(TAG_KNOWN_VALUE).toBe(201);
+  });
+
+  test("should export KNOWN_VALUE_TAG with name", () => {
+    expect(KNOWN_VALUE_TAG.value).toBe(201);
+    expect(KNOWN_VALUE_TAG.name).toBe("known-value");
+  });
+
+  test("should provide cborTags()", () => {
+    const kv = new KnownValue(1, "isA");
+    const tags = kv.cborTags();
+    expect(tags).toHaveLength(1);
+    expect(tags[0].value).toBe(201);
+  });
+
+  test("should encode to untagged CBOR (unsigned integer)", () => {
+    const kv = new KnownValue(42);
+    const untagged = kv.untaggedCbor();
+
+    expect(untagged.type).toBe(MajorType.Unsigned);
+    expect(untagged.value).toBe(42n);
+  });
+
+  test("should encode to tagged CBOR with tag 201", () => {
+    const kv = new KnownValue(1, "isA");
+    const tagged = kv.taggedCbor();
+
+    expect(tagged.type).toBe(MajorType.Tagged);
+    expect(tagged.tag).toBe(201);
+    expect(tagged.value.type).toBe(MajorType.Unsigned);
+    expect(tagged.value.value).toBe(1n);
+  });
+
+  test("should encode IS_A to correct CBOR hex", () => {
+    // Tag 201 (0xd8c9) + value 1 (0x01) = d8c901
+    const bytes = IS_A.toCborData();
+    const hex = bytesToHex(bytes);
+    expect(hex).toBe("d8c901");
+  });
+
+  test("should encode various values correctly", () => {
+    // Value 0 -> d8c900
+    expect(bytesToHex(new KnownValue(0).toCborData())).toBe("d8c900");
+
+    // Value 23 -> d8c917 (23 fits in single byte)
+    expect(bytesToHex(new KnownValue(23).toCborData())).toBe("d8c917");
+
+    // Value 24 -> d8c91818 (24 requires additional byte)
+    expect(bytesToHex(new KnownValue(24).toCborData())).toBe("d8c91818");
+
+    // Value 100 -> d8c91864
+    expect(bytesToHex(new KnownValue(100).toCborData())).toBe("d8c91864");
+
+    // Value 256 -> d8c9190100
+    expect(bytesToHex(new KnownValue(256).toCborData())).toBe("d8c9190100");
+  });
+
+  test("taggedCborData should be alias for toCborData", () => {
+    const kv = new KnownValue(42);
+    expect(kv.taggedCborData()).toEqual(kv.toCborData());
+  });
+});
+
+describe("KnownValue CBOR Decoding", () => {
+  test("should decode from untagged CBOR", () => {
+    const cborValue = cbor(42);
+    const kv = KnownValue.fromUntaggedCbor(cborValue);
+
+    expect(kv.value()).toBe(42);
+    expect(kv.assignedName()).toBeUndefined();
+  });
+
+  test("should decode from tagged CBOR", () => {
+    const kv = new KnownValue(1, "isA");
+    const tagged = kv.taggedCbor();
+    const decoded = KnownValue.fromTaggedCbor(tagged);
+
+    expect(decoded.value()).toBe(1);
+    // Note: name is not preserved in CBOR encoding
+    expect(decoded.assignedName()).toBeUndefined();
+  });
+
+  test("should decode from binary CBOR data", () => {
+    // d8c901 = tag 201, value 1
+    const bytes = hexToBytes("d8c901");
+    const kv = KnownValue.fromCborData(bytes);
+
+    expect(kv.value()).toBe(1);
+  });
+
+  test("should decode various values from binary", () => {
+    // Value 0
+    expect(KnownValue.fromCborData(hexToBytes("d8c900")).value()).toBe(0);
+
+    // Value 23
+    expect(KnownValue.fromCborData(hexToBytes("d8c917")).value()).toBe(23);
+
+    // Value 24
+    expect(KnownValue.fromCborData(hexToBytes("d8c91818")).value()).toBe(24);
+
+    // Value 100
+    expect(KnownValue.fromCborData(hexToBytes("d8c91864")).value()).toBe(100);
+
+    // Value 256
+    expect(KnownValue.fromCborData(hexToBytes("d8c9190100")).value()).toBe(256);
+  });
+
+  test("should auto-detect tagged vs untagged with fromCbor", () => {
+    // Tagged
+    const tagged = cbor({ tag: 201, value: 42 });
+    const kv1 = KnownValue.fromCbor(tagged);
+    expect(kv1.value()).toBe(42);
+
+    // Untagged
+    const untagged = cbor(42);
+    const kv2 = KnownValue.fromCbor(untagged);
+    expect(kv2.value()).toBe(42);
+  });
+
+  test("should throw on wrong tag", () => {
+    const wrongTag = cbor({ tag: 100, value: 42 });
+    expect(() => KnownValue.fromTaggedCbor(wrongTag)).toThrow(/Expected tag 201/);
+  });
+
+  test("should throw on wrong type for untagged", () => {
+    const text = cbor("hello");
+    expect(() => KnownValue.fromUntaggedCbor(text)).toThrow(/Expected unsigned integer/);
+  });
+
+  test("instance methods should delegate to static methods", () => {
+    const kv = new KnownValue(0); // dummy instance for interface compliance
+    const tagged = cbor({ tag: 201, value: 99 });
+    const untagged = cbor(99);
+
+    const decoded1 = kv.fromTaggedCbor(tagged);
+    const decoded2 = kv.fromUntaggedCbor(untagged);
+
+    expect(decoded1.value()).toBe(99);
+    expect(decoded2.value()).toBe(99);
+  });
+});
+
+describe("KnownValue roundtrip", () => {
+  test("should roundtrip encode/decode", () => {
+    const values = [0, 1, 23, 24, 100, 255, 256, 1000, 65535, 65536];
+
+    for (const v of values) {
+      const original = new KnownValue(v);
+      const bytes = original.toCborData();
+      const decoded = KnownValue.fromCborData(bytes);
+      expect(decoded.value()).toBe(v);
+    }
+  });
+
+  test("should roundtrip predefined values", () => {
+    const predefined = [IS_A, ID, SIGNED, NOTE];
+
+    for (const kv of predefined) {
+      const bytes = kv.toCborData();
+      const decoded = KnownValue.fromCborData(bytes);
+      expect(decoded.value()).toBe(kv.value());
+    }
+  });
+});
+
+describe("KnownValue BigInt support", () => {
+  test("should accept bigint in constructor", () => {
+    const kv = new KnownValue(42n);
+    expect(kv.value()).toBe(42);
+    expect(kv.valueBigInt()).toBe(42n);
+  });
+
+  test("should return bigint from valueBigInt()", () => {
+    const kv = new KnownValue(42);
+    expect(typeof kv.valueBigInt()).toBe("bigint");
+    expect(kv.valueBigInt()).toBe(42n);
+  });
+
+  test("should encode bigint values correctly", () => {
+    const kv = new KnownValue(1000n);
+    const hex = bytesToHex(kv.toCborData());
+    expect(hex).toBe("d8c91903e8"); // tag 201 + 1000
+  });
+
+  test("should decode to bigint internally", () => {
+    const bytes = hexToBytes("d8c91903e8");
+    const kv = KnownValue.fromCborData(bytes);
+    expect(kv.valueBigInt()).toBe(1000n);
   });
 });
