@@ -1,0 +1,731 @@
+import { Digest, DigestProvider } from './digest';
+import { Assertion } from './assertion';
+import { EnvelopeError } from './error';
+import type { EnvelopeEncodable, EnvelopeEncodableValue } from './envelope-encodable';
+import type { Cbor } from '@leonardocustodio/dcbor';
+
+/// The core structural variants of a Gordian Envelope.
+///
+/// Each variant represents a different structural form that an
+/// envelope can take, as defined in the Gordian Envelope IETF Internet Draft.
+/// The different cases provide different capabilities and serve different
+/// purposes in the envelope ecosystem.
+///
+/// The `EnvelopeCase` is the internal representation of an envelope's
+/// structure. While each case has unique properties, they all maintain a digest
+/// that ensures the integrity of the envelope.
+///
+/// It is advised to use the other Envelope APIs for most uses. Please see the
+/// queries module for more information on how to interact with envelopes.
+export type EnvelopeCase =
+  | {
+      type: 'node';
+      /// The subject of the node
+      subject: Envelope;
+      /// The assertions attached to the subject
+      assertions: Envelope[];
+      /// The digest of the node
+      digest: Digest;
+    }
+  | {
+      type: 'leaf';
+      /// The CBOR value contained in the leaf
+      cbor: Cbor;
+      /// The digest of the leaf
+      digest: Digest;
+    }
+  | {
+      type: 'wrapped';
+      /// The envelope being wrapped
+      envelope: Envelope;
+      /// The digest of the wrapped envelope
+      digest: Digest;
+    }
+  | {
+      type: 'assertion';
+      /// The assertion
+      assertion: Assertion;
+    }
+  | {
+      type: 'elided';
+      /// The digest of the elided content
+      digest: Digest;
+    }
+  | {
+      type: 'knownValue';
+      /// The known value instance
+      value: KnownValue;
+      /// The digest of the known value
+      digest: Digest;
+    }
+  | {
+      type: 'encrypted';
+      /// The encrypted message
+      message: EncryptedMessage;
+    }
+  | {
+      type: 'compressed';
+      /// The compressed data
+      value: Compressed;
+    };
+
+// Placeholder types for features not yet implemented
+type KnownValue = unknown;
+
+// Import types from extension modules (will be available at runtime)
+import type { Compressed } from '../extension/compress';
+import type { EncryptedMessage } from '../extension/encrypt';
+
+/// A flexible container for structured data with built-in integrity
+/// verification.
+///
+/// Gordian Envelope is the primary data structure of this library. It provides a
+/// way to encapsulate and organize data with cryptographic integrity, privacy
+/// features, and selective disclosure capabilities.
+///
+/// Key characteristics of envelopes:
+///
+/// - **Immutability**: Envelopes are immutable. Operations that appear to
+///   "modify" an envelope actually create a new envelope. This immutability is
+///   fundamental to maintaining the integrity of the envelope's digest tree.
+///
+/// - **Efficient Cloning**: Envelopes use shallow copying for efficient O(1)
+///   cloning. Since they're immutable, clones share the same underlying data.
+///
+/// - **Semantic Structure**: Envelopes can represent various semantic
+///   relationships through subjects, predicates, and objects (similar to RDF
+///   triples).
+///
+/// - **Digest Tree**: Each envelope maintains a Merkle-like digest tree that
+///   ensures the integrity of its contents and enables verification of
+///   individual parts.
+///
+/// - **Privacy Features**: Envelopes support selective disclosure through
+///   elision, encryption, and compression of specific parts, while maintaining
+///   the overall integrity of the structure.
+///
+/// - **Deterministic Representation**: Envelopes use deterministic CBOR
+///   encoding to ensure consistent serialization across platforms.
+///
+/// The Gordian Envelope specification is defined in an IETF Internet Draft, and
+/// this implementation closely follows that specification.
+///
+/// @example
+/// ```typescript
+/// // Create an envelope representing a person
+/// const person = Envelope.new("person")
+///     .addAssertion("name", "Alice")
+///     .addAssertion("age", 30)
+///     .addAssertion("email", "alice@example.com");
+///
+/// // Create a partially redacted version by eliding the email
+/// const redacted = person.elideRemovingTarget(
+///     person.assertionWithPredicate("email")
+/// );
+///
+/// // The digest of both envelopes remains the same
+/// assert(person.digest().equals(redacted.digest()));
+/// ```
+export class Envelope implements DigestProvider {
+  readonly #case: EnvelopeCase;
+
+  /// Private constructor. Use static factory methods to create envelopes.
+  ///
+  /// @param envelopeCase - The envelope case variant
+  private constructor(envelopeCase: EnvelopeCase) {
+    this.#case = envelopeCase;
+  }
+
+  /// Returns a reference to the underlying envelope case.
+  ///
+  /// The `EnvelopeCase` enum represents the specific structural variant of
+  /// this envelope. This method provides access to that underlying
+  /// variant for operations that need to differentiate between the
+  /// different envelope types.
+  ///
+  /// @returns The `EnvelopeCase` that defines this envelope's structure.
+  case(): EnvelopeCase {
+    return this.#case;
+  }
+
+  /// Creates an envelope with a subject, which can be any value that
+  /// can be encoded as an envelope.
+  ///
+  /// @param subject - The subject value
+  /// @returns A new envelope containing the subject
+  ///
+  /// @example
+  /// ```typescript
+  /// const envelope = Envelope.new("Hello, world!");
+  /// const numberEnvelope = Envelope.new(42);
+  /// const binaryEnvelope = Envelope.new(new Uint8Array([1, 2, 3]));
+  /// ```
+  static new(subject: EnvelopeEncodableValue): Envelope {
+    // Convert the subject to an envelope
+    if (subject instanceof Envelope) {
+      return subject;
+    }
+
+    // Handle primitives and create leaf envelopes
+    return Envelope.newLeaf(subject);
+  }
+
+  /// Creates an envelope with a subject, or null if subject is undefined.
+  ///
+  /// @param subject - The optional subject value
+  /// @returns A new envelope or null envelope
+  static newOrNull(subject: EnvelopeEncodableValue | undefined): Envelope {
+    if (subject === undefined || subject === null) {
+      return Envelope.null();
+    }
+    return Envelope.new(subject);
+  }
+
+  /// Creates an envelope with a subject, or undefined if subject is undefined.
+  ///
+  /// @param subject - The optional subject value
+  /// @returns A new envelope or undefined
+  static newOrNone(
+    subject: EnvelopeEncodableValue | undefined
+  ): Envelope | undefined {
+    if (subject === undefined || subject === null) {
+      return undefined;
+    }
+    return Envelope.new(subject);
+  }
+
+  /// Creates an envelope from an EnvelopeCase.
+  ///
+  /// This is an internal method used by extensions to create envelopes
+  /// from custom case types like compressed or encrypted.
+  ///
+  /// @param envelopeCase - The envelope case to wrap
+  /// @returns A new envelope with the given case
+  static fromCase(envelopeCase: EnvelopeCase): Envelope {
+    return new Envelope(envelopeCase);
+  }
+
+  /// Creates an assertion envelope with a predicate and object.
+  ///
+  /// @param predicate - The predicate of the assertion
+  /// @param object - The object of the assertion
+  /// @returns A new assertion envelope
+  ///
+  /// @example
+  /// ```typescript
+  /// const assertion = Envelope.newAssertion("name", "Alice");
+  /// ```
+  static newAssertion(
+    predicate: EnvelopeEncodableValue,
+    object: EnvelopeEncodableValue
+  ): Envelope {
+    const predicateEnv =
+      predicate instanceof Envelope ? predicate : Envelope.new(predicate);
+    const objectEnv =
+      object instanceof Envelope ? object : Envelope.new(object);
+    return Envelope.newWithAssertion(new Assertion(predicateEnv, objectEnv));
+  }
+
+  /// Creates a null envelope (containing CBOR null).
+  ///
+  /// @returns A null envelope
+  static null(): Envelope {
+    return Envelope.newLeaf(null);
+  }
+
+  //
+  // Internal constructors
+  //
+
+  /// Creates an envelope with a subject and unchecked assertions.
+  ///
+  /// The assertions are sorted by digest and the envelope's digest is calculated.
+  ///
+  /// @param subject - The subject envelope
+  /// @param uncheckedAssertions - The assertions to attach
+  /// @returns A new node envelope
+  static newWithUncheckedAssertions(
+    subject: Envelope,
+    uncheckedAssertions: Envelope[]
+  ): Envelope {
+    if (uncheckedAssertions.length === 0) {
+      throw new Error('Assertions array cannot be empty');
+    }
+
+    // Sort assertions by digest
+    const sortedAssertions = [...uncheckedAssertions].sort((a, b) => {
+      const aHex = a.digest().hex();
+      const bHex = b.digest().hex();
+      return aHex.localeCompare(bHex);
+    });
+
+    // Calculate digest from subject and all assertions
+    const digests = [subject.digest(), ...sortedAssertions.map((a) => a.digest())];
+    const digest = Digest.fromDigests(digests);
+
+    return new Envelope({
+      type: 'node',
+      subject,
+      assertions: sortedAssertions,
+      digest,
+    });
+  }
+
+  /// Creates an envelope with a subject and validated assertions.
+  ///
+  /// All assertions must be assertion or obscured envelopes.
+  ///
+  /// @param subject - The subject envelope
+  /// @param assertions - The assertions to attach
+  /// @returns A new node envelope
+  /// @throws {EnvelopeError} If any assertion is not valid
+  static newWithAssertions(
+    subject: Envelope,
+    assertions: Envelope[]
+  ): Envelope {
+    // Validate that all assertions are assertion or obscured envelopes
+    for (const assertion of assertions) {
+      if (!assertion.isSubjectAssertion() && !assertion.isSubjectObscured()) {
+        throw EnvelopeError.invalidFormat();
+      }
+    }
+
+    return Envelope.newWithUncheckedAssertions(subject, assertions);
+  }
+
+  /// Creates an envelope with an assertion as its subject.
+  ///
+  /// @param assertion - The assertion
+  /// @returns A new assertion envelope
+  static newWithAssertion(assertion: Assertion): Envelope {
+    return new Envelope({
+      type: 'assertion',
+      assertion,
+    });
+  }
+
+  /// Creates an envelope with a known value.
+  ///
+  /// @param value - The known value
+  /// @returns A new known value envelope
+  static newWithKnownValue(value: KnownValue): Envelope {
+    // TODO: Calculate digest for known value
+    const digest = Digest.fromImage(new Uint8Array()); // Placeholder
+    return new Envelope({
+      type: 'knownValue',
+      value,
+      digest,
+    });
+  }
+
+  /// Creates an envelope with encrypted content.
+  ///
+  /// @param encryptedMessage - The encrypted message
+  /// @returns A new encrypted envelope
+  /// @throws {EnvelopeError} If the encrypted message doesn't have a digest
+  static newWithEncrypted(encryptedMessage: EncryptedMessage): Envelope {
+    // TODO: Validate that encrypted message has digest
+    // if (!encryptedMessage.hasDigest()) {
+    //   throw EnvelopeError.missingDigest();
+    // }
+    return new Envelope({
+      type: 'encrypted',
+      message: encryptedMessage,
+    });
+  }
+
+  /// Creates an envelope with compressed content.
+  ///
+  /// @param compressed - The compressed data
+  /// @returns A new compressed envelope
+  /// @throws {EnvelopeError} If the compressed data doesn't have a digest
+  static newWithCompressed(compressed: Compressed): Envelope {
+    // TODO: Validate that compressed has digest
+    // if (!compressed.hasDigest()) {
+    //   throw EnvelopeError.missingDigest();
+    // }
+    return new Envelope({
+      type: 'compressed',
+      compressed,
+    });
+  }
+
+  /// Creates an elided envelope containing only a digest.
+  ///
+  /// @param digest - The digest of the elided content
+  /// @returns A new elided envelope
+  static newElided(digest: Digest): Envelope {
+    return new Envelope({
+      type: 'elided',
+      digest,
+    });
+  }
+
+  /// Creates a leaf envelope containing a CBOR value.
+  ///
+  /// @param value - The value to encode as CBOR
+  /// @returns A new leaf envelope
+  static newLeaf(value: unknown): Envelope {
+    // Convert value to CBOR
+    const cbor = Envelope.valueToCbor(value);
+
+    // Calculate digest from CBOR bytes
+    const cborBytes = Envelope.cborToBytes(cbor);
+    const digest = Digest.fromImage(cborBytes);
+
+    return new Envelope({
+      type: 'leaf',
+      cbor,
+      digest,
+    });
+  }
+
+  /// Creates a wrapped envelope.
+  ///
+  /// @param envelope - The envelope to wrap
+  /// @returns A new wrapped envelope
+  static newWrapped(envelope: Envelope): Envelope {
+    const digest = Digest.fromDigests([envelope.digest()]);
+    return new Envelope({
+      type: 'wrapped',
+      envelope,
+      digest,
+    });
+  }
+
+  /// Returns the digest of this envelope.
+  ///
+  /// Implementation of DigestProvider interface.
+  ///
+  /// @returns The envelope's digest
+  digest(): Digest {
+    const c = this.#case;
+    switch (c.type) {
+      case 'node':
+      case 'leaf':
+      case 'wrapped':
+      case 'elided':
+      case 'knownValue':
+        return c.digest;
+      case 'assertion':
+        return c.assertion.digest();
+      case 'encrypted': {
+        // Get digest from encrypted message (AAD)
+        const digest = c.message.aadDigest();
+        if (!digest) {
+          throw new Error('Encrypted envelope missing digest');
+        }
+        return digest;
+      }
+      case 'compressed': {
+        // Get digest from compressed value
+        const digest = c.value.digestOpt();
+        if (!digest) {
+          throw new Error('Compressed envelope missing digest');
+        }
+        return digest;
+      }
+    }
+  }
+
+  /// Returns the subject of this envelope.
+  ///
+  /// For different envelope cases:
+  /// - Node: Returns the subject envelope
+  /// - Other cases: Returns the envelope itself
+  ///
+  /// @returns The subject envelope
+  subject(): Envelope {
+    const c = this.#case;
+    switch (c.type) {
+      case 'node':
+        return c.subject;
+      default:
+        return this;
+    }
+  }
+
+  /// Checks if the envelope's subject is an assertion.
+  ///
+  /// @returns `true` if the subject is an assertion, `false` otherwise
+  isSubjectAssertion(): boolean {
+    return this.#case.type === 'assertion';
+  }
+
+  /// Checks if the envelope's subject is obscured (elided, encrypted, or compressed).
+  ///
+  /// @returns `true` if the subject is obscured, `false` otherwise
+  isSubjectObscured(): boolean {
+    const t = this.#case.type;
+    return t === 'elided' || t === 'encrypted' || t === 'compressed';
+  }
+
+  //
+  // CBOR conversion helpers
+  //
+
+  /// Converts a value to CBOR.
+  ///
+  /// @param value - The value to convert
+  /// @returns A CBOR representation
+  private static valueToCbor(value: unknown): Cbor {
+    // Import cbor function at runtime to avoid circular dependencies
+    const { cbor } = require('@leonardocustodio/dcbor');
+    return cbor(value);
+  }
+
+  /// Converts CBOR to bytes.
+  ///
+  /// @param cbor - The CBOR value
+  /// @returns Byte representation
+  private static cborToBytes(cbor: Cbor): Uint8Array {
+    // Import cborData function at runtime to avoid circular dependencies
+    const { cborData } = require('@leonardocustodio/dcbor');
+    return cborData(cbor);
+  }
+
+  /// Returns the untagged CBOR representation of this envelope.
+  ///
+  /// @returns The untagged CBOR
+  untaggedCbor(): Cbor {
+    const {
+      toTaggedValue,
+      TAG_LEAF,
+      TAG_ENCODED_CBOR,
+      TAG_COMPRESSED,
+    } = require('@leonardocustodio/dcbor');
+
+    const c = this.#case;
+    switch (c.type) {
+      case 'node': {
+        // Array with subject followed by assertions
+        const result = [c.subject.untaggedCbor()];
+        for (const assertion of c.assertions) {
+          result.push(assertion.untaggedCbor());
+        }
+        return Envelope.valueToCbor(result);
+      }
+      case 'leaf':
+        // Tagged with TAG_LEAF (204)
+        return toTaggedValue(TAG_LEAF, c.cbor);
+      case 'wrapped':
+        // Wrapped envelopes are tagged with TAG_ENVELOPE
+        return c.envelope.taggedCbor();
+      case 'assertion':
+        // Assertions convert to CBOR maps
+        return c.assertion.toCbor();
+      case 'elided':
+        // Elided is just the digest bytes
+        return Envelope.valueToCbor(c.digest.data());
+      case 'knownValue':
+        // TODO: Implement known value encoding
+        throw new Error('Known value encoding not yet implemented');
+      case 'encrypted': {
+        // Encrypted is tagged with TAG_ENCRYPTED (201)
+        // Contains: [ciphertext, nonce, optional_digest]
+        const message = c.message;
+        const digest = message.aadDigest();
+        const arr = digest
+          ? [message.ciphertext(), message.nonce(), digest.data()]
+          : [message.ciphertext(), message.nonce()];
+        const { TAG_ENCRYPTED } = require('@leonardocustodio/dcbor');
+        return toTaggedValue(TAG_ENCRYPTED, Envelope.valueToCbor(arr));
+      }
+      case 'compressed': {
+        // Compressed is tagged with TAG_COMPRESSED (206)
+        // and contains an array: [compressed_data, optional_digest]
+        const digest = c.value.digestOpt();
+        const data = c.value.compressedData();
+        const arr = digest ? [data, digest.data()] : [data];
+        return toTaggedValue(TAG_COMPRESSED, Envelope.valueToCbor(arr));
+      }
+    }
+  }
+
+  /// Returns the tagged CBOR representation of this envelope.
+  ///
+  /// All envelopes are tagged with TAG_ENVELOPE (200).
+  ///
+  /// @returns The tagged CBOR
+  taggedCbor(): Cbor {
+    const { toTaggedValue, TAG_ENVELOPE } = require('@leonardocustodio/dcbor');
+    return toTaggedValue(TAG_ENVELOPE, this.untaggedCbor());
+  }
+
+  /// Creates an envelope from untagged CBOR.
+  ///
+  /// @param cbor - The untagged CBOR value
+  /// @returns A new envelope
+  static fromUntaggedCbor(cbor: Cbor): Envelope {
+    const {
+      asTaggedValue,
+      asByteString,
+      asCborArray,
+      asCborMap,
+      TAG_LEAF,
+      TAG_ENCODED_CBOR,
+      TAG_ENVELOPE,
+      TAG_COMPRESSED,
+      TAG_ENCRYPTED,
+    } = require('@leonardocustodio/dcbor');
+
+    // Check if it's a tagged value
+    const tagged = asTaggedValue(cbor);
+    if (tagged) {
+      const [tag, item] = tagged;
+      switch (tag.value) {
+        case TAG_LEAF:
+        case TAG_ENCODED_CBOR:
+          // Leaf envelope
+          return Envelope.newLeaf(item);
+        case TAG_ENVELOPE: {
+          // Wrapped envelope
+          const envelope = Envelope.fromUntaggedCbor(item);
+          return Envelope.newWrapped(envelope);
+        }
+        case TAG_COMPRESSED: {
+          // Compressed envelope: array with [compressed_data, optional_digest]
+          const arr = asCborArray(item);
+          if (!arr || arr.length < 1 || arr.length > 2) {
+            throw EnvelopeError.cbor('compressed envelope must have 1 or 2 elements');
+          }
+          const compressedData = asByteString(arr.get(0));
+          if (!compressedData) {
+            throw EnvelopeError.cbor('compressed data must be byte string');
+          }
+          const digest = arr.length === 2 ? new Digest(asByteString(arr.get(1))!) : undefined;
+
+          // Import Compressed class at runtime to avoid circular dependency
+          const { Compressed } = require('../extension/compress');
+          const compressed = new Compressed(compressedData, digest);
+          return Envelope.fromCase({ type: 'compressed', value: compressed });
+        }
+        case TAG_ENCRYPTED: {
+          // Encrypted envelope: array with [ciphertext, nonce, optional_digest]
+          const arr = asCborArray(item);
+          if (!arr || arr.length < 2 || arr.length > 3) {
+            throw EnvelopeError.cbor('encrypted envelope must have 2 or 3 elements');
+          }
+          const ciphertext = asByteString(arr.get(0));
+          const nonce = asByteString(arr.get(1));
+          if (!ciphertext || !nonce) {
+            throw EnvelopeError.cbor('ciphertext and nonce must be byte strings');
+          }
+          const digest = arr.length === 3 ? new Digest(asByteString(arr.get(2))!) : undefined;
+
+          // Import EncryptedMessage class at runtime to avoid circular dependency
+          const { EncryptedMessage } = require('../extension/encrypt');
+          const message = new EncryptedMessage(ciphertext, nonce, digest);
+          return Envelope.fromCase({ type: 'encrypted', message });
+        }
+        default:
+          throw EnvelopeError.cbor(`unknown envelope tag: ${tag.value}`);
+      }
+    }
+
+    // Check if it's a byte string (elided)
+    const bytes = asByteString(cbor);
+    if (bytes) {
+      if (bytes.length !== 32) {
+        throw EnvelopeError.cbor('elided digest must be 32 bytes');
+      }
+      return Envelope.newElided(new Digest(bytes));
+    }
+
+    // Check if it's an array (node)
+    const array = asCborArray(cbor);
+    if (array) {
+      if (array.length < 2) {
+        throw EnvelopeError.cbor('node must have at least two elements');
+      }
+      const subject = Envelope.fromUntaggedCbor(array.get(0)!);
+      const assertions: Envelope[] = [];
+      for (let i = 1; i < array.length; i++) {
+        assertions.push(Envelope.fromUntaggedCbor(array.get(i)!));
+      }
+      return Envelope.newWithAssertions(subject, assertions);
+    }
+
+    // Check if it's a map (assertion)
+    const map = asCborMap(cbor);
+    if (map) {
+      const assertion = Assertion.fromCborMap(map);
+      return Envelope.newWithAssertion(assertion);
+    }
+
+    // TODO: Handle known values (unsigned integers)
+    // For now, treat as invalid
+    throw EnvelopeError.cbor('invalid envelope format');
+  }
+
+  /// Creates an envelope from tagged CBOR.
+  ///
+  /// @param cbor - The tagged CBOR value (should have TAG_ENVELOPE)
+  /// @returns A new envelope
+  static fromTaggedCbor(cbor: Cbor): Envelope {
+    const { tryExpectedTaggedValue, TAG_ENVELOPE } =
+      require('@leonardocustodio/dcbor');
+
+    try {
+      const untagged = tryExpectedTaggedValue(cbor, TAG_ENVELOPE);
+      return Envelope.fromUntaggedCbor(untagged);
+    } catch (error) {
+      throw EnvelopeError.cbor(
+        `expected TAG_ENVELOPE (${TAG_ENVELOPE})`,
+        error instanceof Error ? error : undefined
+      );
+    }
+  }
+
+  /// Adds an assertion to this envelope.
+  ///
+  /// @param predicate - The assertion predicate
+  /// @param object - The assertion object
+  /// @returns A new envelope with the assertion added
+  ///
+  /// @example
+  /// ```typescript
+  /// const person = Envelope.new("Alice")
+  ///     .addAssertion("age", 30)
+  ///     .addAssertion("city", "Boston");
+  /// ```
+  addAssertion(
+    predicate: EnvelopeEncodableValue,
+    object: EnvelopeEncodableValue
+  ): Envelope {
+    const assertion = Envelope.newAssertion(predicate, object);
+    return this.addAssertionEnvelope(assertion);
+  }
+
+  /// Adds an assertion envelope to this envelope.
+  ///
+  /// @param assertion - The assertion envelope
+  /// @returns A new envelope with the assertion added
+  addAssertionEnvelope(assertion: Envelope): Envelope {
+    const c = this.#case;
+
+    // If this is already a node, add to existing assertions
+    if (c.type === 'node') {
+      return Envelope.newWithAssertions(c.subject, [...c.assertions, assertion]);
+    }
+
+    // Otherwise, create a new node with this envelope as subject
+    return Envelope.newWithAssertions(this, [assertion]);
+  }
+
+  /// Creates a string representation of this envelope.
+  ///
+  /// @returns A string representation
+  toString(): string {
+    return `Envelope(${this.#case.type})`;
+  }
+
+  /// Creates a shallow copy of this envelope.
+  ///
+  /// Since envelopes are immutable, this returns the same instance.
+  ///
+  /// @returns This envelope
+  clone(): Envelope {
+    return this;
+  }
+}

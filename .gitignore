@@ -1,0 +1,51 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+.DS_Store
+dist
+dist-ssr
+coverage
+*.local
+
+# Lock files (use bun.lockb only)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lock
+
+# Turbo
+.turbo
+
+# Nuxt
+**/.nuxt
+**/.output
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Deployment
+.wrangler
+.data
+
+# Tests
+*.tsbuildinfo
+test-results/
+playwright-report/
+
+# Variables
+.env
+.env.**
