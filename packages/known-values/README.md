@@ -26,19 +26,19 @@ A Known Value is represented as a 64-bit unsigned integer with an optional human
 ## Installation
 
 ```bash
-npm install @blockchain-commons/known-values
+npm install @leonardocustodio/blockchain-commons/known-values
 ```
 
 Or with yarn:
 
 ```bash
-yarn add @blockchain-commons/known-values
+yarn add @leonardocustodio/blockchain-commons/known-values
 ```
 
 Or with bun:
 
 ```bash
-bun add @blockchain-commons/known-values
+bun add @leonardocustodio/blockchain-commons/known-values
 ```
 
 ## Quick Start
@@ -46,7 +46,7 @@ bun add @blockchain-commons/known-values
 ### Using Predefined Known Values
 
 ```typescript
-import { IS_A, NOTE, SIGNED, ID } from '@blockchain-commons/known-values';
+import { IS_A, NOTE, SIGNED, ID } from '@leonardocustodio/blockchain-commons/known-values';
 
 console.log(IS_A.value());     // 1
 console.log(IS_A.name());      // "isA"
@@ -61,7 +61,7 @@ console.log(SIGNED.name());    // "signed"
 ### Creating Custom Known Values
 
 ```typescript
-import { KnownValue } from '@blockchain-commons/known-values';
+import { KnownValue } from '@leonardocustodio/blockchain-commons/known-values';
 
 // Create a known value with just a numeric value
 const customValue = new KnownValue(100);
@@ -75,7 +75,7 @@ console.log(namedValue.name()); // "myCustomConcept"
 ### Using the Store
 
 ```typescript
-import { KnownValuesStore, IS_A, NOTE, SIGNED } from '@blockchain-commons/known-values';
+import { KnownValuesStore, IS_A, NOTE, SIGNED } from '@leonardocustodio/blockchain-commons/known-values';
 
 // Create a store with known values
 const store = new KnownValuesStore([IS_A, NOTE, SIGNED]);
@@ -95,7 +95,7 @@ console.log(unknown.name()); // "999" (unnamed)
 ### Accessing the Global Registry
 
 ```typescript
-import { KNOWN_VALUES } from '@blockchain-commons/known-values';
+import { KNOWN_VALUES } from '@leonardocustodio/blockchain-commons/known-values';
 
 // Get the global store (lazily initialized on first access)
 const store = KNOWN_VALUES.get();

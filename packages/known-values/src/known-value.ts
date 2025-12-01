@@ -25,7 +25,7 @@
  *
  * @example
  * ```typescript
- * import { KnownValue } from '@blockchain-commons/known-values';
+ * import { KnownValue } from '@leonardocustodio/blockchain-commons/known-values';
  *
  * // Create a Known Value with a numeric value
  * const knownValue = new KnownValue(42);
@@ -37,7 +37,7 @@
  * console.log(namedValue.name()); // "isA"
  *
  * // Use a pre-defined Known Value from the registry
- * import { IS_A } from '@blockchain-commons/known-values';
+ * import { IS_A } from '@leonardocustodio/blockchain-commons/known-values';
  * console.log(IS_A.value()); // 1
  * console.log(IS_A.name()); // "isA"
  * ```
@@ -80,7 +80,7 @@ export class KnownValue {
    *
    * @example
    * ```typescript
-   * import { IS_A, NOTE } from '@blockchain-commons/known-values';
+   * import { IS_A, NOTE } from '@leonardocustodio/blockchain-commons/known-values';
    * console.log(IS_A.value()); // 1
    * console.log(NOTE.value()); // 4
    * ```

@@ -1,5 +1,5 @@
 /**
- * @blockchain-commons/crypto - Cryptographic components library
+ * @leonardocustodio/blockchain-commons/crypto - Cryptographic components library
  * TypeScript implementation of Blockchain Commons' cryptographic components specification
  */
 

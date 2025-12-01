@@ -17,7 +17,7 @@ import { KnownValue } from "./known-value";
  *
  * @example
  * ```typescript
- * import { KnownValuesStore, IS_A, NOTE, SIGNED } from '@blockchain-commons/known-values';
+ * import { KnownValuesStore, IS_A, NOTE, SIGNED } from '@leonardocustodio/blockchain-commons/known-values';
  *
  * // Create a store with predefined Known Values
  * const store = new KnownValuesStore([IS_A, NOTE, SIGNED]);
@@ -51,7 +51,7 @@ export class KnownValuesStore {
    *
    * @example
    * ```typescript
-   * import { KnownValuesStore, IS_A, NOTE, SIGNED } from '@blockchain-commons/known-values';
+   * import { KnownValuesStore, IS_A, NOTE, SIGNED } from '@leonardocustodio/blockchain-commons/known-values';
    *
    * // Create a store with predefined Known Values
    * const store = new KnownValuesStore([IS_A, NOTE, SIGNED]);
@@ -81,7 +81,7 @@ export class KnownValuesStore {
    *
    * @example
    * ```typescript
-   * import { KnownValuesStore, KnownValue } from '@blockchain-commons/known-values';
+   * import { KnownValuesStore, KnownValue } from '@leonardocustodio/blockchain-commons/known-values';
    *
    * const store = new KnownValuesStore();
    * store.insert(new KnownValue(100, 'customValue'));
@@ -100,7 +100,7 @@ export class KnownValuesStore {
    *
    * @example
    * ```typescript
-   * import { KnownValuesStore, IS_A } from '@blockchain-commons/known-values';
+   * import { KnownValuesStore, IS_A } from '@leonardocustodio/blockchain-commons/known-values';
    *
    * const store = new KnownValuesStore([IS_A]);
    * console.log(store.assignedName(IS_A)); // "isA"
@@ -123,7 +123,7 @@ export class KnownValuesStore {
    *
    * @example
    * ```typescript
-   * import { KnownValuesStore, IS_A } from '@blockchain-commons/known-values';
+   * import { KnownValuesStore, IS_A } from '@leonardocustodio/blockchain-commons/known-values';
    *
    * const store = new KnownValuesStore([IS_A]);
    * console.log(store.name(IS_A)); // "isA"
@@ -146,7 +146,7 @@ export class KnownValuesStore {
    *
    * @example
    * ```typescript
-   * import { KnownValuesStore, IS_A } from '@blockchain-commons/known-values';
+   * import { KnownValuesStore, IS_A } from '@leonardocustodio/blockchain-commons/known-values';
    *
    * const store = new KnownValuesStore([IS_A]);
    *
@@ -176,7 +176,7 @@ export class KnownValuesStore {
    *
    * @example
    * ```typescript
-   * import { KnownValuesStore, IS_A } from '@blockchain-commons/known-values';
+   * import { KnownValuesStore, IS_A } from '@leonardocustodio/blockchain-commons/known-values';
    *
    * const store = new KnownValuesStore([IS_A]);
    *
@@ -217,7 +217,7 @@ export class KnownValuesStore {
    *
    * @example
    * ```typescript
-   * import { KnownValuesStore, IS_A } from '@blockchain-commons/known-values';
+   * import { KnownValuesStore, IS_A } from '@leonardocustodio/blockchain-commons/known-values';
    *
    * const store = new KnownValuesStore([IS_A]);
    *
@@ -251,7 +251,7 @@ export class KnownValuesStore {
    *
    * @example
    * ```typescript
-   * import { KnownValuesStore, IS_A } from '@blockchain-commons/known-values';
+   * import { KnownValuesStore, IS_A } from '@leonardocustodio/blockchain-commons/known-values';
    *
    * const store = new KnownValuesStore([IS_A]);
    *

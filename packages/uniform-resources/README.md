@@ -1,4 +1,4 @@
-# @blockchain-commons/uniform-resources
+# @leonardocustodio/blockchain-commons/uniform-resources
 
 A TypeScript implementation of Blockchain Commons' Uniform Resources (URs) specification.
 
@@ -17,13 +17,13 @@ URs are URI-encoded CBOR objects designed for efficient transmission and storage
 ## Installation
 
 ```bash
-npm install @blockchain-commons/uniform-resources
+npm install @leonardocustodio/blockchain-commons/uniform-resources
 ```
 
 Or with bun:
 
 ```bash
-bun add @blockchain-commons/uniform-resources
+bun add @leonardocustodio/blockchain-commons/uniform-resources
 ```
 
 ## Quick Start
@@ -31,8 +31,8 @@ bun add @blockchain-commons/uniform-resources
 ### Basic Usage
 
 ```typescript
-import { UR } from '@blockchain-commons/uniform-resources';
-import { cbor } from '@blockchain-commons/dcbor';
+import { UR } from '@leonardocustodio/blockchain-commons/uniform-resources';
+import { cbor } from '@leonardocustodio/blockchain-commons/dcbor';
 
 // Create a UR
 const cborData = cbor(42);
@@ -54,7 +54,7 @@ console.log(qrString); // "UR:BYTES/DAVA"
 ### Type Validation
 
 ```typescript
-import { URType, isValidURType } from '@blockchain-commons/uniform-resources';
+import { URType, isValidURType } from '@leonardocustodio/blockchain-commons/uniform-resources';
 
 // Valid UR types contain only lowercase letters, digits, and hyphens
 const type = new URType('bytes'); // OK
@@ -75,7 +75,7 @@ if (isValidURType('my-type')) {
 ### Bytewords Encoding
 
 ```typescript
-import { encodeBytewordsIdentifier, BYTEWORDS_MAP } from '@blockchain-commons/uniform-resources';
+import { encodeBytewordsIdentifier, BYTEWORDS_MAP } from '@leonardocustodio/blockchain-commons/uniform-resources';
 
 // Encode 4 bytes as bytewords
 const data = new Uint8Array([0, 1, 2, 3]);
@@ -90,7 +90,7 @@ console.log(index); // 0
 ### Bytemojis Encoding
 
 ```typescript
-import { encodeBytemojisIdentifier } from '@blockchain-commons/uniform-resources';
+import { encodeBytemojisIdentifier } from '@leonardocustodio/blockchain-commons/uniform-resources';
 
 // Encode 4 bytes as bytemojis
 const data = new Uint8Array([0, 1, 2, 3]);
@@ -101,8 +101,8 @@ console.log(emojis); // "😀 😂 😆 😉"
 ### Custom Type Encoding
 
 ```typescript
-import { UR, UREncodable } from '@blockchain-commons/uniform-resources';
-import { cbor } from '@blockchain-commons/dcbor';
+import { UR, UREncodable } from '@leonardocustodio/blockchain-commons/uniform-resources';
+import { cbor } from '@leonardocustodio/blockchain-commons/dcbor';
 
 class MyData implements UREncodable {
   private value: number;
@@ -128,8 +128,8 @@ console.log(data.urString()); // "ur:mydata/dava"
 ### Custom Type Decoding
 
 ```typescript
-import { UR, URDecodable } from '@blockchain-commons/uniform-resources';
-import { decodeCbor } from '@blockchain-commons/dcbor';
+import { UR, URDecodable } from '@leonardocustodio/blockchain-commons/uniform-resources';
+import { decodeCbor } from '@leonardocustodio/blockchain-commons/dcbor';
 
 class MyData implements URDecodable {
   private value: number;
@@ -259,7 +259,7 @@ This implementation adheres to the following Blockchain Commons specifications:
 
 ## Dependencies
 
-- `@blockchain-commons/dcbor` - Deterministic CBOR encoding
+- `@leonardocustodio/blockchain-commons/dcbor` - Deterministic CBOR encoding
 
 ## Testing
 

@@ -21,7 +21,7 @@ import {
   MultipartEncoder,
   MultipartDecoder,
 } from "../src";
-import { cbor } from "@blockchain-commons/dcbor";
+import { cbor } from "@leonardocustodio/blockchain-commons/dcbor";
 
 describe("URType", () => {
   it("creates a valid UR type with lowercase letters", () => {

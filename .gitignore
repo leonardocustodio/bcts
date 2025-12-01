@@ -80,3 +80,5 @@ hive-mind-prompt-*.txt
 .claude-flow
 .hive-mind
 packages/scaffold
+rust
+run_examples.sh
