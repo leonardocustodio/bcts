@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   build:
-    name: JEST
+    name: Jest
     runs-on: ubuntu-latest
 
     steps:
