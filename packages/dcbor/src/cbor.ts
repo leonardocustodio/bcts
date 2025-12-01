@@ -485,7 +485,7 @@ export const attachMethods = <T extends Omit<Cbor, keyof CborMethods>>(obj: T): 
     },
     toHexAnnotated(this: Cbor, tagsStore?: TagsStore): string {
       // Use lazy import to avoid circular dependency
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, no-undef, @typescript-eslint/no-unsafe-assignment
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, no-undef, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
       const { hexOpt } = require('./dump');
       tagsStore = tagsStore ?? getGlobalTagsStore();
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
@@ -692,7 +692,7 @@ export const attachMethods = <T extends Omit<Cbor, keyof CborMethods>>(obj: T): 
     // Advanced operations
     walk<State>(this: Cbor, initialState: State, visitor: Visitor<State>): State {
       // Use lazy import to avoid circular dependency
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, no-undef, @typescript-eslint/no-unsafe-assignment
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, no-undef, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
       const { walk: walkFn } = require('./walk');
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
       return walkFn(this, initialState, visitor);

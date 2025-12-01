@@ -1,5 +1,5 @@
-import { UR } from './ur';
-import { URError } from './error';
+import type { UR } from './ur.js';
+import { URError } from './error.js';
 
 /**
  * Encodes a UR as multiple parts using fountain codes.
@@ -19,10 +19,10 @@ import { URError } from './error';
  * ```
  */
 export class MultipartEncoder {
-	private _ur: UR;
-	private _maxFragmentLen: number;
-	private _currentIndex: number = 0;
-	private _parts: Map<number, string> = new Map();
+	private readonly _ur: UR;
+	private readonly _maxFragmentLen: number;
+	private _currentIndex = 0;
+	private readonly _parts = new Map<number, string>();
 
 	/**
 	 * Creates a new multipart encoder for the given UR.
@@ -67,7 +67,7 @@ export class MultipartEncoder {
 		}
 
 		const part = this._parts.get(this._currentIndex);
-		if (!part) {
+		if (part === undefined) {
 			throw new URError('Failed to generate part');
 		}
 

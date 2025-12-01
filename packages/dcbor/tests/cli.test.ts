@@ -16,9 +16,9 @@
  */
 
 import { execSync } from 'child_process';
+import type { CborInput } from '../src';
 import {
   cbor,
-  CborInput,
   CborMap,
   decodeCbor
 } from '../src';

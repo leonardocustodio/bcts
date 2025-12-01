@@ -1,5 +1,5 @@
-import { UREncodable } from './ur-encodable';
-import { URDecodable } from './ur-decodable';
+import type { UREncodable } from './ur-encodable.js';
+import type { URDecodable } from './ur-decodable.js';
 
 /**
  * A type that can be both encoded to and decoded from a UR.

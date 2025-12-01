@@ -9,10 +9,9 @@
  * - Summary format
  */
 
+import type { Cbor, CborInput } from '../src';
 import {
   cbor,
-  Cbor,
-  CborInput,
   CborMap,
   summary,
   registerTags,

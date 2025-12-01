@@ -6,7 +6,8 @@
  * All 35 test functions from the Rust version are translated here.
  */
 
-import { cbor, cborData, Cbor, CborInput, toTaggedValue } from '../src/cbor';
+import type { Cbor, CborInput } from '../src/cbor';
+import { cbor, cborData, toTaggedValue } from '../src/cbor';
 import { diagnosticFlat } from '../src/diag';
 import { decodeCbor } from '../src/decode';
 import { hex } from '../src/dump';

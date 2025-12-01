@@ -37,14 +37,12 @@
  *   document structure converted to CBOR
  */
 
+import type { CborInput, WalkElement, EdgeTypeVariant } from '../src';
 import {
   cbor,
-  CborInput,
   CborMap,
-  WalkElement,
   toTaggedValue
 } from '../src';
-import { EdgeTypeVariant } from '../src/walk';
 
 // Helper function to format WalkElement as diagnostic string
 function formatElement(element: WalkElement): string {

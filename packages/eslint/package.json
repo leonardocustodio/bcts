@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "private": true,
-  "main": "./library.js",
+  "main": "./library.mjs",
   "exports": {
-    ".": "./library.js"
+    ".": "./library.mjs"
   },
   "dependencies": {
     "@eslint/js": "^9.39.1",

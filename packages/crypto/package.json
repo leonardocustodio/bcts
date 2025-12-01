@@ -52,7 +52,7 @@
     "@noble/hashes": "^1.7.0",
     "libsodium-wrappers": "^0.7.15",
     "pako": "^2.1.0",
-    "tweetnacl": "^1.6.1"
+    "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

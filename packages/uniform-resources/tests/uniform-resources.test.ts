@@ -1,4 +1,9 @@
 import { describe, it, expect } from '@jest/globals';
+import type {
+  UREncodable,
+  URDecodable,
+  URCodable,
+} from '../src';
 import {
   UR,
   URType,
@@ -14,11 +19,6 @@ import {
   BYTEWORDS,
   BYTEMOJIS,
   BYTEWORDS_MAP,
-  encodeBytewordsIdentifier,
-  encodeBytemojisIdentifier,
-  UREncodable,
-  URDecodable,
-  URCodable,
   isUREncodable,
   isURDecodable,
   isURCodable,
@@ -243,7 +243,7 @@ describe('Trait Interfaces', () => {
   }
 
   class MockDecodable implements URDecodable {
-    fromUR(ur: UR): MockDecodable {
+    fromUR(_ur: UR): MockDecodable {
       return new MockDecodable();
     }
   }
@@ -258,7 +258,7 @@ describe('Trait Interfaces', () => {
       return this.ur().string();
     }
 
-    fromUR(ur: UR): MockCodable {
+    fromUR(_ur: UR): MockCodable {
       return new MockCodable();
     }
   }

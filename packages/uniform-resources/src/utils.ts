@@ -1,4 +1,4 @@
-import { InvalidTypeError } from './error';
+import { InvalidTypeError } from './error.js';
 
 /**
  * Checks if a character is a valid UR type character.
@@ -124,7 +124,7 @@ export function encodeBytewordsIdentifier(data: Uint8Array): string {
 		const byte = data[i];
 		if (byte === undefined) throw new Error('Invalid byte');
 		const word = BYTEWORDS[byte];
-		if (!word) throw new Error('Invalid byteword mapping');
+		if (word === '' || word === undefined) throw new Error('Invalid byteword mapping');
 		words.push(word);
 	}
 	return words.join(' ');
@@ -142,7 +142,7 @@ export function encodeBytemojisIdentifier(data: Uint8Array): string {
 		const byte = data[i];
 		if (byte === undefined) throw new Error('Invalid byte');
 		const emoji = BYTEMOJIS[byte];
-		if (!emoji) throw new Error('Invalid bytemoji mapping');
+		if (emoji === '' || emoji === undefined) throw new Error('Invalid bytemoji mapping');
 		emojis.push(emoji);
 	}
 	return emojis.join(' ');

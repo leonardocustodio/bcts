@@ -1,6 +1,6 @@
-import { InvalidSchemeError, InvalidTypeError, UnexpectedTypeError } from './error';
-import { UR } from './ur';
-import { URType } from './ur-type';
+import { InvalidSchemeError, InvalidTypeError, UnexpectedTypeError } from './error.js';
+import { UR } from './ur.js';
+import { URType } from './ur-type.js';
 
 /**
  * Decodes multiple UR parts back into a single UR.
@@ -22,19 +22,9 @@ import { URType } from './ur-type';
  */
 export class MultipartDecoder {
 	private _urType: URType | null = null;
-	private _receivedParts: Map<number, string> = new Map();
-	private _isComplete: boolean = false;
+	private readonly _receivedParts = new Map<number, string>();
+	private _isComplete = false;
 	private _decodedMessage: UR | null = null;
-
-	/**
-	 * Creates a new multipart decoder.
-	 *
-	 * @example
-	 * ```typescript
-	 * const decoder = new MultipartDecoder();
-	 * ```
-	 */
-	constructor() {}
 
 	/**
 	 * Receives a UR part string.
@@ -48,7 +38,7 @@ export class MultipartDecoder {
 
 		if (this._urType === null) {
 			this._urType = decodedType;
-		} else if (!this._urType.equals(decodedType)) {
+		} else if (this._urType !== null && !this._urType.equals(decodedType)) {
 			throw new UnexpectedTypeError(
 				this._urType.string(),
 				decodedType.string()
@@ -72,7 +62,7 @@ export class MultipartDecoder {
 	 * @returns The decoded UR, or null if not yet complete
 	 */
 	message(): UR | null {
-		if (!this._isComplete || !this._decodedMessage) {
+		if (!this._isComplete || this._decodedMessage === null) {
 			return null;
 		}
 		return this._decodedMessage;
@@ -101,7 +91,7 @@ export class MultipartDecoder {
 		const afterScheme = lowercased.substring(3);
 		const firstComponent = afterScheme.split('/')[0];
 
-		if (!firstComponent) {
+		if (firstComponent === '' || firstComponent === undefined) {
 			throw new InvalidTypeError();
 		}
 

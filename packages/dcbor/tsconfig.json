@@ -1,11 +1,9 @@
 {
-  "extends": "@blockchain-commons/tsconfig/library.json",
-  "compilerOptions": {
-    /* dcbor specifics */
-    "lib": ["ES2022", "DOM"]  /* Include DOM for browser compatibility */
-  },
+  "extends": "../../packages/tsconfig/library.json",
+  "compilerOptions": {},
   "include": [
     "src/**/*.ts",
-    "types/**/*.d.ts"
+    "types/**/*.d.ts",
+    "tests/**/*.ts"
   ]
 }

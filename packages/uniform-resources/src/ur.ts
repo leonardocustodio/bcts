@@ -1,12 +1,12 @@
-import { Cbor, decodeCbor } from '@blockchain-commons/dcbor';
+import type { Cbor } from '@blockchain-commons/dcbor';
+import { decodeCbor } from '@blockchain-commons/dcbor';
 import {
 	InvalidSchemeError,
 	TypeUnspecifiedError,
-	NotSinglePartError,
 	UnexpectedTypeError,
 	URError,
-} from './error';
-import { URType } from './ur-type';
+} from './error.js';
+import { URType } from './ur-type.js';
 
 /**
  * A Uniform Resource (UR) is a URI-encoded CBOR object.
@@ -32,8 +32,8 @@ import { URType } from './ur-type';
  * ```
  */
 export class UR {
-	private _urType: URType;
-	private _cbor: Cbor;
+	private readonly _urType: URType;
+	private readonly _cbor: Cbor;
 
 	/**
 	 * Creates a new UR from the provided type and CBOR data.
@@ -69,7 +69,7 @@ export class UR {
 	static fromURString(urString: string): UR {
 		// Decode the UR string to get the type and CBOR data
 		const decodedUR = URStringDecoder.decode(urString);
-		if (!decodedUR) {
+		if (decodedUR === null || decodedUR === undefined) {
 			throw new URError('Failed to decode UR string');
 		}
 		const { urType, cbor } = decodedUR;
@@ -127,7 +127,13 @@ export class UR {
 	 * Returns the QR data as bytes (uppercase UR string as UTF-8).
 	 */
 	qrData(): Uint8Array {
-		return new TextEncoder().encode(this.qrString());
+		// Use a helper to convert string to bytes across platforms
+		const str = this.qrString();
+		const bytes = new Uint8Array(str.length);
+		for (let i = 0; i < str.length; i++) {
+			bytes[i] = str.charCodeAt(i);
+		}
+		return bytes;
 	}
 
 	/**
@@ -196,12 +202,12 @@ class URStringDecoder {
 		// Split into type and data
 		const [urType, ...dataParts] = afterScheme.split('/');
 
-		if (!urType) {
+		if (urType === '' || urType === undefined) {
 			throw new TypeUnspecifiedError();
 		}
 
 		const data = dataParts.join('/');
-		if (!data) {
+		if (data === '' || data === undefined) {
 			throw new TypeUnspecifiedError();
 		}
 
@@ -211,7 +217,8 @@ class URStringDecoder {
 			const cbor = decodeCbor(cborData);
 			return { urType, cbor };
 		} catch (error) {
-			throw new URError(`Failed to decode UR: ${error}`);
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			throw new URError(`Failed to decode UR: ${errorMessage}`);
 		}
 	}
 }
@@ -226,9 +233,7 @@ function base32Encode(data: Uint8Array): string {
 	let bits = 0;
 	let value = 0;
 
-	for (let i = 0; i < data.length; i++) {
-		const byte = data[i];
-		if (byte === undefined) throw new Error('Invalid byte in data');
+	for (const byte of data) {
 		value = (value << 8) | byte;
 		bits += 8;
 

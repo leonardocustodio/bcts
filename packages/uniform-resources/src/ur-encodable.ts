@@ -1,4 +1,4 @@
-import { UR } from './ur';
+import type { UR } from './ur.js';
 
 /**
  * A type that can be encoded to a UR (Uniform Resource).
