@@ -8,8 +8,8 @@
     "lint": "eslint ."
   },
   "devDependencies": {
-    "eslint-config-custom": "workspace:*",
-    "tsconfig": "workspace:*",
+    "@blockchain-commons/eslint": "workspace:*",
+    "@blockchain-commons/tsconfig": "workspace:*",
     "vue": "^3.4.21"
   }
 }

@@ -1,0 +1,53 @@
+{
+  "name": "@blockchain-commons/crypto",
+  "version": "1.0.0-alpha.1",
+  "type": "module",
+  "description": "Scaffold package for TypeScript",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "browser": "dist/index.global.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "browser": "./dist/index.global.js",
+      "default": "./dist/index.mjs"
+    },
+    "./prelude": {
+      "types": "./dist/prelude.d.ts",
+      "import": "./dist/prelude.mjs",
+      "require": "./dist/prelude.cjs",
+      "default": "./dist/prelude.mjs"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch"
+  },
+  "keywords": [],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20.12.7",
+    "@types/pako": "^2.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.47.0",
+    "@typescript-eslint/parser": "^8.47.0",
+    "eslint": "^9.39.1",
+    "jest": "^30.2.0",
+    "prettier": "^3.2.5",
+    "ts-jest": "^29.4.5",
+    "ts-node": "^10.9.2",
+    "tsdown": "^0.16.6",
+    "typescript": "^5.9.3"
+  }
+}
