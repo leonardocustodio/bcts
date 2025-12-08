@@ -119,9 +119,13 @@ function bytesToHex(bytes: Uint8Array): string {
 
 // Convert bytes to UR string
 function bytesToUR(bytes: Uint8Array): string {
-  const cbor = decodeCbor(bytes)
-  const ur = UR.new('dcbor', cbor)
-  return ur.string()
+  try {
+    const cbor = decodeCbor(bytes)
+    const ur = UR.new('dcbor', cbor)
+    return ur.string()
+  } catch (err) {
+    throw new Error('Cannot convert to UR: bytes do not represent valid CBOR data')
+  }
 }
 
 // Convert bytes to bytewords string
