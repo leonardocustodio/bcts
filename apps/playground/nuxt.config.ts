@@ -27,6 +27,12 @@ export default defineNuxtConfig({
           sizes: "180x180",
           href: "/blockchain-commons/apple-touch-icon.png",
         },
+        {
+          rel: "icon",
+          type: "image/png",
+          sizes: "192x192",
+          href: "/blockchain-commons/android-chrome-192x192.png",
+        },
       ],
       meta: [{ name: "theme-color", content: "#1e40af" }],
     },
