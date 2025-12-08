@@ -78,7 +78,11 @@ const examples: NavigationMenuItem[] = [
       <div
         v-if="isOpen"
         class="lg:hidden fixed inset-0 bg-black/50 z-40"
+        role="button"
+        tabindex="0"
+        aria-label="Close sidebar"
         @click="emit('close')"
+        @keydown.escape="emit('close')"
       />
     </Transition>
     <Transition
