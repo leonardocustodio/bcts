@@ -14,6 +14,8 @@
   },
   "dependencies": {
     "@blockchain-commons/dcbor": "workspace:*",
+    "@blockchain-commons/envelope": "workspace:*",
+    "@blockchain-commons/tags": "workspace:*",
     "@blockchain-commons/uniform-resources": "workspace:*",
     "@nuxt/ui": "^4.1.0",
     "@tailwindcss/vite": "^4.1.16",

@@ -1,5 +1,4 @@
 import {
-  Envelope,
   Function,
   Parameter,
   Expression,

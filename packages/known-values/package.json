@@ -1,25 +1,19 @@
 {
   "name": "@blockchain-commons/known-values",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "type": "module",
   "description": "Blockchain Commons Known Values for TypeScript",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.mts",
-  "browser": "dist/index.global.js",
+  "browser": "dist/index.iife.js",
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs",
-      "browser": "./dist/index.global.js",
+      "browser": "./dist/index.iife.js",
       "default": "./dist/index.mjs"
-    },
-    "./prelude": {
-      "types": "./dist/prelude.d.mts",
-      "import": "./dist/prelude.mjs",
-      "require": "./dist/prelude.cjs",
-      "default": "./dist/prelude.mjs"
     }
   },
   "files": [
@@ -32,8 +26,8 @@
     "dev": "tsdown --watch",
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts'",
-    "lint:fix": "eslint 'src/**/*.ts' 'tests/**/*.ts' --fix",
+    "lint": "eslint 'src/**/*.ts'",
+    "lint:fix": "eslint 'src/**/*.ts' --fix",
     "typecheck": "tsc --noEmit",
     "check-types": "tsc --noEmit"
   },
@@ -50,7 +44,8 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@blockchain-commons/dcbor": "workspace:*"
+    "@blockchain-commons/dcbor": "workspace:*",
+    "@blockchain-commons/tags": "workspace:*"
   },
   "devDependencies": {
     "@blockchain-commons/eslint": "workspace:*",

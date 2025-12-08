@@ -1,6 +1,6 @@
-import { Digest, DigestProvider } from "./digest";
+import { Digest, type DigestProvider } from "./digest";
 import { Envelope } from "./envelope";
-import { EnvelopeEncodable } from "./envelope-encodable";
+import { type EnvelopeEncodable } from "./envelope-encodable";
 import { EnvelopeError } from "./error";
 import type { Cbor } from "@blockchain-commons/dcbor";
 import { CborMap } from "@blockchain-commons/dcbor";
@@ -147,9 +147,14 @@ export class Assertion implements DigestProvider {
     }
 
     const entries = Array.from(map.entries());
-    const [predicateCbor, objectCbor] = entries[0]!;
+    const firstEntry = entries[0];
+    if (firstEntry === undefined) {
+      throw EnvelopeError.invalidAssertion();
+    }
+    const [predicateCbor, objectCbor] = firstEntry;
 
     const predicate = Envelope.fromUntaggedCbor(predicateCbor);
+
     const object = Envelope.fromUntaggedCbor(objectCbor);
 
     return new Assertion(predicate, object);
@@ -159,7 +164,7 @@ export class Assertion implements DigestProvider {
   ///
   /// @returns A string representation
   toString(): string {
-    return `Assertion(${this.#predicate}: ${this.#object})`;
+    return `Assertion(${String(this.#predicate)}: ${String(this.#object)})`;
   }
 
   /// Creates a copy of this assertion.

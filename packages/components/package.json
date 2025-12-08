@@ -1,16 +1,18 @@
 {
-  "name": "@blockchain-commons/crypto",
-  "version": "1.0.0-alpha.1",
+  "name": "@blockchain-commons/components",
+  "version": "1.0.0-alpha.2",
   "type": "module",
   "description": "A TypeScript implementation of Blockchain Commons cryptographic components. Supports key generation, signing, verification, encryption, and post-quantum cryptography.",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.mts",
+  "browser": "dist/index.iife.js",
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs",
+      "browser": "./dist/index.iife.js",
       "default": "./dist/index.mjs"
     }
   },

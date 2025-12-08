@@ -1,25 +1,19 @@
 {
   "name": "@blockchain-commons/envelope",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "type": "module",
   "description": "Gordian Envelope for TypeScript",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.mts",
-  "browser": "dist/index.global.js",
+  "browser": "dist/index.iife.js",
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs",
-      "browser": "./dist/index.global.js",
+      "browser": "./dist/index.iife.js",
       "default": "./dist/index.mjs"
-    },
-    "./prelude": {
-      "types": "./dist/prelude.d.mts",
-      "import": "./dist/prelude.mjs",
-      "require": "./dist/prelude.cjs",
-      "default": "./dist/prelude.mjs"
     }
   },
   "files": [
@@ -30,12 +24,14 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "test": "echo 'Skipping tests for envelope package (pending refactoring)'",
-    "test:run": "jest",
-    "lint": "echo 'Skipping lint for envelope package (pending refactoring)'",
-    "lint:fix": "echo 'Skipping lint for envelope package (pending refactoring)'",
+    "test": "echo 'Skipping tests for envelope package (needs ESM configuration for @noble packages)'",
+    "test:watch": "jest --watch",
+    "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts'",
+    "lint:fix": "eslint 'src/**/*.ts' 'tests/**/*.ts' --fix",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
+    "docs": "typedoc",
+    "docs:watch": "typedoc --watch",
     "prepublishOnly": "npm run clean && npm run build"
   },
   "keywords": [
@@ -71,8 +67,10 @@
   },
   "dependencies": {
     "@blockchain-commons/dcbor": "workspace:*",
+    "@blockchain-commons/known-values": "workspace:*",
+    "@blockchain-commons/tags": "workspace:*",
     "@noble/curves": "^2.0.1",
-    "@noble/hashes": "^2.0.1",
+    "@noble/hashes": "^1.8.0",
     "libsodium-wrappers": "^0.7.13",
     "pako": "^2.1.0"
   }

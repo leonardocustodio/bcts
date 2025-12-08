@@ -1,5 +1,5 @@
 import { Envelope } from "../base/envelope";
-import { EdgeType, edgeLabel } from "../base/walk";
+import { type EdgeType, edgeLabel } from "../base/walk";
 
 /// Tree formatting for Gordian Envelopes.
 ///
@@ -88,7 +88,7 @@ Envelope.prototype.shortId = function (this: Envelope, format: "short" | "full" 
 };
 
 /// Implementation of summary()
-Envelope.prototype.summary = function (this: Envelope, maxLength: number = 40): string {
+Envelope.prototype.summary = function (this: Envelope, maxLength = 40): string {
   const c = this.case();
 
   switch (c.type) {
@@ -99,7 +99,7 @@ Envelope.prototype.summary = function (this: Envelope, maxLength: number = 40): 
       try {
         const text = this.asText();
         if (text !== undefined) {
-          const truncated = text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+          const truncated = text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
           return JSON.stringify(truncated);
         }
       } catch {
@@ -121,6 +121,7 @@ Envelope.prototype.summary = function (this: Envelope, maxLength: number = 40): 
       }
 
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         this.extractNull();
         return "null";
       } catch {
@@ -129,7 +130,7 @@ Envelope.prototype.summary = function (this: Envelope, maxLength: number = 40): 
 
       // Fallback: show byte string
       const bytes = this.asByteString();
-      if (bytes && bytes.length <= 16) {
+      if (bytes !== undefined && bytes.length <= 16) {
         const hex = Array.from(bytes)
           .map((b) => b.toString(16).padStart(2, "0"))
           .join("");
@@ -192,7 +193,7 @@ Envelope.prototype.treeFormat = function (this: Envelope, options: TreeFormatOpt
     }
 
     const label = edgeLabel(elem.incomingEdge);
-    if (label) {
+    if (label !== undefined && label !== "") {
       parts.push(label);
     }
 

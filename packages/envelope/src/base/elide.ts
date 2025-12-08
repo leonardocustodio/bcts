@@ -1,4 +1,4 @@
-import { Digest, type DigestProvider } from "./digest";
+import { type Digest, type DigestProvider } from "./digest";
 import { Envelope } from "./envelope";
 import { Assertion } from "./assertion";
 import { EnvelopeError } from "./error";
@@ -348,7 +348,8 @@ Envelope.prototype.nodesMatching = function (
   const visitor = (envelope: Envelope): void => {
     // Check if this node matches the target digests
     const digestMatches =
-      !targetDigests || Array.from(targetDigests).some((d) => d.equals(envelope.digest()));
+      targetDigests === undefined ||
+      Array.from(targetDigests).some((d) => d.equals(envelope.digest()));
 
     if (!digestMatches) {
       return;
@@ -422,7 +423,7 @@ function walkUnelideWithMap(envelope: Envelope, envelopeMap: Map<string, Envelop
   if (c.type === "elided") {
     // Try to find a matching envelope to restore
     const replacement = envelopeMap.get(envelope.digest().hex());
-    return replacement || envelope;
+    return replacement ?? envelope;
   }
 
   if (c.type === "node") {
@@ -431,7 +432,7 @@ function walkUnelideWithMap(envelope: Envelope, envelopeMap: Map<string, Envelop
 
     if (
       newSubject.isIdenticalTo(c.subject) &&
-      newAssertions.every((a, i) => a.isIdenticalTo(c.assertions[i]!))
+      newAssertions.every((a, i) => a.isIdenticalTo(c.assertions[i]))
     ) {
       return envelope;
     }
@@ -483,7 +484,7 @@ Envelope.prototype.walkReplace = function (
 
     if (
       newSubject.isIdenticalTo(c.subject) &&
-      newAssertions.every((a, i) => a.isIdenticalTo(c.assertions[i]!))
+      newAssertions.every((a, i) => a.isIdenticalTo(c.assertions[i]))
     ) {
       return this;
     }

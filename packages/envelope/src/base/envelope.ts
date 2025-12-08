@@ -1,8 +1,29 @@
-import { Digest, DigestProvider } from "./digest";
+import { Digest, type DigestProvider } from "./digest";
 import { Assertion } from "./assertion";
 import { EnvelopeError } from "./error";
-import type { EnvelopeEncodable, EnvelopeEncodableValue } from "./envelope-encodable";
+import type { EnvelopeEncodableValue } from "./envelope-encodable";
+import { KnownValue } from "@blockchain-commons/known-values";
 import type { Cbor } from "@blockchain-commons/dcbor";
+import {
+  cbor,
+  cborData,
+  toTaggedValue,
+  TAG_ENCODED_CBOR,
+  MajorType,
+  asByteString,
+  asCborArray,
+  asCborMap,
+  asTaggedValue,
+  tryExpectedTaggedValue,
+} from "@blockchain-commons/dcbor";
+import { ENVELOPE, LEAF, ENCRYPTED, COMPRESSED } from "@blockchain-commons/tags";
+
+/// Import tag values from the tags registry
+/// These match the Rust reference implementation in bc-tags-rust
+const TAG_ENVELOPE = ENVELOPE.value;
+const TAG_LEAF = LEAF.value;
+const TAG_ENCRYPTED = ENCRYPTED.value;
+const TAG_COMPRESSED = COMPRESSED.value;
 
 /// The core structural variants of a Gordian Envelope.
 ///
@@ -68,9 +89,6 @@ export type EnvelopeCase =
       /// The compressed data
       value: Compressed;
     };
-
-// Placeholder types for features not yet implemented
-type KnownValue = unknown;
 
 // Import types from extension modules (will be available at runtime)
 import type { Compressed } from "../extension/compress";
@@ -293,14 +311,15 @@ export class Envelope implements DigestProvider {
 
   /// Creates an envelope with a known value.
   ///
-  /// @param value - The known value
+  /// @param value - The known value (can be a KnownValue instance or a number/bigint)
   /// @returns A new known value envelope
-  static newWithKnownValue(value: KnownValue): Envelope {
-    // TODO: Calculate digest for known value
-    const digest = Digest.fromImage(new Uint8Array()); // Placeholder
+  static newWithKnownValue(value: KnownValue | number | bigint): Envelope {
+    const knownValue = value instanceof KnownValue ? value : new KnownValue(value);
+    // Calculate digest from CBOR encoding of the known value
+    const digest = Digest.fromImage(knownValue.toCborData());
     return new Envelope({
       type: "knownValue",
-      value,
+      value: knownValue,
       digest,
     });
   }
@@ -399,7 +418,7 @@ export class Envelope implements DigestProvider {
       case "encrypted": {
         // Get digest from encrypted message (AAD)
         const digest = c.message.aadDigest();
-        if (!digest) {
+        if (digest === undefined) {
           throw new Error("Encrypted envelope missing digest");
         }
         return digest;
@@ -407,7 +426,7 @@ export class Envelope implements DigestProvider {
       case "compressed": {
         // Get digest from compressed value
         const digest = c.value.digestOpt();
-        if (!digest) {
+        if (digest === undefined) {
           throw new Error("Compressed envelope missing digest");
         }
         return digest;
@@ -427,7 +446,13 @@ export class Envelope implements DigestProvider {
     switch (c.type) {
       case "node":
         return c.subject;
-      default:
+      case "leaf":
+      case "wrapped":
+      case "assertion":
+      case "elided":
+      case "knownValue":
+      case "encrypted":
+      case "compressed":
         return this;
     }
   }
@@ -457,7 +482,7 @@ export class Envelope implements DigestProvider {
   /// @returns A CBOR representation
   private static valueToCbor(value: unknown): Cbor {
     // Import cbor function at runtime to avoid circular dependencies
-    const { cbor } = require("@blockchain-commons/dcbor");
+
     return cbor(value);
   }
 
@@ -467,7 +492,7 @@ export class Envelope implements DigestProvider {
   /// @returns Byte representation
   private static cborToBytes(cbor: Cbor): Uint8Array {
     // Import cborData function at runtime to avoid circular dependencies
-    const { cborData } = require("@blockchain-commons/dcbor");
+
     return cborData(cbor);
   }
 
@@ -475,13 +500,6 @@ export class Envelope implements DigestProvider {
   ///
   /// @returns The untagged CBOR
   untaggedCbor(): Cbor {
-    const {
-      toTaggedValue,
-      TAG_LEAF,
-      TAG_ENCODED_CBOR,
-      TAG_COMPRESSED,
-    } = require("@blockchain-commons/dcbor");
-
     const c = this.#case;
     switch (c.type) {
       case "node": {
@@ -508,22 +526,22 @@ export class Envelope implements DigestProvider {
         // TODO: Implement known value encoding
         throw new Error("Known value encoding not yet implemented");
       case "encrypted": {
-        // Encrypted is tagged with TAG_ENCRYPTED (201)
+        // Encrypted is tagged with TAG_ENCRYPTED (40002)
         // Contains: [ciphertext, nonce, optional_digest]
         const message = c.message;
         const digest = message.aadDigest();
-        const arr = digest
-          ? [message.ciphertext(), message.nonce(), digest.data()]
-          : [message.ciphertext(), message.nonce()];
-        const { TAG_ENCRYPTED } = require("@blockchain-commons/dcbor");
+        const arr =
+          digest !== undefined
+            ? [message.ciphertext(), message.nonce(), digest.data()]
+            : [message.ciphertext(), message.nonce()];
         return toTaggedValue(TAG_ENCRYPTED, Envelope.valueToCbor(arr));
       }
       case "compressed": {
-        // Compressed is tagged with TAG_COMPRESSED (206)
+        // Compressed is tagged with TAG_COMPRESSED (40003)
         // and contains an array: [compressed_data, optional_digest]
         const digest = c.value.digestOpt();
         const data = c.value.compressedData();
-        const arr = digest ? [data, digest.data()] : [data];
+        const arr = digest !== undefined ? [data, digest.data()] : [data];
         return toTaggedValue(TAG_COMPRESSED, Envelope.valueToCbor(arr));
       }
     }
@@ -535,7 +553,6 @@ export class Envelope implements DigestProvider {
   ///
   /// @returns The tagged CBOR
   taggedCbor(): Cbor {
-    const { toTaggedValue, TAG_ENVELOPE } = require("@blockchain-commons/dcbor");
     return toTaggedValue(TAG_ENVELOPE, this.untaggedCbor());
   }
 
@@ -544,21 +561,9 @@ export class Envelope implements DigestProvider {
   /// @param cbor - The untagged CBOR value
   /// @returns A new envelope
   static fromUntaggedCbor(cbor: Cbor): Envelope {
-    const {
-      asTaggedValue,
-      asByteString,
-      asCborArray,
-      asCborMap,
-      TAG_LEAF,
-      TAG_ENCODED_CBOR,
-      TAG_ENVELOPE,
-      TAG_COMPRESSED,
-      TAG_ENCRYPTED,
-    } = require("@blockchain-commons/dcbor");
-
     // Check if it's a tagged value
     const tagged = asTaggedValue(cbor);
-    if (tagged) {
+    if (tagged !== undefined) {
       const [tag, item] = tagged;
       switch (tag.value) {
         case TAG_LEAF:
@@ -573,35 +578,43 @@ export class Envelope implements DigestProvider {
         case TAG_COMPRESSED: {
           // Compressed envelope: array with [compressed_data, optional_digest]
           const arr = asCborArray(item);
-          if (!arr || arr.length < 1 || arr.length > 2) {
+          if (arr === undefined || arr.length < 1 || arr.length > 2) {
             throw EnvelopeError.cbor("compressed envelope must have 1 or 2 elements");
           }
           const compressedData = asByteString(arr.get(0));
-          if (!compressedData) {
+          if (compressedData === undefined) {
             throw EnvelopeError.cbor("compressed data must be byte string");
           }
-          const digest = arr.length === 2 ? new Digest(asByteString(arr.get(1))!) : undefined;
+          const digestBytes = arr.length === 2 ? asByteString(arr.get(1)) : undefined;
+          if (arr.length === 2 && digestBytes === undefined) {
+            throw EnvelopeError.cbor("digest must be byte string");
+          }
+          const digest = digestBytes !== undefined ? new Digest(digestBytes) : undefined;
 
           // Import Compressed class at runtime to avoid circular dependency
-          const { Compressed } = require("../extension/compress");
+
           const compressed = new Compressed(compressedData, digest);
           return Envelope.fromCase({ type: "compressed", value: compressed });
         }
         case TAG_ENCRYPTED: {
           // Encrypted envelope: array with [ciphertext, nonce, optional_digest]
           const arr = asCborArray(item);
-          if (!arr || arr.length < 2 || arr.length > 3) {
+          if (arr === undefined || arr.length < 2 || arr.length > 3) {
             throw EnvelopeError.cbor("encrypted envelope must have 2 or 3 elements");
           }
           const ciphertext = asByteString(arr.get(0));
           const nonce = asByteString(arr.get(1));
-          if (!ciphertext || !nonce) {
+          if (ciphertext === undefined || nonce === undefined) {
             throw EnvelopeError.cbor("ciphertext and nonce must be byte strings");
           }
-          const digest = arr.length === 3 ? new Digest(asByteString(arr.get(2))!) : undefined;
+          const digestBytes = arr.length === 3 ? asByteString(arr.get(2)) : undefined;
+          if (arr.length === 3 && digestBytes === undefined) {
+            throw EnvelopeError.cbor("digest must be byte string");
+          }
+          const digest = digestBytes !== undefined ? new Digest(digestBytes) : undefined;
 
           // Import EncryptedMessage class at runtime to avoid circular dependency
-          const { EncryptedMessage } = require("../extension/encrypt");
+
           const message = new EncryptedMessage(ciphertext, nonce, digest);
           return Envelope.fromCase({ type: "encrypted", message });
         }
@@ -612,7 +625,7 @@ export class Envelope implements DigestProvider {
 
     // Check if it's a byte string (elided)
     const bytes = asByteString(cbor);
-    if (bytes) {
+    if (bytes !== undefined) {
       if (bytes.length !== 32) {
         throw EnvelopeError.cbor("elided digest must be 32 bytes");
       }
@@ -621,27 +634,39 @@ export class Envelope implements DigestProvider {
 
     // Check if it's an array (node)
     const array = asCborArray(cbor);
-    if (array) {
+    if (array !== undefined) {
       if (array.length < 2) {
         throw EnvelopeError.cbor("node must have at least two elements");
       }
-      const subject = Envelope.fromUntaggedCbor(array.get(0)!);
+      const subjectCbor = array.get(0);
+      if (subjectCbor === undefined) {
+        throw EnvelopeError.cbor("node subject is missing");
+      }
+      const subject = Envelope.fromUntaggedCbor(subjectCbor);
       const assertions: Envelope[] = [];
       for (let i = 1; i < array.length; i++) {
-        assertions.push(Envelope.fromUntaggedCbor(array.get(i)!));
+        const assertionCbor = array.get(i);
+        if (assertionCbor === undefined) {
+          throw EnvelopeError.cbor(`node assertion at index ${i} is missing`);
+        }
+        assertions.push(Envelope.fromUntaggedCbor(assertionCbor));
       }
       return Envelope.newWithAssertions(subject, assertions);
     }
 
     // Check if it's a map (assertion)
     const map = asCborMap(cbor);
-    if (map) {
+    if (map !== undefined) {
       const assertion = Assertion.fromCborMap(map);
       return Envelope.newWithAssertion(assertion);
     }
 
-    // TODO: Handle known values (unsigned integers)
-    // For now, treat as invalid
+    // Handle known values (unsigned integers)
+    if (cbor.type === MajorType.Unsigned) {
+      const knownValue = new KnownValue(cbor.value as number | bigint);
+      return Envelope.newWithKnownValue(knownValue);
+    }
+
     throw EnvelopeError.cbor("invalid envelope format");
   }
 
@@ -650,8 +675,6 @@ export class Envelope implements DigestProvider {
   /// @param cbor - The tagged CBOR value (should have TAG_ENVELOPE)
   /// @returns A new envelope
   static fromTaggedCbor(cbor: Cbor): Envelope {
-    const { tryExpectedTaggedValue, TAG_ENVELOPE } = require("@blockchain-commons/dcbor");
-
     try {
       const untagged = tryExpectedTaggedValue(cbor, TAG_ENVELOPE);
       return Envelope.fromUntaggedCbor(untagged);

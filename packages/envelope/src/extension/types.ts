@@ -1,5 +1,5 @@
 import { Envelope } from "../base/envelope";
-import { EnvelopeEncodableValue } from "../base/envelope-encodable";
+import { type EnvelopeEncodableValue } from "../base/envelope-encodable";
 import { EnvelopeError } from "../base/error";
 
 /// Type system for Gordian Envelopes.
@@ -200,7 +200,7 @@ Envelope.prototype.getType = function (this: Envelope): Envelope {
     throw EnvelopeError.invalidType();
   }
   if (t.length === 1) {
-    return t[0]!;
+    return t[0];
   }
   throw EnvelopeError.ambiguousType();
 };

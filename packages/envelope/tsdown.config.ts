@@ -8,6 +8,5 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   target: "es2022",
-  globalName: "DCBOR",
-  noExternal: ["byte-data", "collections/sorted-map"],
+  globalName: "GordianEnvelope",
 });

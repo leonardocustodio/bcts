@@ -181,7 +181,9 @@ export interface DigestProvider {
 /// const digest = digestFromString("Hello, world!");
 /// ```
 export function digestFromString(text: string): Digest {
-  const encoder = new TextEncoder();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+  const encoder: TextEncoder = new TextEncoder();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   return Digest.fromImage(encoder.encode(text));
 }
 

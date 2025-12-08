@@ -51,6 +51,9 @@ export function edgeLabel(edgeType: EdgeType): string | undefined {
       return "pred";
     case EdgeType.Object:
       return "obj";
+    case EdgeType.None:
+    case EdgeType.Assertion:
+      return undefined;
     default:
       return undefined;
   }
@@ -158,7 +161,11 @@ function walkStructure<State>(
       walkStructure(c.assertion.object(), nextLevel, EdgeType.Object, newState, visit);
       break;
 
-    default:
+    case "leaf":
+    case "elided":
+    case "knownValue":
+    case "encrypted":
+    case "compressed":
       // Leaf nodes and other types have no children
       break;
   }
@@ -221,7 +228,11 @@ function walkTree<State>(
       walkTree(c.assertion.object(), subjectLevel, EdgeType.Object, currentState, visit);
       break;
 
-    default:
+    case "leaf":
+    case "elided":
+    case "knownValue":
+    case "encrypted":
+    case "compressed":
       // Leaf nodes and other types have no children
       break;
   }

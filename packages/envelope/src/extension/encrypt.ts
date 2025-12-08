@@ -1,7 +1,8 @@
 import { Envelope } from "../base/envelope";
 import { EnvelopeError } from "../base/error";
-import { Digest } from "../base/digest";
+import { type Digest } from "../base/digest";
 import sodium from "libsodium-wrappers";
+import { cborData, decodeCbor } from "@blockchain-commons/dcbor";
 
 /// Extension for encrypting and decrypting envelopes using symmetric encryption.
 ///
@@ -93,7 +94,7 @@ export class SymmetricKey {
     await sodium.ready;
 
     const digest = message.aadDigest();
-    if (!digest) {
+    if (digest === undefined) {
       throw EnvelopeError.general("Missing digest in encrypted message");
     }
 
@@ -109,7 +110,7 @@ export class SymmetricKey {
       );
 
       return plaintext;
-    } catch (error) {
+    } catch (_error) {
       throw EnvelopeError.general("Decryption failed: invalid key or corrupted data");
     }
   }
@@ -144,7 +145,7 @@ export class EncryptedMessage {
 
   /// Returns the digest of this encrypted message (the AAD digest)
   digest(): Digest {
-    if (!this.#aadDigest) {
+    if (this.#aadDigest === undefined) {
       throw new Error("Encrypted message missing AAD digest");
     }
     return this.#aadDigest;
@@ -255,7 +256,7 @@ Envelope.prototype.encryptSubject = async function (
     }
 
     // Get the subject's CBOR data
-    const { cborData } = require("@blockchain-commons/dcbor");
+
     const subjectCbor = c.subject.taggedCbor();
     const encodedCbor = cborData(subjectCbor);
     const subjectDigest = c.subject.digest();
@@ -274,7 +275,7 @@ Envelope.prototype.encryptSubject = async function (
   }
 
   // For other cases, encrypt the entire envelope
-  const { cborData } = require("@blockchain-commons/dcbor");
+
   const cbor = this.taggedCbor();
   const encodedCbor = cborData(cbor);
   const digest = this.digest();
@@ -301,7 +302,7 @@ Envelope.prototype.decryptSubject = async function (
   const message = subjectCase.message;
   const subjectDigest = message.aadDigest();
 
-  if (!subjectDigest) {
+  if (subjectDigest === undefined) {
     throw EnvelopeError.general("Missing digest in encrypted message");
   }
 
@@ -309,7 +310,7 @@ Envelope.prototype.decryptSubject = async function (
   const decryptedData = await key.decrypt(message);
 
   // Parse back to envelope
-  const { decodeCbor } = require("@blockchain-commons/dcbor");
+
   const cbor = decodeCbor(decryptedData);
   const resultSubject = Envelope.fromTaggedCbor(cbor);
 

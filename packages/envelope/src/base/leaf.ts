@@ -1,4 +1,5 @@
-import type { Cbor } from "@blockchain-commons/dcbor";
+import type { Cbor, CborMap } from "@blockchain-commons/dcbor";
+import { isNumber, isNaN, asArray, asMap, asText } from "@blockchain-commons/dcbor";
 import { Envelope } from "./envelope";
 
 /// Provides methods for working with envelope leaf nodes,
@@ -72,7 +73,7 @@ declare module "./envelope" {
     /// Returns the leaf CBOR as a map if possible.
     ///
     /// @returns The map value or undefined
-    asMap(): import("@blockchain-commons/dcbor").CborMap | undefined;
+    asMap(): CborMap | undefined;
 
     /// Returns the leaf CBOR as text if possible.
     ///
@@ -130,11 +131,10 @@ Envelope.prototype.isBool = function (this: Envelope): boolean {
 /// Implementation of isNumber()
 Envelope.prototype.isNumber = function (this: Envelope): boolean {
   const leaf = this.asLeaf();
-  if (!leaf) {
+  if (leaf === undefined) {
     return false;
   }
 
-  const { isNumber } = require("@blockchain-commons/dcbor");
   return isNumber(leaf);
 };
 
@@ -146,11 +146,10 @@ Envelope.prototype.isSubjectNumber = function (this: Envelope): boolean {
 /// Implementation of isNaN()
 Envelope.prototype.isNaN = function (this: Envelope): boolean {
   const leaf = this.asLeaf();
-  if (!leaf) {
+  if (leaf === undefined) {
     return false;
   }
 
-  const { isNaN } = require("@blockchain-commons/dcbor");
   return isNaN(leaf);
 };
 
@@ -162,9 +161,10 @@ Envelope.prototype.isSubjectNaN = function (this: Envelope): boolean {
 /// Implementation of isNull()
 Envelope.prototype.isNull = function (this: Envelope): boolean {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     this.extractNull();
     return true;
-  } catch {
+  } catch (_error) {
     return false;
   }
 };
@@ -186,33 +186,30 @@ Envelope.prototype.asByteString = function (this: Envelope): Uint8Array | undefi
 /// Implementation of asArray()
 Envelope.prototype.asArray = function (this: Envelope): Cbor[] | undefined {
   const leaf = this.asLeaf();
-  if (!leaf) {
+  if (leaf === undefined) {
     return undefined;
   }
 
-  const { asArray } = require("@blockchain-commons/dcbor");
   return asArray(leaf);
 };
 
 /// Implementation of asMap()
 Envelope.prototype.asMap = function (this: Envelope) {
   const leaf = this.asLeaf();
-  if (!leaf) {
+  if (leaf === undefined) {
     return undefined;
   }
 
-  const { asMap } = require("@blockchain-commons/dcbor");
   return asMap(leaf);
 };
 
 /// Implementation of asText()
 Envelope.prototype.asText = function (this: Envelope): string | undefined {
   const leaf = this.asLeaf();
-  if (!leaf) {
+  if (leaf === undefined) {
     return undefined;
   }
 
-  const { asText } = require("@blockchain-commons/dcbor");
   return asText(leaf);
 };
 

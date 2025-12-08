@@ -14,7 +14,7 @@
  */
 
 import { Envelope } from "../base/envelope";
-import { Digest } from "../base/digest";
+import { type Digest } from "../base/digest";
 import { EnvelopeError } from "../base/error";
 import type { EnvelopeEncodableValue } from "../base/envelope-encodable";
 
@@ -40,11 +40,12 @@ export const CONFORMS_TO = "conformsTo";
  * to envelopes without modifying their core structure.
  */
 export class Attachments {
-  readonly #envelopes: Map<string, Envelope> = new Map();
+  readonly #envelopes = new Map<string, Envelope>();
 
   /**
    * Creates a new empty attachments container.
    */
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   constructor() {}
 
   /**
@@ -284,7 +285,7 @@ Envelope.prototype.attachmentVendor = function (this: Envelope): string {
   const vendorEnv = obj.objectForPredicate(VENDOR);
   const vendor = vendorEnv.asText();
 
-  if (!vendor) {
+  if (vendor === undefined || vendor === "") {
     throw EnvelopeError.general("Attachment has no vendor");
   }
 
@@ -303,7 +304,7 @@ Envelope.prototype.attachmentConformsTo = function (this: Envelope): string | un
   const obj = c.assertion.object();
   const conformsToEnv = obj.optionalObjectForPredicate(CONFORMS_TO);
 
-  if (!conformsToEnv) {
+  if (conformsToEnv === undefined) {
     return undefined;
   }
 
@@ -348,7 +349,7 @@ Envelope.prototype.attachmentsWithVendorAndConformsTo = function (
       // Check conformsTo if specified
       if (conformsTo !== undefined) {
         const conformsToEnv = attachment.optionalObjectForPredicate(CONFORMS_TO);
-        if (!conformsToEnv) {
+        if (conformsToEnv === undefined) {
           return false;
         }
         const conformsToText = conformsToEnv.asText();

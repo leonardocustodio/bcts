@@ -1,4 +1,5 @@
 import { Envelope } from "../base/envelope";
+import { cborData } from "@blockchain-commons/dcbor";
 
 /// Hex formatting for Gordian Envelopes.
 ///
@@ -48,7 +49,6 @@ Envelope.prototype.hex = function (this: Envelope): string {
 
 /// Implementation of cborBytes()
 Envelope.prototype.cborBytes = function (this: Envelope): Uint8Array {
-  const { cborData } = require("@blockchain-commons/dcbor");
   const cbor = this.taggedCbor();
   return cborData(cbor);
 };

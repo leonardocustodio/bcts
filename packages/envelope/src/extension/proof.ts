@@ -1,5 +1,5 @@
 import { Envelope } from "../base/envelope";
-import { Digest } from "../base/digest";
+import { type Digest } from "../base/digest";
 
 /// Extension for envelope inclusion proofs.
 ///

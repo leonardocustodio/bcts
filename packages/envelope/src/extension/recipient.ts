@@ -1,6 +1,5 @@
-import { Envelope, EnvelopeEncodableValue } from "../base/envelope";
+import { Envelope } from "../base/envelope";
 import { EnvelopeError } from "../base/error";
-import { Digest } from "../base/digest";
 import { SymmetricKey } from "./encrypt";
 import sodium from "libsodium-wrappers";
 
@@ -99,7 +98,7 @@ export class PrivateKeyBase {
   }
 
   /// Creates a private key from existing bytes
-  static async fromBytes(privateKey: Uint8Array, publicKey: Uint8Array): Promise<PrivateKeyBase> {
+  static fromBytes(privateKey: Uint8Array, publicKey: Uint8Array): PrivateKeyBase {
     if (privateKey.length !== 32) {
       throw new Error("Private key must be 32 bytes");
     }
@@ -110,7 +109,7 @@ export class PrivateKeyBase {
   }
 
   /// Creates a private key from hex strings
-  static async fromHex(privateHex: string, publicHex: string): Promise<PrivateKeyBase> {
+  static fromHex(privateHex: string, publicHex: string): PrivateKeyBase {
     const privateBytes = new Uint8Array(32);
     const publicBytes = new Uint8Array(32);
 
@@ -151,7 +150,7 @@ export class PrivateKeyBase {
       );
 
       return SymmetricKey.from(decrypted);
-    } catch (error) {
+    } catch (_error) {
       throw EnvelopeError.general("Failed to unseal message: not a recipient");
     }
   }
@@ -385,7 +384,7 @@ Envelope.prototype.decryptSubjectToRecipient = async function (
   const recipientAssertions = this.assertions().filter((assertion) => {
     try {
       const predicate = assertion.subject().asPredicate();
-      if (!predicate) return false;
+      if (predicate === undefined) return false;
       return predicate.asText() === HAS_RECIPIENT;
     } catch {
       return false;
@@ -402,7 +401,7 @@ Envelope.prototype.decryptSubjectToRecipient = async function (
   for (const assertion of recipientAssertions) {
     try {
       const obj = assertion.subject().asObject();
-      if (!obj) continue;
+      if (obj === undefined) continue;
       const sealedData = obj.asByteString();
       const sealedMessage = new SealedMessage(sealedData);
 
@@ -415,7 +414,7 @@ Envelope.prototype.decryptSubjectToRecipient = async function (
     }
   }
 
-  if (!contentKey) {
+  if (contentKey === null) {
     throw EnvelopeError.general("Not a valid recipient");
   }
 
@@ -445,7 +444,7 @@ Envelope.prototype.recipients = function (this: Envelope): SealedMessage[] {
   const recipientAssertions = this.assertions().filter((assertion) => {
     try {
       const predicate = assertion.subject().asPredicate();
-      if (!predicate) return false;
+      if (predicate === undefined) return false;
       return predicate.asText() === HAS_RECIPIENT;
     } catch {
       return false;
@@ -454,7 +453,7 @@ Envelope.prototype.recipients = function (this: Envelope): SealedMessage[] {
 
   return recipientAssertions.map((assertion) => {
     const obj = assertion.subject().asObject();
-    if (!obj) {
+    if (obj === undefined) {
       throw EnvelopeError.general("Invalid recipient assertion");
     }
     const sealedData = obj.asByteString();

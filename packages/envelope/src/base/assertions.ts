@@ -167,11 +167,7 @@ Envelope.prototype.addAssertionEnvelopes = function (
   this: Envelope,
   assertions: Envelope[],
 ): Envelope {
-  let e = this;
-  for (const assertion of assertions) {
-    e = e.addAssertionEnvelope(assertion);
-  }
-  return e;
+  return assertions.reduce((result, assertion) => result.addAssertionEnvelope(assertion), this);
 };
 
 /// Implementation of addOptionalAssertionEnvelope
@@ -179,7 +175,7 @@ Envelope.prototype.addOptionalAssertionEnvelope = function (
   this: Envelope,
   assertion: Envelope | undefined,
 ): Envelope {
-  if (!assertion) {
+  if (assertion === undefined) {
     return this;
   }
 
@@ -232,11 +228,7 @@ Envelope.prototype.addNonemptyStringAssertion = function (
 
 /// Implementation of addAssertions
 Envelope.prototype.addAssertions = function (this: Envelope, envelopes: Envelope[]): Envelope {
-  let e = this;
-  for (const envelope of envelopes) {
-    e = e.addAssertionEnvelope(envelope);
-  }
-  return e;
+  return envelopes.reduce((result, envelope) => result.addAssertionEnvelope(envelope), this);
 };
 
 /// Implementation of addAssertionIf

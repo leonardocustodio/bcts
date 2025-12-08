@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref, shallowRef, computed, watch } from 'vue'
-import { decodeCbor, hexToBytes, hexOpt, diagnosticOpt, type Cbor } from '@blockchain-commons/dcbor'
+import { decodeCbor, cborData, cbor, hexToBytes, hexOpt, diagnosticOpt, MajorType, type Cbor } from '@blockchain-commons/dcbor'
 import { UR, decodeBytewords, encodeBytewords, BytewordsStyle } from '@blockchain-commons/uniform-resources'
+import { envelopeFromCbor } from '@blockchain-commons/envelope'
+import { ENVELOPE } from '@blockchain-commons/tags'
 
 useHead({
   title: 'dCBOR Playground | Blockchain Commons',
@@ -15,7 +17,7 @@ const inputFormatOptions = [
   { label: 'Auto-detect format', value: 'auto', icon: 'i-heroicons-sparkles' },
   { label: 'Single UR', value: 'ur', icon: 'i-heroicons-qr-code' },
   { label: 'Bytewords', value: 'bytewords', icon: 'i-heroicons-language' },
-  { label: 'Hex (dCBOR)', value: 'hex', icon: 'i-heroicons-code-bracket' },
+  { label: 'Hex', value: 'hex', icon: 'i-heroicons-code-bracket' },
 ]
 
 // State
@@ -25,9 +27,11 @@ const error = ref<string | null>(null)
 const parsedCbor = shallowRef<Cbor | null>(null)
 const annotatedHex = ref<string>('')
 const diagnosticNotation = ref<string>('')
+const envelopeFormat = ref<string>('')
+const isEnvelopeInput = ref<boolean>(false)
 
 // Output view toggle
-type OutputView = 'hex' | 'diagnostic'
+type OutputView = 'hex' | 'diagnostic' | 'envelope'
 const outputView = ref<OutputView>('hex')
 
 // Input panel collapse state
@@ -71,6 +75,33 @@ function parseInput(input: string, format: InputFormat): Uint8Array {
       if (!input.toLowerCase().startsWith('ur:')) {
         throw new Error('UR string must start with "ur:"')
       }
+
+      // Extract UR type and data efficiently without multiple string operations
+      // Format: ur:type/data where type is case-insensitive
+      const afterScheme = input.substring(3) // Remove 'ur:' prefix
+      const firstSlash = afterScheme.indexOf('/')
+
+      if (firstSlash === -1) {
+        throw new Error('Invalid UR format: missing type/data separator')
+      }
+
+      const urType = afterScheme.substring(0, firstSlash).toLowerCase()
+      const data = afterScheme.substring(firstSlash + 1) // Everything after first '/'
+
+      // Special handling for envelope URs to add the implied tag 200
+      if (urType === 'envelope') {
+        // For envelope URs, the bytewords-encoded data does NOT include tag 200
+        // The UR type 'envelope' implies tag 200, so we need to add it
+        // This matches the Rust bc-ur behavior where UR payloads use untagged CBOR
+        // and the tag is implied by the UR type
+        const untaggedBytes = decodeBytewords(data, BytewordsStyle.Minimal)
+        // Decode the untagged CBOR and wrap it with the envelope tag using dcbor
+        const untaggedCbor = decodeCbor(untaggedBytes)
+        const taggedCbor = cbor({ tag: ENVELOPE.value, value: untaggedCbor })
+        return cborData(taggedCbor)
+      }
+
+      // For other UR types, use the standard UR decoding
       const ur = UR.fromURString(input)
       return ur.cbor().toData()
     }
@@ -117,9 +148,43 @@ function bytesToHex(bytes: Uint8Array): string {
     .join('')
 }
 
+// Helper function to check if bytes start with a specific CBOR tag
+function startsWithCborTag(bytes: Uint8Array, tagValue: number): boolean {
+  if (bytes.length < 2) return false
+
+  // CBOR tag encoding for values 24-255: 0xD8 followed by the tag value
+  if (tagValue >= 24 && tagValue < 256) {
+    return bytes[0] === 0xd8 && bytes[1] === tagValue
+  }
+
+  // CBOR tag encoding for values 0-23: 0xC0 | tagValue
+  if (tagValue < 24) {
+    return bytes[0] === (0xc0 | tagValue)
+  }
+
+  // CBOR tag encoding for values 256-65535: 0xD9 followed by two bytes
+  if (tagValue >= 256 && tagValue < 65536) {
+    if (bytes.length < 3) return false
+    return bytes[0] === 0xd9 && bytes[1] === ((tagValue >> 8) & 0xff) && bytes[2] === (tagValue & 0xff)
+  }
+
+  return false
+}
+
 // Convert bytes to UR string
 function bytesToUR(bytes: Uint8Array): string {
   try {
+    // Check if bytes start with envelope tag using the ENVELOPE tag from @blockchain-commons/tags
+    const isEnvelope = startsWithCborTag(bytes, ENVELOPE.value)
+
+    if (isEnvelope) {
+      // For envelopes, strip the tag 200 prefix (d8 c8) since the UR type 'envelope' implies it
+      // This matches the Rust bc-ur behavior where UR payloads use untagged CBOR
+      const untaggedBytes = bytes.slice(2) // Remove the 2-byte tag prefix
+      return 'ur:envelope/' + encodeBytewords(untaggedBytes, BytewordsStyle.Minimal)
+    }
+
+    // For other types, decode CBOR and create a dcbor UR
     const cbor = decodeCbor(bytes)
     const ur = UR.new('dcbor', cbor)
     return ur.string()
@@ -139,6 +204,8 @@ function parseCbor() {
   parsedCbor.value = null
   annotatedHex.value = ''
   diagnosticNotation.value = ''
+  envelopeFormat.value = ''
+  isEnvelopeInput.value = false
 
   const input = hexInput.value.trim()
   if (!input) {
@@ -153,11 +220,39 @@ function parseCbor() {
     const cbor = decodeCbor(cborBytes)
     parsedCbor.value = cbor
 
+    // Check if the CBOR data has an envelope tag (200)
+    // This is more reliable than checking input format since hex can also contain envelopes
+    isEnvelopeInput.value = cbor.type === MajorType.Tagged && cbor.tag === ENVELOPE.value
+
     // Generate annotated hex
     annotatedHex.value = hexOpt(cbor, { annotate: true })
 
     // Generate diagnostic notation
     diagnosticNotation.value = diagnosticOpt(cbor, { flat: false })
+
+    // Generate envelope format if this is an envelope (has tag 200)
+    if (isEnvelopeInput.value) {
+      try {
+        // Re-parse from bytes to ensure we have proper CBOR types (not display-optimized types)
+        const freshCbor = decodeCbor(cborBytes)
+        const envelope = envelopeFromCbor(freshCbor)
+        envelopeFormat.value = envelope.treeFormat()
+      } catch (err) {
+        // Envelope parsing failed - CBOR structure is valid but envelope semantics are not
+        console.error('Failed to parse envelope structure:', err)
+        const errorMsg = err instanceof Error ? err.message : String(err)
+        envelopeFormat.value = [
+          '❌ Envelope Parsing Error',
+          '',
+          errorMsg,
+          '',
+          '⚠️  The CBOR data has the envelope tag (200) but does not conform to the Gordian Envelope specification.',
+          '',
+          '✓ The Annotated Hex and Diagnostic views show the underlying CBOR structure correctly.',
+          '✓ Use those views to inspect the raw data and identify structural issues.',
+        ].join('\n')
+      }
+    }
   } catch (err) {
     error.value = err instanceof Error ? err.message : String(err)
   }
@@ -366,7 +461,8 @@ onMounted(() => {
             <UTabs
               :items="[
                 { label: 'Annotated Hex', value: 'hex' },
-                { label: 'Diagnostic', value: 'diagnostic' }
+                { label: 'Diagnostic', value: 'diagnostic' },
+                ...(isEnvelopeInput ? [{ label: 'Envelope', value: 'envelope' }] : [])
               ]"
               :model-value="outputView"
               size="xs"
@@ -379,7 +475,8 @@ onMounted(() => {
           <!-- Content -->
           <div v-if="parsedCbor" class="flex-1 min-h-0 min-w-0 overflow-auto p-4">
             <pre v-if="outputView === 'hex'" class="font-mono text-xs whitespace-pre text-gray-800 dark:text-gray-200 max-w-full">{{ annotatedHex }}</pre>
-            <pre v-else class="font-mono text-xs whitespace-pre text-gray-800 dark:text-gray-200 max-w-full">{{ diagnosticNotation }}</pre>
+            <pre v-else-if="outputView === 'diagnostic'" class="font-mono text-xs whitespace-pre text-gray-800 dark:text-gray-200 max-w-full">{{ diagnosticNotation }}</pre>
+            <pre v-else-if="outputView === 'envelope'" class="font-mono text-xs whitespace-pre text-gray-800 dark:text-gray-200 max-w-full">{{ envelopeFormat }}</pre>
           </div>
 
           <!-- Empty State -->

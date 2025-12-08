@@ -1,4 +1,11 @@
 import type { Cbor } from "@blockchain-commons/dcbor";
+import {
+  tryIntoText,
+  tryIntoBool,
+  tryIntoByteString,
+  isNull,
+  decodeCbor,
+} from "@blockchain-commons/dcbor";
 import { Envelope } from "./envelope";
 import { EnvelopeError } from "./error";
 
@@ -18,7 +25,6 @@ import { EnvelopeError } from "./error";
 /// @throws {EnvelopeError} If the envelope is not a leaf or cannot be converted
 export function extractString(envelope: Envelope): string {
   const cbor = envelope.tryLeaf();
-  const { tryIntoText } = require("@blockchain-commons/dcbor");
   try {
     return tryIntoText(cbor);
   } catch (error) {
@@ -41,21 +47,29 @@ export function extractNumber(envelope: Envelope): number {
   if ("type" in cbor) {
     switch (cbor.type) {
       case 0: // MajorType.Unsigned
-        return typeof cbor.value === "bigint" ? Number(cbor.value) : (cbor.value as number);
-      case 1: // MajorType.Negative
+        return typeof cbor.value === "bigint" ? Number(cbor.value) : cbor.value;
+      case 1: {
+        // MajorType.Negative
         // Negative values are stored as magnitude, convert back
-        const magnitude =
-          typeof cbor.value === "bigint" ? Number(cbor.value) : (cbor.value as number);
+        const magnitude = typeof cbor.value === "bigint" ? Number(cbor.value) : cbor.value;
         return -magnitude - 1;
+      }
       case 7: // MajorType.Simple
         if (
           typeof cbor.value === "object" &&
-          cbor.value &&
+          cbor.value !== null &&
           "type" in cbor.value &&
           cbor.value.type === "Float"
         ) {
-          return cbor.value.value as number;
+          return cbor.value.value;
         }
+        break;
+      case 2: // MajorType.ByteString
+      case 3: // MajorType.TextString
+      case 4: // MajorType.Array
+      case 5: // MajorType.Map
+      case 6: // MajorType.Tag
+        // These CBOR types don't represent numbers
         break;
     }
   }
@@ -70,7 +84,6 @@ export function extractNumber(envelope: Envelope): number {
 /// @throws {EnvelopeError} If the envelope is not a leaf or cannot be converted
 export function extractBoolean(envelope: Envelope): boolean {
   const cbor = envelope.tryLeaf();
-  const { tryIntoBool } = require("@blockchain-commons/dcbor");
   try {
     return tryIntoBool(cbor);
   } catch (error) {
@@ -88,7 +101,6 @@ export function extractBoolean(envelope: Envelope): boolean {
 /// @throws {EnvelopeError} If the envelope is not a leaf or cannot be converted
 export function extractBytes(envelope: Envelope): Uint8Array {
   const cbor = envelope.tryLeaf();
-  const { tryIntoByteString } = require("@blockchain-commons/dcbor");
   try {
     return tryIntoByteString(cbor);
   } catch (error) {
@@ -105,7 +117,6 @@ export function extractBytes(envelope: Envelope): Uint8Array {
 /// @throws {EnvelopeError} If the envelope is not a leaf containing null
 export function extractNull(envelope: Envelope): null {
   const cbor = envelope.tryLeaf();
-  const { isNull } = require("@blockchain-commons/dcbor");
   if (isNull(cbor)) {
     return null;
   }
@@ -174,7 +185,6 @@ export class EnvelopeDecoder {
   /// @throws {EnvelopeError} If the data is not valid CBOR or does not
   ///   represent a valid envelope structure
   static tryFromCborData(data: Uint8Array): Envelope {
-    const { decodeCbor } = require("@blockchain-commons/dcbor");
     try {
       const cbor = decodeCbor(data);
       return EnvelopeDecoder.tryFromCbor(cbor);

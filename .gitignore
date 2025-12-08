@@ -82,3 +82,4 @@ hive-mind-prompt-*.txt
 packages/scaffold
 rust
 run_examples.sh
+research/

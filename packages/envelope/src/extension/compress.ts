@@ -1,7 +1,8 @@
 import { Envelope } from "../base/envelope";
 import { EnvelopeError } from "../base/error";
-import { Digest } from "../base/digest";
+import { type Digest } from "../base/digest";
 import * as pako from "pako";
+import { cborData, decodeCbor } from "@blockchain-commons/dcbor";
 
 /// Extension for compressing and decompressing envelopes.
 ///
@@ -202,7 +203,7 @@ Envelope.prototype.compress = function (this: Envelope): Envelope {
 
   // Compress the entire envelope
   const cbor = this.taggedCbor();
-  const { cborData } = require("@blockchain-commons/dcbor");
+
   const decompressedData = cborData(cbor);
 
   const compressed = Compressed.fromDecompressedData(decompressedData, this.digest());
@@ -219,10 +220,10 @@ Envelope.prototype.decompress = function (this: Envelope): Envelope {
     throw EnvelopeError.general("Envelope is not compressed");
   }
 
-  const compressed = c.value as Compressed;
+  const compressed = c.value;
   const digest = compressed.digestOpt();
 
-  if (!digest) {
+  if (digest === undefined) {
     throw EnvelopeError.general("Missing digest in compressed envelope");
   }
 
@@ -235,7 +236,7 @@ Envelope.prototype.decompress = function (this: Envelope): Envelope {
   const decompressedData = compressed.decompress();
 
   // Parse back to envelope
-  const { decodeCbor } = require("@blockchain-commons/dcbor");
+
   const cbor = decodeCbor(decompressedData);
   const envelope = Envelope.fromTaggedCbor(cbor);
 
