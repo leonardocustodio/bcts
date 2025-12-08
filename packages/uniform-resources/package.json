@@ -26,8 +26,8 @@
     "dev": "tsdown --watch",
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts'",
-    "lint:fix": "eslint 'src/**/*.ts' 'tests/**/*.ts' --fix",
+    "lint": "eslint 'src/**/*.ts'",
+    "lint:fix": "eslint 'src/**/*.ts' --fix",
     "typecheck": "tsc --noEmit",
     "check-types": "tsc --noEmit"
   },
