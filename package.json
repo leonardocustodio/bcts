@@ -25,7 +25,10 @@
     "packages/dcbor",
     "packages/envelope",
     "packages/known-values",
+    "packages/provenance-mark",
     "packages/rand",
+    "packages/shamir",
+    "packages/sskr",
     "packages/tags",
     "packages/uniform-resources",
     "shared/*"

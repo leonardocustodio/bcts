@@ -47,11 +47,15 @@ jobs:
           
           # Create docs directory and copy each package's docs
           mkdir -p public/docs
+          cp -r packages/components/docs public/docs/components
+          cp -r packages/crypto/docs public/docs/crypto
           cp -r packages/dcbor/docs public/docs/dcbor
           cp -r packages/envelope/docs public/docs/envelope
-          cp -r packages/components/docs public/docs/components
           cp -r packages/known-values/docs public/docs/known-values
+          cp -r packages/provenance-mark/docs public/docs/provenance-mark
           cp -r packages/rand/docs public/docs/rand
+          cp -r packages/shamir/docs public/docs/shamir
+          cp -r packages/sskr/docs public/docs/sskr
           cp -r packages/tags/docs public/docs/tags
           cp -r packages/uniform-resources/docs public/docs/uniform-resources
 

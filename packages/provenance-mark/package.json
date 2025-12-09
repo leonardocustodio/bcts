@@ -1,0 +1,72 @@
+{
+  "name": "@blockchain-commons/provenance-mark",
+  "version": "1.0.0-alpha.3",
+  "type": "module",
+  "description": "Blockchain Commons Provenance Mark for TypeScript - A cryptographically-secured system for establishing and verifying the authenticity of works",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.mts",
+  "browser": "dist/index.iife.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "browser": "./dist/index.iife.js",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint 'src/**/*.ts'",
+    "lint:fix": "eslint 'src/**/*.ts' --fix",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "docs": "typedoc",
+    "prepublishOnly": "npm run clean && npm run build && npm test"
+  },
+  "keywords": [
+    "provenance",
+    "authenticity",
+    "cryptography",
+    "blockchain-commons",
+    "deep-fake",
+    "verification"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@blockchain-commons/eslint": "workspace:*",
+    "@blockchain-commons/tsconfig": "workspace:*",
+    "@eslint/js": "^9.39.1",
+    "@types/jest": "^30.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.49.0",
+    "@typescript-eslint/parser": "^8.49.0",
+    "eslint": "^9.39.1",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "tsdown": "^0.17.2",
+    "typedoc": "^0.28.15",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@blockchain-commons/components": "workspace:*",
+    "@blockchain-commons/crypto": "workspace:*",
+    "@blockchain-commons/dcbor": "workspace:*",
+    "@blockchain-commons/rand": "workspace:*",
+    "@blockchain-commons/tags": "workspace:*",
+    "@blockchain-commons/uniform-resources": "workspace:*",
+    "@noble/ciphers": "^1.3.0",
+    "@noble/hashes": "^1.8.0"
+  }
+}

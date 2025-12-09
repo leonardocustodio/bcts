@@ -1,7 +1,7 @@
 // Ported from bc-crypto-rust/src/memzero.rs
 
 /**
- * Securely zero out a Uint8Array.
+ * Securely zero out a typed array.
  *
  * **IMPORTANT: This is a best-effort implementation.** Unlike the Rust reference
  * implementation which uses `std::ptr::write_volatile()` for guaranteed volatile
@@ -16,7 +16,7 @@
  * This function attempts to prevent the compiler from optimizing away
  * the zeroing operation by using a verification check after the zeroing loop.
  */
-export function memzero(data: Uint8Array): void {
+export function memzero(data: Uint8Array | Uint32Array): void {
   const len = data.length;
   for (let i = 0; i < len; i++) {
     data[i] = 0;
