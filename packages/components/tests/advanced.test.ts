@@ -8,7 +8,7 @@
  * - SSKRShareCbor
  */
 
-import { describe, it, expect, beforeAll } from "@jest/globals";
+import { describe, it, expect, beforeAll } from "vitest";
 import { registerTags } from "@blockchain-commons/tags";
 import { Secret, GroupSpec, Spec } from "@blockchain-commons/sskr";
 

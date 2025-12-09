@@ -4,7 +4,7 @@
  * Ported from bc-components-rust/src/nonce.rs
  */
 
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import { Nonce } from "../src/nonce.js";
 
 describe("Nonce", () => {

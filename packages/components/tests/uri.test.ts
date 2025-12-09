@@ -4,7 +4,7 @@
  * Ported from bc-components-rust/src/id/uri.rs
  */
 
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import { URI } from "../src/id/uri.js";
 
 describe("URI", () => {

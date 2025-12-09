@@ -4,7 +4,7 @@
  * Ported from bc-components-rust/src/salt.rs
  */
 
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import { Salt } from "../src/salt.js";
 
 describe("Salt", () => {

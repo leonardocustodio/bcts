@@ -4,7 +4,7 @@
  * Ported from bc-components-rust/src/id/arid.rs
  */
 
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import { ARID } from "../src/id/arid.js";
 
 describe("ARID", () => {

@@ -4,7 +4,7 @@
  * Ported from bc-components-rust/src/symmetric/mod.rs
  */
 
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import { SymmetricKey, AuthenticationTag, EncryptedMessage } from "../src/symmetric/index.js";
 import { Nonce } from "../src/nonce.js";
 

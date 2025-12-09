@@ -4,7 +4,7 @@
  * Ported from bc-components-rust/src/id/uuid.rs
  */
 
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import { UUID } from "../src/id/uuid.js";
 
 describe("UUID", () => {

@@ -4,7 +4,7 @@
  * Ported from bc-components-rust/src/seed.rs
  */
 
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import { Seed } from "../src/seed.js";
 
 describe("Seed", () => {

@@ -5,7 +5,7 @@
  * post-quantum cryptographic implementations.
  */
 
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 
 import {
   // ML-DSA

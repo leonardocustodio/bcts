@@ -4,7 +4,7 @@
  * Ported from bc-components-rust/src/id/xid.rs
  */
 
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import { XID } from "../src/id/xid.js";
 
 describe("XID", () => {

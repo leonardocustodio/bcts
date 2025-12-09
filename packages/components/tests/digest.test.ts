@@ -4,7 +4,7 @@
  * Ported from bc-components-rust/src/digest.rs
  */
 
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import { Digest } from "../src/digest.js";
 import { hexToBytes } from "../src/utils.js";
 

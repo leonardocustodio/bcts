@@ -4,7 +4,7 @@
  * Ported from bc-components-rust/src/encrypted_key/encrypted_key_impl.rs
  */
 
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import {
   HashType,
   hashTypeToString,

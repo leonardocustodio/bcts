@@ -4,7 +4,7 @@
  * Tests for Schnorr signatures over Ristretto25519, used by Polkadot/Substrate.
  */
 
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import {
   Sr25519PrivateKey,
   Sr25519PublicKey,
