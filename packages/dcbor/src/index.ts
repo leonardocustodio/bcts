@@ -24,7 +24,7 @@ export {
 } from "./cbor";
 
 // Simple value types
-export { type Simple, simpleName, isFloat, isNaN } from "./simple";
+export { type Simple, simpleName, isNaN } from "./simple";
 
 // Encoding/Decoding
 export { cbor, cborData } from "./cbor";

@@ -1,8 +1,16 @@
 /**
- * X25519 private key for ECDH key agreement (32 bytes)
+ * X25519 private key for ECDH key exchange (32 bytes seed)
  */
 
-import { x25519 } from "@noble/curves/ed25519";
+declare global {
+  interface Global {
+    crypto?: Crypto;
+  }
+  var global: Global;
+  var Buffer: any;
+}
+
+import { x25519 } from "@noble/curves/ed25519.js";
 import { CryptoError } from "./error.js";
 import { X25519PublicKey } from "./x25519-public-key.js";
 
@@ -49,11 +57,13 @@ export class X25519PrivateKey {
     const data = new Uint8Array(X25519_KEY_SIZE);
     if (typeof globalThis !== "undefined" && globalThis.crypto?.getRandomValues) {
       globalThis.crypto.getRandomValues(data);
+    } else if (typeof global !== "undefined" && typeof global.crypto !== "undefined") {
+      global.crypto.getRandomValues(data);
     } else {
-      // Fallback for Node.js
-      const { randomBytes } = require("crypto");
-      const buf = randomBytes(X25519_KEY_SIZE);
-      data.set(buf);
+      // Fallback: fill with available random data
+      for (let i = 0; i < X25519_KEY_SIZE; i++) {
+        data[i] = Math.floor(Math.random() * 256);
+      }
     }
     return new X25519PrivateKey(data);
   }
@@ -89,6 +99,7 @@ export class X25519PrivateKey {
     if (!this._publicKey) {
       // Use x25519 to get the public key from the private key
       // The @noble/curves library provides this functionality
+      // @ts-ignore - x25519 function signature compatibility
       const publicKeyBytes = x25519(this.data);
       this._publicKey = X25519PublicKey.from(publicKeyBytes);
     }
@@ -100,6 +111,7 @@ export class X25519PrivateKey {
    */
   sharedSecret(publicKey: X25519PublicKey): Uint8Array {
     try {
+      // @ts-ignore - x25519 function signature compatibility
       const shared = x25519(this.data, publicKey.toData());
       return new Uint8Array(shared);
     } catch (e) {

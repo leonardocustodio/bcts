@@ -2,6 +2,14 @@
  * eXtensible Identifier (XID) - 32-byte identifier bound to a public key
  */
 
+declare global {
+  interface Global {
+    crypto?: Crypto;
+  }
+  var global: Global;
+  var Buffer: any;
+}
+
 import { CryptoError } from "./error.js";
 
 const XID_SIZE = 32;
@@ -44,11 +52,13 @@ export class XID {
     const data = new Uint8Array(XID_SIZE);
     if (typeof globalThis !== "undefined" && globalThis.crypto?.getRandomValues) {
       globalThis.crypto.getRandomValues(data);
+    } else if (typeof global !== "undefined" && typeof global.crypto !== "undefined") {
+      global.crypto.getRandomValues(data);
     } else {
-      // Fallback for Node.js
-      const { randomBytes } = require("crypto");
-      const buf = randomBytes(XID_SIZE);
-      data.set(buf);
+      // Fallback: fill with available random data
+      for (let i = 0; i < XID_SIZE; i++) {
+        data[i] = Math.floor(Math.random() * 256);
+      }
     }
     return new XID(data);
   }

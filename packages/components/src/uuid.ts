@@ -2,6 +2,14 @@
  * Universally Unique Identifier (UUID) - 16-byte identifier
  */
 
+declare global {
+  interface Global {
+    crypto?: Crypto;
+  }
+  var global: Global;
+  var Buffer: any;
+}
+
 import { CryptoError } from "./error.js";
 
 const UUID_SIZE = 16;
@@ -57,11 +65,13 @@ export class UUID {
     const data = new Uint8Array(UUID_SIZE);
     if (typeof globalThis !== "undefined" && globalThis.crypto?.getRandomValues) {
       globalThis.crypto.getRandomValues(data);
+    } else if (typeof global !== "undefined" && typeof global.crypto !== "undefined") {
+      global.crypto.getRandomValues(data);
     } else {
-      // Fallback for Node.js
-      const { randomBytes } = require("crypto");
-      const buf = randomBytes(UUID_SIZE);
-      data.set(buf);
+      // Fallback: fill with available random data
+      for (let i = 0; i < UUID_SIZE; i++) {
+        data[i] = Math.floor(Math.random() * 256);
+      }
     }
 
     // Set version to 4 (random)

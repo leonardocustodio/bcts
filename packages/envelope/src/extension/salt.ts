@@ -37,9 +37,9 @@ const DEFAULT_SALT_RANGE = { min: 8, max: 16 };
 /// Generates random bytes using crypto
 function generateRandomBytes(length: number): Uint8Array {
   // Use Web Crypto API available in browsers and Node.js 19+
-  const cryptoObj = globalThis.crypto as
-    | { getRandomValues?: (array: Uint8Array) => Uint8Array }
-    | undefined;
+  const cryptoObj = (
+    globalThis as { crypto?: { getRandomValues?: (array: Uint8Array) => Uint8Array } }
+  ).crypto;
 
   if (cryptoObj?.getRandomValues !== undefined) {
     const array = new Uint8Array(length);
@@ -178,45 +178,52 @@ declare module "../base/envelope" {
 }
 
 /// Implementation of addSalt()
-Envelope.prototype.addSalt = function (this: Envelope): Envelope {
-  const envelopeSize = this.cborBytes().length;
-  const saltSize = calculateProportionalSaltSize(envelopeSize);
-  const saltBytes = generateRandomBytes(saltSize);
-  return this.addAssertion(SALT, saltBytes);
-};
+// eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+if (Envelope?.prototype) {
+  Envelope.prototype.addSalt = function (this: Envelope): Envelope {
+    const envelopeSize = this.cborBytes().length;
+    const saltSize = calculateProportionalSaltSize(envelopeSize);
+    const saltBytes = generateRandomBytes(saltSize);
+    return this.addAssertion(SALT, saltBytes);
+  };
 
-/// Implementation of addSaltWithLength()
-Envelope.prototype.addSaltWithLength = function (this: Envelope, count: number): Envelope {
-  if (count < MIN_SALT_SIZE) {
-    throw EnvelopeError.general(`Salt must be at least ${MIN_SALT_SIZE} bytes, got ${count}`);
-  }
-  const saltBytes = generateRandomBytes(count);
-  return this.addAssertion(SALT, saltBytes);
-};
+  /// Implementation of addSaltWithLength()
+  Envelope.prototype.addSaltWithLength = function (this: Envelope, count: number): Envelope {
+    if (count < MIN_SALT_SIZE) {
+      throw EnvelopeError.general(`Salt must be at least ${MIN_SALT_SIZE} bytes, got ${count}`);
+    }
+    const saltBytes = generateRandomBytes(count);
+    return this.addAssertion(SALT, saltBytes);
+  };
 
-/// Implementation of addSaltBytes()
-Envelope.prototype.addSaltBytes = function (this: Envelope, saltBytes: Uint8Array): Envelope {
-  if (saltBytes.length < MIN_SALT_SIZE) {
-    throw EnvelopeError.general(
-      `Salt must be at least ${MIN_SALT_SIZE} bytes, got ${saltBytes.length}`,
-    );
-  }
-  return this.addAssertion(SALT, saltBytes);
-};
+  /// Implementation of addSaltBytes()
+  Envelope.prototype.addSaltBytes = function (this: Envelope, saltBytes: Uint8Array): Envelope {
+    if (saltBytes.length < MIN_SALT_SIZE) {
+      throw EnvelopeError.general(
+        `Salt must be at least ${MIN_SALT_SIZE} bytes, got ${saltBytes.length}`,
+      );
+    }
+    return this.addAssertion(SALT, saltBytes);
+  };
 
-/// Implementation of addSaltInRange()
-Envelope.prototype.addSaltInRange = function (this: Envelope, min: number, max: number): Envelope {
-  if (min < MIN_SALT_SIZE) {
-    throw EnvelopeError.general(
-      `Minimum salt size must be at least ${MIN_SALT_SIZE} bytes, got ${min}`,
-    );
-  }
-  if (max < min) {
-    throw EnvelopeError.general(
-      `Maximum salt size must be at least minimum, got min=${min} max=${max}`,
-    );
-  }
-  const saltSize = min + Math.floor(Math.random() * (max - min + 1));
-  const saltBytes = generateRandomBytes(saltSize);
-  return this.addAssertion(SALT, saltBytes);
-};
+  /// Implementation of addSaltInRange()
+  Envelope.prototype.addSaltInRange = function (
+    this: Envelope,
+    min: number,
+    max: number,
+  ): Envelope {
+    if (min < MIN_SALT_SIZE) {
+      throw EnvelopeError.general(
+        `Minimum salt size must be at least ${MIN_SALT_SIZE} bytes, got ${min}`,
+      );
+    }
+    if (max < min) {
+      throw EnvelopeError.general(
+        `Maximum salt size must be at least minimum, got min=${min} max=${max}`,
+      );
+    }
+    const saltSize = min + Math.floor(Math.random() * (max - min + 1));
+    const saltBytes = generateRandomBytes(saltSize);
+    return this.addAssertion(SALT, saltBytes);
+  };
+}

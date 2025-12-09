@@ -8,5 +8,11 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   target: "es2022",
-  globalName: "BlockchainCommonsComponents",
+  globalName: "BCComponents",
+  outputOptions: {
+    globals: {
+      "@blockchain-commons/dcbor": "BCDcbor",
+      "@blockchain-commons/uniform-resources": "BCUR",
+    },
+  },
 });

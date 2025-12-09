@@ -2,6 +2,14 @@
  * Uniform Resource Identifier (URI) - String-based identifier
  */
 
+declare global {
+  interface Global {
+    crypto?: Crypto;
+  }
+  var global: Global;
+  var Buffer: any;
+}
+
 import { CryptoError } from "./error.js";
 
 export class URI {

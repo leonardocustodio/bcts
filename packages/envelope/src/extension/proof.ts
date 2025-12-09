@@ -97,38 +97,41 @@ declare module "../base/envelope" {
 }
 
 /// Implementation of proof methods on Envelope prototype
-Envelope.prototype.proofContainsSet = function (target: Set<Digest>): Envelope | undefined {
-  const revealSet = revealSetOfSet(this, target);
+// eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+if (Envelope?.prototype) {
+  Envelope.prototype.proofContainsSet = function (target: Set<Digest>): Envelope | undefined {
+    const revealSet = revealSetOfSet(this, target);
 
-  // Check if all targets can be revealed
-  if (!isSubset(target, revealSet)) {
-    return undefined;
-  }
+    // Check if all targets can be revealed
+    if (!isSubset(target, revealSet)) {
+      return undefined;
+    }
 
-  // Create a proof by revealing only what's necessary, then eliding the targets
-  const revealed = this.elideRevealingSet(revealSet);
-  return revealed.elideRemovingSet(target);
-};
+    // Create a proof by revealing only what's necessary, then eliding the targets
+    const revealed = this.elideRevealingSet(revealSet);
+    return revealed.elideRemovingSet(target);
+  };
 
-Envelope.prototype.proofContainsTarget = function (target: Envelope): Envelope | undefined {
-  const targetSet = new Set<Digest>([target.digest()]);
-  return this.proofContainsSet(targetSet);
-};
+  Envelope.prototype.proofContainsTarget = function (target: Envelope): Envelope | undefined {
+    const targetSet = new Set<Digest>([target.digest()]);
+    return this.proofContainsSet(targetSet);
+  };
 
-Envelope.prototype.confirmContainsSet = function (target: Set<Digest>, proof: Envelope): boolean {
-  // Verify the proof has the same digest as this envelope
-  if (this.digest().hex() !== proof.digest().hex()) {
-    return false;
-  }
+  Envelope.prototype.confirmContainsSet = function (target: Set<Digest>, proof: Envelope): boolean {
+    // Verify the proof has the same digest as this envelope
+    if (this.digest().hex() !== proof.digest().hex()) {
+      return false;
+    }
 
-  // Verify the proof contains all target elements
-  return containsAll(proof, target);
-};
+    // Verify the proof contains all target elements
+    return containsAll(proof, target);
+  };
 
-Envelope.prototype.confirmContainsTarget = function (target: Envelope, proof: Envelope): boolean {
-  const targetSet = new Set<Digest>([target.digest()]);
-  return this.confirmContainsSet(targetSet, proof);
-};
+  Envelope.prototype.confirmContainsTarget = function (target: Envelope, proof: Envelope): boolean {
+    const targetSet = new Set<Digest>([target.digest()]);
+    return this.confirmContainsSet(targetSet, proof);
+  };
+}
 
 /// Internal helper functions
 

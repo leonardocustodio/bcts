@@ -2,6 +2,14 @@
  * SHA-256 cryptographic digest (32 bytes)
  */
 
+declare global {
+  interface Global {
+    crypto?: Crypto;
+  }
+  var global: Global;
+  var Buffer: any;
+}
+
 import { sha256 } from "@noble/hashes/sha256";
 import { CryptoError } from "./error.js";
 

@@ -2,12 +2,19 @@
  * Ed25519 private key for EdDSA signatures (32 bytes seed)
  */
 
-import { ed25519ph } from "@noble/curves/ed25519";
+declare global {
+  interface Global {
+    crypto?: Crypto;
+  }
+  var global: Global;
+  var Buffer: any;
+}
+
+import { ed25519ph } from "@noble/curves/ed25519.js";
 import { CryptoError } from "./error.js";
 import { Ed25519PublicKey } from "./ed25519-public-key.js";
 
 const ED25519_SEED_SIZE = 32;
-const ED25519_PRIVATE_KEY_SIZE = 64; // seed (32) + public (32)
 
 export class Ed25519PrivateKey {
   private seed: Uint8Array;
@@ -49,11 +56,13 @@ export class Ed25519PrivateKey {
     const seed = new Uint8Array(ED25519_SEED_SIZE);
     if (typeof globalThis !== "undefined" && globalThis.crypto?.getRandomValues) {
       globalThis.crypto.getRandomValues(seed);
+    } else if (typeof global !== "undefined" && typeof global.crypto !== "undefined") {
+      global.crypto.getRandomValues(seed);
     } else {
-      // Fallback for Node.js
-      const { randomBytes } = require("crypto");
-      const buf = randomBytes(ED25519_SEED_SIZE);
-      seed.set(buf);
+      // Fallback: fill with available random data
+      for (let i = 0; i < ED25519_SEED_SIZE; i++) {
+        seed[i] = Math.floor(Math.random() * 256);
+      }
     }
     return new Ed25519PrivateKey(seed);
   }

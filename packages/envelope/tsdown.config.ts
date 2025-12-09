@@ -8,5 +8,12 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   target: "es2022",
-  globalName: "GordianEnvelope",
+  globalName: "BCEnvelope",
+  outputOptions: {
+    globals: {
+      "@blockchain-commons/dcbor": "BCDcbor",
+      "@blockchain-commons/known-values": "BCKnownValues",
+      "@blockchain-commons/tags": "BCTags",
+    },
+  },
 });

@@ -4,7 +4,7 @@ import { simpleCborData, isFloat as isSimpleFloat } from "./simple";
 import { hasFractionalPart } from "./float";
 import { encodeVarInt } from "./varint";
 import { concatBytes } from "./stdlib";
-import { bytesToHex } from "./dump";
+import { bytesToHex, hexOpt } from "./dump";
 import { hexToBytes } from "./dump";
 import type { Tag } from "./tag";
 import type { ByteString } from "./byte-string";
@@ -14,6 +14,7 @@ import { decodeCbor } from "./decode";
 import type { TagsStore } from "./tags-store";
 import { getGlobalTagsStore } from "./tags-store";
 import type { Visitor } from "./walk";
+import { walk } from "./walk";
 import { CborError } from "./error";
 
 export type { Simple };
@@ -545,11 +546,7 @@ export const attachMethods = <T extends Omit<Cbor, keyof CborMethods>>(obj: T): 
       return bytesToHex(cborData(this));
     },
     toHexAnnotated(this: Cbor, tagsStore?: TagsStore): string {
-      // Use lazy import to avoid circular dependency
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, no-undef, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-      const { hexOpt } = require("./dump");
       tagsStore = tagsStore ?? getGlobalTagsStore();
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
       return hexOpt(this, { annotate: true, tagsStore });
     },
     toString(this: Cbor): string {
@@ -778,11 +775,7 @@ export const attachMethods = <T extends Omit<Cbor, keyof CborMethods>>(obj: T): 
 
     // Advanced operations
     walk<State>(this: Cbor, initialState: State, visitor: Visitor<State>): State {
-      // Use lazy import to avoid circular dependency
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, no-undef, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-      const { walk: walkFn } = require("./walk");
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
-      return walkFn(this, initialState, visitor);
+      return walk(this, initialState, visitor);
     },
     validateTag(this: Cbor, expectedTags: Tag[]): Tag {
       if (this.type !== MajorType.Tagged) {

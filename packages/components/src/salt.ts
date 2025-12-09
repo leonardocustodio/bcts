@@ -2,6 +2,14 @@
  * Cryptographic salt - variable-length randomization value (minimum 8 bytes)
  */
 
+declare global {
+  interface Global {
+    crypto?: Crypto;
+  }
+  var global: Global;
+  var Buffer: any;
+}
+
 import { CryptoError } from "./error.js";
 
 const MIN_SALT_SIZE = 8;
@@ -44,11 +52,13 @@ export class Salt {
     const data = new Uint8Array(size);
     if (typeof globalThis !== "undefined" && globalThis.crypto?.getRandomValues) {
       globalThis.crypto.getRandomValues(data);
+    } else if (typeof global !== "undefined" && typeof global.crypto !== "undefined") {
+      global.crypto.getRandomValues(data);
     } else {
-      // Fallback for Node.js
-      const { randomBytes } = require("crypto");
-      const buf = randomBytes(size);
-      data.set(buf);
+      // Fallback: fill with available random data
+      for (let i = 0; i < size; i++) {
+        data[i] = Math.floor(Math.random() * 256);
+      }
     }
     return new Salt(data);
   }

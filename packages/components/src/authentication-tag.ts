@@ -2,6 +2,14 @@
  * Authentication tag for AEAD encryption (16 bytes)
  */
 
+declare global {
+  interface Global {
+    crypto?: Crypto;
+  }
+  var global: Global;
+  var Buffer: any;
+}
+
 import { CryptoError } from "./error.js";
 
 const AUTH_TAG_SIZE = 16;

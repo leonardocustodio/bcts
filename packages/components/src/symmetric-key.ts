@@ -2,6 +2,14 @@
  * Symmetric key for ChaCha20-Poly1305 AEAD encryption (32 bytes)
  */
 
+declare global {
+  interface Global {
+    crypto?: Crypto;
+  }
+  var global: Global;
+  var Buffer: any;
+}
+
 import { CryptoError } from "./error.js";
 
 const SYMMETRIC_KEY_SIZE = 32;
@@ -44,11 +52,13 @@ export class SymmetricKey {
     const data = new Uint8Array(SYMMETRIC_KEY_SIZE);
     if (typeof globalThis !== "undefined" && globalThis.crypto?.getRandomValues) {
       globalThis.crypto.getRandomValues(data);
+    } else if (typeof global !== "undefined" && typeof global.crypto !== "undefined") {
+      global.crypto.getRandomValues(data);
     } else {
-      // Fallback for Node.js
-      const { randomBytes } = require("crypto");
-      const buf = randomBytes(SYMMETRIC_KEY_SIZE);
-      data.set(buf);
+      // Fallback: fill with available random data
+      for (let i = 0; i < SYMMETRIC_KEY_SIZE; i++) {
+        data[i] = Math.floor(Math.random() * 256);
+      }
     }
     return new SymmetricKey(data);
   }

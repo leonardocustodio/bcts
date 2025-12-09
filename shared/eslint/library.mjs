@@ -155,7 +155,7 @@ export default function createConfig(tsconfigPath = './tsconfig.json') {
           project,
         },
         globals: {
-          // Vitest globals
+          // Jest globals
           describe: 'readonly',
           test: 'readonly',
           it: 'readonly',
@@ -164,9 +164,6 @@ export default function createConfig(tsconfigPath = './tsconfig.json') {
           afterEach: 'readonly',
           beforeAll: 'readonly',
           afterAll: 'readonly',
-          vi: 'readonly',
-          vitest: 'readonly',
-          // Jest globals
           jest: 'readonly',
           // Common test utilities
           console: 'readonly',

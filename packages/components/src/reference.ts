@@ -5,9 +5,6 @@
 import { Digest } from "./digest.js";
 import { CryptoError } from "./error.js";
 
-// CBOR tag for Reference
-const REFERENCE_TAG = 352;
-
 export type ReferenceEncodingFormat = "hex" | "bytewords" | "bytemojis";
 
 // Bytewords mapping (256 words)

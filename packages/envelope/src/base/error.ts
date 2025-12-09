@@ -70,18 +70,23 @@ export enum ErrorCode {
 
 export class EnvelopeError extends Error {
   readonly code: ErrorCode;
-  readonly cause?: Error;
+  declare readonly cause?: Error;
 
   constructor(code: ErrorCode, message: string, cause?: Error) {
     super(message);
     this.name = "EnvelopeError";
     this.code = code;
-    this.cause = cause;
+    if (cause !== undefined) {
+      this.cause = cause;
+    }
 
     // Maintains proper stack trace for where our error was thrown (only available on V8)
-    if (typeof Error.captureStackTrace === "function") {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-      Error.captureStackTrace(this, EnvelopeError);
+    if ("captureStackTrace" in Error) {
+      (
+        Error as {
+          captureStackTrace(target: object, constructor: typeof EnvelopeError): void;
+        }
+      ).captureStackTrace(this, EnvelopeError);
     }
   }
 
@@ -414,4 +419,3 @@ export type Result<T> = T;
 
 /// Export for backward compatibility
 export type { EnvelopeError as Error };
-export { EnvelopeError };

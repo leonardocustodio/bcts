@@ -184,36 +184,39 @@ declare module "../base/envelope" {
 }
 
 /// Implementation of addType()
-Envelope.prototype.addType = function (this: Envelope, object: EnvelopeEncodableValue): Envelope {
-  return this.addAssertion(IS_A, object);
-};
+// eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+if (Envelope?.prototype) {
+  Envelope.prototype.addType = function (this: Envelope, object: EnvelopeEncodableValue): Envelope {
+    return this.addAssertion(IS_A, object);
+  };
 
-/// Implementation of types()
-Envelope.prototype.types = function (this: Envelope): Envelope[] {
-  return this.objectsForPredicate(IS_A);
-};
+  /// Implementation of types()
+  Envelope.prototype.types = function (this: Envelope): Envelope[] {
+    return this.objectsForPredicate(IS_A);
+  };
 
-/// Implementation of getType()
-Envelope.prototype.getType = function (this: Envelope): Envelope {
-  const t = this.types();
-  if (t.length === 0) {
-    throw EnvelopeError.invalidType();
-  }
-  if (t.length === 1) {
-    return t[0];
-  }
-  throw EnvelopeError.ambiguousType();
-};
+  /// Implementation of getType()
+  Envelope.prototype.getType = function (this: Envelope): Envelope {
+    const t = this.types();
+    if (t.length === 0) {
+      throw EnvelopeError.invalidType();
+    }
+    if (t.length === 1) {
+      return t[0];
+    }
+    throw EnvelopeError.ambiguousType();
+  };
 
-/// Implementation of hasType()
-Envelope.prototype.hasType = function (this: Envelope, t: EnvelopeEncodableValue): boolean {
-  const e = Envelope.new(t);
-  return this.types().some((x) => x.digest().equals(e.digest()));
-};
+  /// Implementation of hasType()
+  Envelope.prototype.hasType = function (this: Envelope, t: EnvelopeEncodableValue): boolean {
+    const e = Envelope.new(t);
+    return this.types().some((x) => x.digest().equals(e.digest()));
+  };
 
-/// Implementation of checkType()
-Envelope.prototype.checkType = function (this: Envelope, t: EnvelopeEncodableValue): void {
-  if (!this.hasType(t)) {
-    throw EnvelopeError.invalidType();
-  }
-};
+  /// Implementation of checkType()
+  Envelope.prototype.checkType = function (this: Envelope, t: EnvelopeEncodableValue): void {
+    if (!this.hasType(t)) {
+      throw EnvelopeError.invalidType();
+    }
+  };
+}

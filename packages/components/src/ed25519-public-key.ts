@@ -1,8 +1,16 @@
 /**
- * Ed25519 public key for EdDSA verification (32 bytes)
+ * Ed25519 public key for EdDSA signature verification (32 bytes)
  */
 
-import { ed25519ph } from "@noble/curves/ed25519";
+declare global {
+  interface Global {
+    crypto?: Crypto;
+  }
+  var global: Global;
+  var Buffer: any;
+}
+
+import { ed25519ph } from "@noble/curves/ed25519.js";
 import { CryptoError } from "./error.js";
 
 const ED25519_PUBLIC_KEY_SIZE = 32;

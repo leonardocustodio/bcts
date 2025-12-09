@@ -36,13 +36,32 @@ jobs:
       - name: Generate static site for Playground
         run: cd apps/playground && bun run generate
 
+      - name: Generate documentation for all packages
+        run: bun run docs
+
+      - name: Organize documentation with playground
+        run: |
+          # Copy playground output to public directory (root)
+          mkdir -p public
+          cp -r apps/playground/.output/public/* public/
+          
+          # Create docs directory and copy each package's docs
+          mkdir -p public/docs
+          cp -r packages/dcbor/docs public/docs/dcbor
+          cp -r packages/envelope/docs public/docs/envelope
+          cp -r packages/components/docs public/docs/components
+          cp -r packages/known-values/docs public/docs/known-values
+          cp -r packages/rand/docs public/docs/rand
+          cp -r packages/tags/docs public/docs/tags
+          cp -r packages/uniform-resources/docs public/docs/uniform-resources
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: ./apps/playground/.output/public
+          path: ./public
 
   deploy:
     environment:

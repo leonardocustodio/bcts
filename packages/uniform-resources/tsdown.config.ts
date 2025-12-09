@@ -8,6 +8,11 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   target: "es2022",
-  globalName: "UR",
+  globalName: "BCUR",
   noExternal: ["@blockchain-commons/dcbor"],
+  outputOptions: {
+    globals: {
+      "@blockchain-commons/dcbor": "BCDcbor",
+    },
+  },
 });

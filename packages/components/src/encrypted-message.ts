@@ -2,6 +2,14 @@
  * Encrypted message with ChaCha20-Poly1305 AEAD (nonce + ciphertext + authentication tag)
  */
 
+declare global {
+  interface Global {
+    crypto?: Crypto;
+  }
+  var global: Global;
+  var Buffer: any;
+}
+
 import { chacha20poly1305 } from "@noble/ciphers/chacha";
 import { CryptoError } from "./error.js";
 import { SymmetricKey } from "./symmetric-key.js";
@@ -52,7 +60,7 @@ export class EncryptedMessage {
         throw new Error("Ciphertext too short");
       }
 
-      const tag = new AuthenticationTag(ciphertext.slice(ciphertext.length - 16));
+      const tag = AuthenticationTag.from(ciphertext.slice(ciphertext.length - 16));
       const actualCiphertext = ciphertext.slice(0, ciphertext.length - 16);
 
       return new EncryptedMessage(nonce, actualCiphertext, tag);

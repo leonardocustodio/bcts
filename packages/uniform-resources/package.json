@@ -29,7 +29,9 @@
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
     "typecheck": "tsc --noEmit",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "docs": "typedoc",
+    "docs:watch": "typedoc --watch"
   },
   "keywords": [
     "uniform-resources",
@@ -59,6 +61,7 @@
     "ts-jest": "^29.4.5",
     "ts-node": "^10.9.2",
     "tsdown": "^0.17.1",
+    "typedoc": "^0.28.15",
     "typescript": "^5.9.3"
   }
 }

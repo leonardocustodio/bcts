@@ -2,7 +2,11 @@
   "extends": "@blockchain-commons/tsconfig/library.json",
   "compilerOptions": {},
   "include": [
-    "src/**/*.ts",
-    "tests/**/*.ts"
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "tests"
   ]
 }

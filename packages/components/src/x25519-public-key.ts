@@ -1,6 +1,14 @@
 /**
- * X25519 public key for ECDH key agreement (32 bytes)
+ * X25519 public key for ECDH key exchange (32 bytes)
  */
+
+declare global {
+  interface Global {
+    crypto?: Crypto;
+  }
+  var global: Global;
+  var Buffer: any;
+}
 
 import { CryptoError } from "./error.js";
 

@@ -2,6 +2,24 @@
  * Apparently Random Identifier (ARID) - 32-byte random identifier
  */
 
+declare global {
+  interface Global {
+    crypto?: Crypto;
+  }
+  var global: Global;
+  var Buffer: any;
+}
+
+interface Buffer {
+  toString(encoding: string): string;
+}
+
+interface BufferConstructor {
+  from(data: Uint8Array | string, encoding?: string): Buffer;
+}
+
+declare var Buffer: BufferConstructor;
+
 import { CryptoError } from "./error.js";
 
 const ARID_SIZE = 32;
@@ -41,11 +59,13 @@ export class ARID {
     const data = new Uint8Array(ARID_SIZE);
     if (typeof globalThis !== "undefined" && globalThis.crypto?.getRandomValues) {
       globalThis.crypto.getRandomValues(data);
+    } else if (typeof global !== "undefined" && typeof global.crypto !== "undefined") {
+      global.crypto.getRandomValues(data);
     } else {
-      // Fallback for Node.js
-      const { randomBytes } = require("crypto");
-      const buf = randomBytes(ARID_SIZE);
-      data.set(buf);
+      // Fallback: fill with available random data
+      for (let i = 0; i < ARID_SIZE; i++) {
+        data[i] = Math.floor(Math.random() * 256);
+      }
     }
     return new ARID(data);
   }
