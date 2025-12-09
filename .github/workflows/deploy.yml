@@ -1,4 +1,4 @@
-name: Deploy Playground to GitHub Pages
+name: Continuous Integration
 
 on:
   push:
@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   build:
+    name: GitHub Pages
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
