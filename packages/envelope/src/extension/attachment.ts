@@ -246,124 +246,124 @@ Envelope.newAttachment = function (
  */
 // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
 if (Envelope?.prototype) {
-Envelope.prototype.addAttachment = function (
-  this: Envelope,
-  payload: EnvelopeEncodableValue,
-  vendor: string,
-  conformsTo?: string,
-): Envelope {
-  let attachmentObj = Envelope.new(payload).wrap().addAssertion(VENDOR, vendor);
+  Envelope.prototype.addAttachment = function (
+    this: Envelope,
+    payload: EnvelopeEncodableValue,
+    vendor: string,
+    conformsTo?: string,
+  ): Envelope {
+    let attachmentObj = Envelope.new(payload).wrap().addAssertion(VENDOR, vendor);
 
-  if (conformsTo !== undefined) {
-    attachmentObj = attachmentObj.addAssertion(CONFORMS_TO, conformsTo);
-  }
-
-  return this.addAssertion(ATTACHMENT, attachmentObj);
-};
-
-/**
- * Returns the payload of an attachment envelope.
- */
-Envelope.prototype.attachmentPayload = function (this: Envelope): Envelope {
-  const c = this.case();
-  if (c.type !== "assertion") {
-    throw EnvelopeError.general("Envelope is not an attachment assertion");
-  }
-
-  const obj = c.assertion.object();
-  return obj.unwrap();
-};
-
-/**
- * Returns the vendor of an attachment envelope.
- */
-Envelope.prototype.attachmentVendor = function (this: Envelope): string {
-  const c = this.case();
-  if (c.type !== "assertion") {
-    throw EnvelopeError.general("Envelope is not an attachment assertion");
-  }
-
-  const obj = c.assertion.object();
-  const vendorEnv = obj.objectForPredicate(VENDOR);
-  const vendor = vendorEnv.asText();
-
-  if (vendor === undefined || vendor === "") {
-    throw EnvelopeError.general("Attachment has no vendor");
-  }
-
-  return vendor;
-};
-
-/**
- * Returns the conformsTo of an attachment envelope.
- */
-Envelope.prototype.attachmentConformsTo = function (this: Envelope): string | undefined {
-  const c = this.case();
-  if (c.type !== "assertion") {
-    throw EnvelopeError.general("Envelope is not an attachment assertion");
-  }
-
-  const obj = c.assertion.object();
-  const conformsToEnv = obj.optionalObjectForPredicate(CONFORMS_TO);
-
-  if (conformsToEnv === undefined) {
-    return undefined;
-  }
-
-  return conformsToEnv.asText();
-};
-
-/**
- * Returns all attachment assertions.
- */
-Envelope.prototype.attachments = function (this: Envelope): Envelope[] {
-  return this.assertionsWithPredicate(ATTACHMENT).map((a) => {
-    const c = a.case();
-    if (c.type === "assertion") {
-      return c.assertion.object();
+    if (conformsTo !== undefined) {
+      attachmentObj = attachmentObj.addAssertion(CONFORMS_TO, conformsTo);
     }
-    throw EnvelopeError.general("Invalid attachment assertion");
-  });
-};
 
-/**
- * Returns attachments matching vendor and/or conformsTo.
- */
-Envelope.prototype.attachmentsWithVendorAndConformsTo = function (
-  this: Envelope,
-  vendor?: string,
-  conformsTo?: string,
-): Envelope[] {
-  const allAttachments = this.attachments();
+    return this.addAssertion(ATTACHMENT, attachmentObj);
+  };
 
-  return allAttachments.filter((attachment) => {
-    try {
-      // The attachment is already a wrapped envelope with vendor/conformsTo assertions
-      // Check vendor if specified
-      if (vendor !== undefined) {
-        const vendorEnv = attachment.objectForPredicate(VENDOR);
-        const attachmentVendor = vendorEnv.asText();
-        if (attachmentVendor !== vendor) {
-          return false;
-        }
-      }
-
-      // Check conformsTo if specified
-      if (conformsTo !== undefined) {
-        const conformsToEnv = attachment.optionalObjectForPredicate(CONFORMS_TO);
-        if (conformsToEnv === undefined) {
-          return false;
-        }
-        const conformsToText = conformsToEnv.asText();
-        if (conformsToText !== conformsTo) {
-          return false;
-        }
-      }
-
-      return true;
-    } catch {
-      return false;
+  /**
+   * Returns the payload of an attachment envelope.
+   */
+  Envelope.prototype.attachmentPayload = function (this: Envelope): Envelope {
+    const c = this.case();
+    if (c.type !== "assertion") {
+      throw EnvelopeError.general("Envelope is not an attachment assertion");
     }
-  });
-};
+
+    const obj = c.assertion.object();
+    return obj.unwrap();
+  };
+
+  /**
+   * Returns the vendor of an attachment envelope.
+   */
+  Envelope.prototype.attachmentVendor = function (this: Envelope): string {
+    const c = this.case();
+    if (c.type !== "assertion") {
+      throw EnvelopeError.general("Envelope is not an attachment assertion");
+    }
+
+    const obj = c.assertion.object();
+    const vendorEnv = obj.objectForPredicate(VENDOR);
+    const vendor = vendorEnv.asText();
+
+    if (vendor === undefined || vendor === "") {
+      throw EnvelopeError.general("Attachment has no vendor");
+    }
+
+    return vendor;
+  };
+
+  /**
+   * Returns the conformsTo of an attachment envelope.
+   */
+  Envelope.prototype.attachmentConformsTo = function (this: Envelope): string | undefined {
+    const c = this.case();
+    if (c.type !== "assertion") {
+      throw EnvelopeError.general("Envelope is not an attachment assertion");
+    }
+
+    const obj = c.assertion.object();
+    const conformsToEnv = obj.optionalObjectForPredicate(CONFORMS_TO);
+
+    if (conformsToEnv === undefined) {
+      return undefined;
+    }
+
+    return conformsToEnv.asText();
+  };
+
+  /**
+   * Returns all attachment assertions.
+   */
+  Envelope.prototype.attachments = function (this: Envelope): Envelope[] {
+    return this.assertionsWithPredicate(ATTACHMENT).map((a) => {
+      const c = a.case();
+      if (c.type === "assertion") {
+        return c.assertion.object();
+      }
+      throw EnvelopeError.general("Invalid attachment assertion");
+    });
+  };
+
+  /**
+   * Returns attachments matching vendor and/or conformsTo.
+   */
+  Envelope.prototype.attachmentsWithVendorAndConformsTo = function (
+    this: Envelope,
+    vendor?: string,
+    conformsTo?: string,
+  ): Envelope[] {
+    const allAttachments = this.attachments();
+
+    return allAttachments.filter((attachment) => {
+      try {
+        // The attachment is already a wrapped envelope with vendor/conformsTo assertions
+        // Check vendor if specified
+        if (vendor !== undefined) {
+          const vendorEnv = attachment.objectForPredicate(VENDOR);
+          const attachmentVendor = vendorEnv.asText();
+          if (attachmentVendor !== vendor) {
+            return false;
+          }
+        }
+
+        // Check conformsTo if specified
+        if (conformsTo !== undefined) {
+          const conformsToEnv = attachment.optionalObjectForPredicate(CONFORMS_TO);
+          if (conformsToEnv === undefined) {
+            return false;
+          }
+          const conformsToText = conformsToEnv.asText();
+          if (conformsToText !== conformsTo) {
+            return false;
+          }
+        }
+
+        return true;
+      } catch {
+        return false;
+      }
+    });
+  };
 }

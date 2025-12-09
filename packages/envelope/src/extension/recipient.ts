@@ -321,151 +321,151 @@ declare module "../base/envelope" {
 /// Implementation of encryptSubjectToRecipient()
 // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
 if (Envelope?.prototype) {
-Envelope.prototype.encryptSubjectToRecipient = async function (
-  this: Envelope,
-  recipientPublicKey: PublicKeyBase,
-): Promise<Envelope> {
-  // Generate a random content key
-  const contentKey = await SymmetricKey.generate();
+  Envelope.prototype.encryptSubjectToRecipient = async function (
+    this: Envelope,
+    recipientPublicKey: PublicKeyBase,
+  ): Promise<Envelope> {
+    // Generate a random content key
+    const contentKey = await SymmetricKey.generate();
 
-  // Encrypt the subject with the content key
-  const encrypted = await this.encryptSubject(contentKey);
+    // Encrypt the subject with the content key
+    const encrypted = await this.encryptSubject(contentKey);
 
-  // Add the recipient
-  return encrypted.addRecipient(recipientPublicKey, contentKey);
-};
+    // Add the recipient
+    return encrypted.addRecipient(recipientPublicKey, contentKey);
+  };
 
-/// Implementation of encryptSubjectToRecipients()
-Envelope.prototype.encryptSubjectToRecipients = async function (
-  this: Envelope,
-  recipients: PublicKeyBase[],
-): Promise<Envelope> {
-  if (recipients.length === 0) {
-    throw EnvelopeError.general("Must provide at least one recipient");
-  }
-
-  // Generate a random content key
-  const contentKey = await SymmetricKey.generate();
-
-  // Encrypt the subject with the content key
-  let result = await this.encryptSubject(contentKey);
-
-  // Add each recipient
-  for (const recipient of recipients) {
-    result = await result.addRecipient(recipient, contentKey);
-  }
-
-  return result;
-};
-
-/// Implementation of addRecipient()
-Envelope.prototype.addRecipient = async function (
-  this: Envelope,
-  recipientPublicKey: PublicKeyBase,
-  contentKey: SymmetricKey,
-): Promise<Envelope> {
-  // Create a sealed message with the content key
-  const sealedMessage = await SealedMessage.seal(contentKey, recipientPublicKey);
-
-  // Store the sealed message as bytes in the assertion
-  return this.addAssertion(HAS_RECIPIENT, sealedMessage.data());
-};
-
-/// Implementation of decryptSubjectToRecipient()
-Envelope.prototype.decryptSubjectToRecipient = async function (
-  this: Envelope,
-  recipientPrivateKey: PrivateKeyBase,
-): Promise<Envelope> {
-  // Check that the subject is encrypted
-  const subjectCase = this.subject().case();
-  if (subjectCase.type !== "encrypted") {
-    throw EnvelopeError.general("Subject is not encrypted");
-  }
-
-  // Get all recipient assertions
-  const recipientAssertions = this.assertions().filter((assertion) => {
-    try {
-      const predicate = assertion.subject().asPredicate();
-      if (predicate === undefined) return false;
-      return predicate.asText() === HAS_RECIPIENT;
-    } catch {
-      return false;
+  /// Implementation of encryptSubjectToRecipients()
+  Envelope.prototype.encryptSubjectToRecipients = async function (
+    this: Envelope,
+    recipients: PublicKeyBase[],
+  ): Promise<Envelope> {
+    if (recipients.length === 0) {
+      throw EnvelopeError.general("Must provide at least one recipient");
     }
-  });
 
-  if (recipientAssertions.length === 0) {
-    throw EnvelopeError.general("No recipients found");
-  }
+    // Generate a random content key
+    const contentKey = await SymmetricKey.generate();
 
-  // Try each recipient assertion until one unseals successfully
-  let contentKey: SymmetricKey | null = null;
+    // Encrypt the subject with the content key
+    let result = await this.encryptSubject(contentKey);
 
-  for (const assertion of recipientAssertions) {
-    try {
+    // Add each recipient
+    for (const recipient of recipients) {
+      result = await result.addRecipient(recipient, contentKey);
+    }
+
+    return result;
+  };
+
+  /// Implementation of addRecipient()
+  Envelope.prototype.addRecipient = async function (
+    this: Envelope,
+    recipientPublicKey: PublicKeyBase,
+    contentKey: SymmetricKey,
+  ): Promise<Envelope> {
+    // Create a sealed message with the content key
+    const sealedMessage = await SealedMessage.seal(contentKey, recipientPublicKey);
+
+    // Store the sealed message as bytes in the assertion
+    return this.addAssertion(HAS_RECIPIENT, sealedMessage.data());
+  };
+
+  /// Implementation of decryptSubjectToRecipient()
+  Envelope.prototype.decryptSubjectToRecipient = async function (
+    this: Envelope,
+    recipientPrivateKey: PrivateKeyBase,
+  ): Promise<Envelope> {
+    // Check that the subject is encrypted
+    const subjectCase = this.subject().case();
+    if (subjectCase.type !== "encrypted") {
+      throw EnvelopeError.general("Subject is not encrypted");
+    }
+
+    // Get all recipient assertions
+    const recipientAssertions = this.assertions().filter((assertion) => {
+      try {
+        const predicate = assertion.subject().asPredicate();
+        if (predicate === undefined) return false;
+        return predicate.asText() === HAS_RECIPIENT;
+      } catch {
+        return false;
+      }
+    });
+
+    if (recipientAssertions.length === 0) {
+      throw EnvelopeError.general("No recipients found");
+    }
+
+    // Try each recipient assertion until one unseals successfully
+    let contentKey: SymmetricKey | null = null;
+
+    for (const assertion of recipientAssertions) {
+      try {
+        const obj = assertion.subject().asObject();
+        if (obj === undefined) continue;
+        const sealedData = obj.asByteString();
+        if (sealedData === undefined) continue;
+        const sealedMessage = new SealedMessage(sealedData);
+
+        // Try to unseal with our private key
+        contentKey = await recipientPrivateKey.unseal(sealedMessage);
+        break; // Success!
+      } catch {
+        // Not for us, try next one
+        continue;
+      }
+    }
+
+    if (contentKey === null) {
+      throw EnvelopeError.general("Not a valid recipient");
+    }
+
+    // Decrypt the subject using the content key
+    return this.decryptSubject(contentKey);
+  };
+
+  /// Implementation of decryptToRecipient()
+  Envelope.prototype.decryptToRecipient = async function (
+    this: Envelope,
+    recipientPrivateKey: PrivateKeyBase,
+  ): Promise<Envelope> {
+    const decrypted = await this.decryptSubjectToRecipient(recipientPrivateKey);
+    return decrypted.unwrap();
+  };
+
+  /// Implementation of encryptToRecipients()
+  Envelope.prototype.encryptToRecipients = async function (
+    this: Envelope,
+    recipients: PublicKeyBase[],
+  ): Promise<Envelope> {
+    return this.wrap().encryptSubjectToRecipients(recipients);
+  };
+
+  /// Implementation of recipients()
+  Envelope.prototype.recipients = function (this: Envelope): SealedMessage[] {
+    const recipientAssertions = this.assertions().filter((assertion) => {
+      try {
+        const predicate = assertion.subject().asPredicate();
+        if (predicate === undefined) return false;
+        return predicate.asText() === HAS_RECIPIENT;
+      } catch {
+        return false;
+      }
+    });
+
+    return recipientAssertions.map((assertion) => {
       const obj = assertion.subject().asObject();
-      if (obj === undefined) continue;
+      if (obj === undefined) {
+        throw EnvelopeError.general("Invalid recipient assertion");
+      }
       const sealedData = obj.asByteString();
-      if (sealedData === undefined) continue;
-      const sealedMessage = new SealedMessage(sealedData);
-
-      // Try to unseal with our private key
-      contentKey = await recipientPrivateKey.unseal(sealedMessage);
-      break; // Success!
-    } catch {
-      // Not for us, try next one
-      continue;
-    }
-  }
-
-  if (contentKey === null) {
-    throw EnvelopeError.general("Not a valid recipient");
-  }
-
-  // Decrypt the subject using the content key
-  return this.decryptSubject(contentKey);
-};
-
-/// Implementation of decryptToRecipient()
-Envelope.prototype.decryptToRecipient = async function (
-  this: Envelope,
-  recipientPrivateKey: PrivateKeyBase,
-): Promise<Envelope> {
-  const decrypted = await this.decryptSubjectToRecipient(recipientPrivateKey);
-  return decrypted.unwrap();
-};
-
-/// Implementation of encryptToRecipients()
-Envelope.prototype.encryptToRecipients = async function (
-  this: Envelope,
-  recipients: PublicKeyBase[],
-): Promise<Envelope> {
-  return this.wrap().encryptSubjectToRecipients(recipients);
-};
-
-/// Implementation of recipients()
-Envelope.prototype.recipients = function (this: Envelope): SealedMessage[] {
-  const recipientAssertions = this.assertions().filter((assertion) => {
-    try {
-      const predicate = assertion.subject().asPredicate();
-      if (predicate === undefined) return false;
-      return predicate.asText() === HAS_RECIPIENT;
-    } catch {
-      return false;
-    }
-  });
-
-  return recipientAssertions.map((assertion) => {
-    const obj = assertion.subject().asObject();
-    if (obj === undefined) {
-      throw EnvelopeError.general("Invalid recipient assertion");
-    }
-    const sealedData = obj.asByteString();
-    if (sealedData === undefined) {
-      throw EnvelopeError.general("Invalid recipient data");
-    }
-    return new SealedMessage(sealedData);
-  });
-};
+      if (sealedData === undefined) {
+        throw EnvelopeError.general("Invalid recipient data");
+      }
+      return new SealedMessage(sealedData);
+    });
+  };
 }
 
 // Import side-effect to register prototype extensions

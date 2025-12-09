@@ -239,118 +239,124 @@ declare module "../base/envelope" {
 /// Implementation of encryptSubject()
 // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
 if (Envelope?.prototype) {
-Envelope.prototype.encryptSubject = async function (
-  this: Envelope,
-  key: SymmetricKey,
-): Promise<Envelope> {
-  const c = this.case();
+  Envelope.prototype.encryptSubject = async function (
+    this: Envelope,
+    key: SymmetricKey,
+  ): Promise<Envelope> {
+    const c = this.case();
 
-  // Can't encrypt if already encrypted or elided
-  if (c.type === "encrypted") {
-    throw EnvelopeError.general("Envelope is already encrypted");
-  }
-  if (c.type === "elided") {
-    throw EnvelopeError.general("Cannot encrypt elided envelope");
-  }
-
-  // For node case, encrypt just the subject
-  if (c.type === "node") {
-    if (c.subject.isEncrypted()) {
-      throw EnvelopeError.general("Subject is already encrypted");
+    // Can't encrypt if already encrypted or elided
+    if (c.type === "encrypted") {
+      throw EnvelopeError.general("Envelope is already encrypted");
+    }
+    if (c.type === "elided") {
+      throw EnvelopeError.general("Cannot encrypt elided envelope");
     }
 
-    // Get the subject's CBOR data
+    // For node case, encrypt just the subject
+    if (c.type === "node") {
+      if (c.subject.isEncrypted()) {
+        throw EnvelopeError.general("Subject is already encrypted");
+      }
 
-    const subjectCbor = c.subject.taggedCbor();
-    const encodedCbor = cborData(subjectCbor);
-    const subjectDigest = c.subject.digest();
+      // Get the subject's CBOR data
 
-    // Encrypt the subject
-    const encryptedMessage = await key.encrypt(encodedCbor, subjectDigest);
+      const subjectCbor = c.subject.taggedCbor();
+      const encodedCbor = cborData(subjectCbor);
+      const subjectDigest = c.subject.digest();
 
-    // Create encrypted envelope
-    const encryptedSubject = Envelope.fromCase({
+      // Encrypt the subject
+      const encryptedMessage = await key.encrypt(encodedCbor, subjectDigest);
+
+      // Create encrypted envelope
+      const encryptedSubject = Envelope.fromCase({
+        type: "encrypted",
+        message: encryptedMessage,
+      });
+
+      // Rebuild the node with encrypted subject and same assertions
+      return Envelope.newWithAssertions(encryptedSubject, c.assertions);
+    }
+
+    // For other cases, encrypt the entire envelope
+
+    const cbor = this.taggedCbor();
+    const encodedCbor = cborData(cbor);
+    const digest = this.digest();
+
+    const encryptedMessage = await key.encrypt(encodedCbor, digest);
+
+    return Envelope.fromCase({
       type: "encrypted",
       message: encryptedMessage,
     });
+  };
 
-    // Rebuild the node with encrypted subject and same assertions
-    return Envelope.newWithAssertions(encryptedSubject, c.assertions);
-  }
+  /// Implementation of decryptSubject()
+  Envelope.prototype.decryptSubject = async function (
+    this: Envelope,
+    key: SymmetricKey,
+  ): Promise<Envelope> {
+    const subjectCase = this.subject().case();
 
-  // For other cases, encrypt the entire envelope
-
-  const cbor = this.taggedCbor();
-  const encodedCbor = cborData(cbor);
-  const digest = this.digest();
-
-  const encryptedMessage = await key.encrypt(encodedCbor, digest);
-
-  return Envelope.fromCase({
-    type: "encrypted",
-    message: encryptedMessage,
-  });
-};
-
-/// Implementation of decryptSubject()
-Envelope.prototype.decryptSubject = async function (
-  this: Envelope,
-  key: SymmetricKey,
-): Promise<Envelope> {
-  const subjectCase = this.subject().case();
-
-  if (subjectCase.type !== "encrypted") {
-    throw EnvelopeError.general("Subject is not encrypted");
-  }
-
-  const message = subjectCase.message;
-  const subjectDigest = message.aadDigest();
-
-  if (subjectDigest === undefined) {
-    throw EnvelopeError.general("Missing digest in encrypted message");
-  }
-
-  // Decrypt the subject
-  const decryptedData = await key.decrypt(message);
-
-  // Parse back to envelope
-
-  const cbor = decodeCbor(decryptedData);
-  const resultSubject = Envelope.fromTaggedCbor(cbor);
-
-  // Verify digest
-  if (!resultSubject.digest().equals(subjectDigest)) {
-    throw EnvelopeError.general("Invalid digest after decryption");
-  }
-
-  const c = this.case();
-
-  // If this is a node, rebuild with decrypted subject
-  if (c.type === "node") {
-    const result = Envelope.newWithAssertions(resultSubject, c.assertions);
-    if (!result.digest().equals(c.digest)) {
-      throw EnvelopeError.general("Invalid envelope digest after decryption");
+    if (subjectCase.type !== "encrypted") {
+      throw EnvelopeError.general("Subject is not encrypted");
     }
-    return result;
-  }
 
-  // Otherwise just return the decrypted subject
-  return resultSubject;
-};
+    const message = subjectCase.message;
+    const subjectDigest = message.aadDigest();
 
-/// Implementation of encrypt() - convenience method
-Envelope.prototype.encrypt = async function (this: Envelope, key: SymmetricKey): Promise<Envelope> {
-  return this.wrap().encryptSubject(key);
-};
+    if (subjectDigest === undefined) {
+      throw EnvelopeError.general("Missing digest in encrypted message");
+    }
 
-/// Implementation of decrypt() - convenience method
-Envelope.prototype.decrypt = async function (this: Envelope, key: SymmetricKey): Promise<Envelope> {
-  const decrypted = await this.decryptSubject(key);
-  return decrypted.unwrap();
-};
+    // Decrypt the subject
+    const decryptedData = await key.decrypt(message);
 
-/// Implementation of isEncrypted()
-Envelope.prototype.isEncrypted = function (this: Envelope): boolean {
-  return this.case().type === "encrypted";
-};
+    // Parse back to envelope
+
+    const cbor = decodeCbor(decryptedData);
+    const resultSubject = Envelope.fromTaggedCbor(cbor);
+
+    // Verify digest
+    if (!resultSubject.digest().equals(subjectDigest)) {
+      throw EnvelopeError.general("Invalid digest after decryption");
+    }
+
+    const c = this.case();
+
+    // If this is a node, rebuild with decrypted subject
+    if (c.type === "node") {
+      const result = Envelope.newWithAssertions(resultSubject, c.assertions);
+      if (!result.digest().equals(c.digest)) {
+        throw EnvelopeError.general("Invalid envelope digest after decryption");
+      }
+      return result;
+    }
+
+    // Otherwise just return the decrypted subject
+    return resultSubject;
+  };
+
+  /// Implementation of encrypt() - convenience method
+  Envelope.prototype.encrypt = async function (
+    this: Envelope,
+    key: SymmetricKey,
+  ): Promise<Envelope> {
+    return this.wrap().encryptSubject(key);
+  };
+
+  /// Implementation of decrypt() - convenience method
+  Envelope.prototype.decrypt = async function (
+    this: Envelope,
+    key: SymmetricKey,
+  ): Promise<Envelope> {
+    const decrypted = await this.decryptSubject(key);
+    return decrypted.unwrap();
+  };
+
+  /// Implementation of isEncrypted()
+  Envelope.prototype.isEncrypted = function (this: Envelope): boolean {
+    return this.case().type === "encrypted";
+  };
 }

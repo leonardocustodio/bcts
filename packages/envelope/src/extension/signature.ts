@@ -307,71 +307,135 @@ declare module "../base/envelope" {
 // Implementation
 // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
 if (Envelope?.prototype) {
-Envelope.prototype.addSignature = function (this: Envelope, signer: Signer): Envelope {
-  return this.addSignatureWithMetadata(signer, undefined);
-};
+  Envelope.prototype.addSignature = function (this: Envelope, signer: Signer): Envelope {
+    return this.addSignatureWithMetadata(signer, undefined);
+  };
 
-Envelope.prototype.addSignatureWithMetadata = function (
-  this: Envelope,
-  signer: Signer,
-  metadata?: SignatureMetadata,
-): Envelope {
-  const digest = this.subject().digest();
-  const signature = signer.sign(digest.data());
-  let signatureEnvelope = Envelope.new(signature.data());
+  Envelope.prototype.addSignatureWithMetadata = function (
+    this: Envelope,
+    signer: Signer,
+    metadata?: SignatureMetadata,
+  ): Envelope {
+    const digest = this.subject().digest();
+    const signature = signer.sign(digest.data());
+    let signatureEnvelope = Envelope.new(signature.data());
 
-  if (metadata?.hasAssertions() === true) {
-    // Add metadata assertions to the signature
-    for (const [predicate, object] of metadata.assertions()) {
-      signatureEnvelope = signatureEnvelope.addAssertion(
-        predicate,
-        object as string | number | boolean,
-      );
+    if (metadata?.hasAssertions() === true) {
+      // Add metadata assertions to the signature
+      for (const [predicate, object] of metadata.assertions()) {
+        signatureEnvelope = signatureEnvelope.addAssertion(
+          predicate,
+          object as string | number | boolean,
+        );
+      }
+
+      // Wrap the signature with metadata
+      signatureEnvelope = signatureEnvelope.wrap();
+
+      // Sign the wrapped envelope
+      const outerSignature = signer.sign(signatureEnvelope.digest().data());
+      signatureEnvelope = signatureEnvelope.addAssertion(SIGNED, outerSignature.data());
     }
 
-    // Wrap the signature with metadata
-    signatureEnvelope = signatureEnvelope.wrap();
+    return this.addAssertion(SIGNED, signatureEnvelope);
+  };
 
-    // Sign the wrapped envelope
-    const outerSignature = signer.sign(signatureEnvelope.digest().data());
-    signatureEnvelope = signatureEnvelope.addAssertion(SIGNED, outerSignature.data());
-  }
+  Envelope.prototype.addSignatures = function (this: Envelope, signers: Signer[]): Envelope {
+    return signers.reduce((envelope, signer) => envelope.addSignature(signer), this);
+  };
 
-  return this.addAssertion(SIGNED, signatureEnvelope);
-};
+  Envelope.prototype.hasSignatureFrom = function (this: Envelope, verifier: Verifier): boolean {
+    const subjectDigest = this.subject().digest();
+    const signatures = this.signatures();
 
-Envelope.prototype.addSignatures = function (this: Envelope, signers: Signer[]): Envelope {
-  return signers.reduce((envelope, signer) => envelope.addSignature(signer), this);
-};
+    for (const sigEnvelope of signatures) {
+      const c = sigEnvelope.case();
 
-Envelope.prototype.hasSignatureFrom = function (this: Envelope, verifier: Verifier): boolean {
-  const subjectDigest = this.subject().digest();
-  const signatures = this.signatures();
+      if (c.type === "leaf") {
+        // Simple signature - verify directly
+        try {
+          const sigData = sigEnvelope.asByteString();
+          if (sigData !== undefined) {
+            const signature = new Signature(sigData);
+            if (verifier.verify(subjectDigest.data(), signature)) {
+              return true;
+            }
+          }
+        } catch {
+          continue;
+        }
+      } else if (c.type === "node") {
+        // Signature with metadata - it's a node with 'signed' assertion
+        // The structure is: { wrapped_signature [signed: outer_signature] }
+        // Check if this node has a 'signed' assertion
+        const outerSigs = sigEnvelope.assertions().filter((a) => {
+          const aC = a.case();
+          if (aC.type === "assertion") {
+            const pred = aC.assertion.predicate();
+            try {
+              return pred.asText() === SIGNED;
+            } catch {
+              return false;
+            }
+          }
+          return false;
+        });
 
-  for (const sigEnvelope of signatures) {
-    const c = sigEnvelope.case();
+        for (const outerSig of outerSigs) {
+          const outerSigCase = outerSig.case();
+          if (outerSigCase.type === "assertion") {
+            const outerSigObj = outerSigCase.assertion.object();
+            try {
+              const outerSigData = outerSigObj.asByteString();
+              if (outerSigData !== undefined) {
+                const outerSignature = new Signature(outerSigData);
 
-    if (c.type === "leaf") {
-      // Simple signature - verify directly
-      try {
-        const sigData = sigEnvelope.asByteString();
-        if (sigData !== undefined) {
-          const signature = new Signature(sigData);
-          if (verifier.verify(subjectDigest.data(), signature)) {
-            return true;
+                // The subject of this node should be a wrapped envelope
+                const nodeSubject = c.subject;
+                const nodeSubjectCase = nodeSubject.case();
+
+                // Verify outer signature against the wrapped envelope
+                if (
+                  nodeSubjectCase.type === "wrapped" &&
+                  verifier.verify(nodeSubject.digest().data(), outerSignature)
+                ) {
+                  // Now verify inner signature
+                  const wrapped = nodeSubjectCase.envelope;
+                  const innerSig = wrapped.subject();
+                  const innerSigData = innerSig.asByteString();
+                  if (innerSigData !== undefined) {
+                    const innerSignature = new Signature(innerSigData);
+                    if (verifier.verify(subjectDigest.data(), innerSignature)) {
+                      return true;
+                    }
+                  }
+                }
+              }
+            } catch {
+              continue;
+            }
           }
         }
-      } catch {
-        continue;
       }
-    } else if (c.type === "node") {
-      // Signature with metadata - it's a node with 'signed' assertion
-      // The structure is: { wrapped_signature [signed: outer_signature] }
-      // Check if this node has a 'signed' assertion
-      const outerSigs = sigEnvelope.assertions().filter((a) => {
-        const aC = a.case();
-        if (aC.type === "assertion") {
-          const pred = aC.assertion.predicate();
+    }
+
+    return false;
+  };
+
+  Envelope.prototype.verifySignatureFrom = function (this: Envelope, verifier: Verifier): Envelope {
+    if (this.hasSignatureFrom(verifier)) {
+      return this;
+    }
+    throw EnvelopeError.general("No valid signature found from the given verifier");
+  };
+
+  Envelope.prototype.signatures = function (this: Envelope): Envelope[] {
+    const assertions = this.assertions();
+    return assertions
+      .filter((a) => {
+        const c = a.case();
+        if (c.type === "assertion") {
+          const pred = c.assertion.predicate();
           try {
             return pred.asText() === SIGNED;
           } catch {
@@ -379,77 +443,13 @@ Envelope.prototype.hasSignatureFrom = function (this: Envelope, verifier: Verifi
           }
         }
         return false;
+      })
+      .map((a) => {
+        const c = a.case();
+        if (c.type === "assertion") {
+          return c.assertion.object();
+        }
+        throw EnvelopeError.general("Invalid signature assertion");
       });
-
-      for (const outerSig of outerSigs) {
-        const outerSigCase = outerSig.case();
-        if (outerSigCase.type === "assertion") {
-          const outerSigObj = outerSigCase.assertion.object();
-          try {
-            const outerSigData = outerSigObj.asByteString();
-            if (outerSigData !== undefined) {
-              const outerSignature = new Signature(outerSigData);
-
-              // The subject of this node should be a wrapped envelope
-              const nodeSubject = c.subject;
-              const nodeSubjectCase = nodeSubject.case();
-
-              // Verify outer signature against the wrapped envelope
-              if (
-                nodeSubjectCase.type === "wrapped" &&
-                verifier.verify(nodeSubject.digest().data(), outerSignature)
-              ) {
-                // Now verify inner signature
-                const wrapped = nodeSubjectCase.envelope;
-                const innerSig = wrapped.subject();
-                const innerSigData = innerSig.asByteString();
-                if (innerSigData !== undefined) {
-                  const innerSignature = new Signature(innerSigData);
-                  if (verifier.verify(subjectDigest.data(), innerSignature)) {
-                    return true;
-                  }
-                }
-              }
-            }
-          } catch {
-            continue;
-          }
-        }
-      }
-    }
-  }
-
-  return false;
-};
-
-Envelope.prototype.verifySignatureFrom = function (this: Envelope, verifier: Verifier): Envelope {
-  if (this.hasSignatureFrom(verifier)) {
-    return this;
-  }
-  throw EnvelopeError.general("No valid signature found from the given verifier");
-};
-
-Envelope.prototype.signatures = function (this: Envelope): Envelope[] {
-  const assertions = this.assertions();
-  return assertions
-    .filter((a) => {
-      const c = a.case();
-      if (c.type === "assertion") {
-        const pred = c.assertion.predicate();
-        try {
-          return pred.asText() === SIGNED;
-        } catch {
-          return false;
-        }
-      }
-      return false;
-    })
-    .map((a) => {
-      const c = a.case();
-      if (c.type === "assertion") {
-        return c.assertion.object();
-      }
-      throw EnvelopeError.general("Invalid signature assertion");
-    });
-};
+  };
 }

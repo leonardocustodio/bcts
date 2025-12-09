@@ -189,91 +189,91 @@ declare module "../base/envelope" {
 /// Implementation of compress()
 // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
 if (Envelope?.prototype) {
-Envelope.prototype.compress = function (this: Envelope): Envelope {
-  const c = this.case();
+  Envelope.prototype.compress = function (this: Envelope): Envelope {
+    const c = this.case();
 
-  // If already compressed, return as-is
-  if (c.type === "compressed") {
-    return this;
-  }
+    // If already compressed, return as-is
+    if (c.type === "compressed") {
+      return this;
+    }
 
-  // Can't compress encrypted or elided envelopes
-  if (c.type === "encrypted") {
-    throw EnvelopeError.general("Cannot compress encrypted envelope");
-  }
-  if (c.type === "elided") {
-    throw EnvelopeError.general("Cannot compress elided envelope");
-  }
+    // Can't compress encrypted or elided envelopes
+    if (c.type === "encrypted") {
+      throw EnvelopeError.general("Cannot compress encrypted envelope");
+    }
+    if (c.type === "elided") {
+      throw EnvelopeError.general("Cannot compress elided envelope");
+    }
 
-  // Compress the entire envelope
-  const cbor = this.taggedCbor();
+    // Compress the entire envelope
+    const cbor = this.taggedCbor();
 
-  const decompressedData = cborData(cbor);
+    const decompressedData = cborData(cbor);
 
-  const compressed = Compressed.fromDecompressedData(decompressedData, this.digest());
+    const compressed = Compressed.fromDecompressedData(decompressedData, this.digest());
 
-  // Create a compressed envelope case
-  return Envelope.fromCase({ type: "compressed", value: compressed });
-};
+    // Create a compressed envelope case
+    return Envelope.fromCase({ type: "compressed", value: compressed });
+  };
 
-/// Implementation of decompress()
-Envelope.prototype.decompress = function (this: Envelope): Envelope {
-  const c = this.case();
+  /// Implementation of decompress()
+  Envelope.prototype.decompress = function (this: Envelope): Envelope {
+    const c = this.case();
 
-  if (c.type !== "compressed") {
-    throw EnvelopeError.general("Envelope is not compressed");
-  }
+    if (c.type !== "compressed") {
+      throw EnvelopeError.general("Envelope is not compressed");
+    }
 
-  const compressed = c.value;
-  const digest = compressed.digestOpt();
+    const compressed = c.value;
+    const digest = compressed.digestOpt();
 
-  if (digest === undefined) {
-    throw EnvelopeError.general("Missing digest in compressed envelope");
-  }
+    if (digest === undefined) {
+      throw EnvelopeError.general("Missing digest in compressed envelope");
+    }
 
-  // Verify the digest matches
-  if (!digest.equals(this.digest())) {
-    throw EnvelopeError.general("Invalid digest in compressed envelope");
-  }
+    // Verify the digest matches
+    if (!digest.equals(this.digest())) {
+      throw EnvelopeError.general("Invalid digest in compressed envelope");
+    }
 
-  // Decompress the data
-  const decompressedData = compressed.decompress();
+    // Decompress the data
+    const decompressedData = compressed.decompress();
 
-  // Parse back to envelope
+    // Parse back to envelope
 
-  const cbor = decodeCbor(decompressedData);
-  const envelope = Envelope.fromTaggedCbor(cbor);
+    const cbor = decodeCbor(decompressedData);
+    const envelope = Envelope.fromTaggedCbor(cbor);
 
-  // Verify the decompressed envelope has the correct digest
-  if (!envelope.digest().equals(digest)) {
-    throw EnvelopeError.general("Invalid digest after decompression");
-  }
+    // Verify the decompressed envelope has the correct digest
+    if (!envelope.digest().equals(digest)) {
+      throw EnvelopeError.general("Invalid digest after decompression");
+    }
 
-  return envelope;
-};
+    return envelope;
+  };
 
-/// Implementation of compressSubject()
-Envelope.prototype.compressSubject = function (this: Envelope): Envelope {
-  if (this.subject().isCompressed()) {
-    return this;
-  }
+  /// Implementation of compressSubject()
+  Envelope.prototype.compressSubject = function (this: Envelope): Envelope {
+    if (this.subject().isCompressed()) {
+      return this;
+    }
 
-  const subject = this.subject().compress();
-  return this.replaceSubject(subject);
-};
-
-/// Implementation of decompressSubject()
-Envelope.prototype.decompressSubject = function (this: Envelope): Envelope {
-  if (this.subject().isCompressed()) {
-    const subject = this.subject().decompress();
+    const subject = this.subject().compress();
     return this.replaceSubject(subject);
-  }
+  };
 
-  return this;
-};
+  /// Implementation of decompressSubject()
+  Envelope.prototype.decompressSubject = function (this: Envelope): Envelope {
+    if (this.subject().isCompressed()) {
+      const subject = this.subject().decompress();
+      return this.replaceSubject(subject);
+    }
 
-/// Implementation of isCompressed()
-Envelope.prototype.isCompressed = function (this: Envelope): boolean {
-  return this.case().type === "compressed";
-};
+    return this;
+  };
+
+  /// Implementation of isCompressed()
+  Envelope.prototype.isCompressed = function (this: Envelope): boolean {
+    return this.case().type === "compressed";
+  };
 }
