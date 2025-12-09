@@ -4,7 +4,7 @@
  * AEAD-specific error for authentication failures
  */
 export class AeadError extends Error {
-  constructor(message: string = "AEAD authentication failed") {
+  constructor(message = "AEAD authentication failed") {
     super(message);
     this.name = "AeadError";
   }
@@ -14,7 +14,7 @@ export class AeadError extends Error {
  * Generic crypto error type
  */
 export class CryptoError extends Error {
-  readonly cause?: Error;
+  override readonly cause?: Error | undefined;
 
   constructor(message: string, cause?: Error) {
     super(message);

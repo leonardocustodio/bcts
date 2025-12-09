@@ -126,4 +126,5 @@ export {
 // Argon2id
 export {
   argon2idHash,
+  argon2idHashOpt,
 } from "./argon.js";

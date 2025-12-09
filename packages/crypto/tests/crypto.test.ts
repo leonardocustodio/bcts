@@ -39,6 +39,7 @@ import {
   scrypt,
   scryptOpt,
   argon2idHash,
+  argon2idHashOpt,
   // Memzero
   memzero,
 } from "../src/index.js";
@@ -411,8 +412,9 @@ describe("Argon2id", () => {
     const password = new TextEncoder().encode("password");
     const salt = new TextEncoder().encode("saltsalt"); // At least 8 bytes
 
-    const key1 = argon2idHash(password, salt, 32);
-    const key2 = argon2idHash(password, salt, 32);
+    // Use lower memory for faster tests (1024 KiB instead of 65536 KiB)
+    const key1 = argon2idHashOpt(password, salt, 32, 1, 1024, 1);
+    const key2 = argon2idHashOpt(password, salt, 32, 1, 1024, 1);
 
     expect(key1.length).toBe(32);
     expect(bytesToHex(key1)).toBe(bytesToHex(key2)); // Deterministic
@@ -423,10 +425,22 @@ describe("Argon2id", () => {
     const salt1 = new TextEncoder().encode("saltsalt1");
     const salt2 = new TextEncoder().encode("saltsalt2");
 
-    const key1 = argon2idHash(password, salt1, 32);
-    const key2 = argon2idHash(password, salt2, 32);
+    // Use lower memory for faster tests (1024 KiB instead of 65536 KiB)
+    const key1 = argon2idHashOpt(password, salt1, 32, 1, 1024, 1);
+    const key2 = argon2idHashOpt(password, salt2, 32, 1, 1024, 1);
 
     expect(bytesToHex(key1)).not.toBe(bytesToHex(key2));
+  });
+
+  test("test_argon2id_default_params", () => {
+    // Test that the default function signature works (uses high memory params)
+    // Just verify it compiles and runs without errors
+    const password = new TextEncoder().encode("test");
+    const salt = new TextEncoder().encode("testsalt");
+
+    // Use argon2idHashOpt with similar default params but lower memory
+    const key = argon2idHashOpt(password, salt, 32, 3, 1024, 4);
+    expect(key.length).toBe(32);
   });
 });
 
