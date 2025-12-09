@@ -28,9 +28,13 @@ export function ed25519PublicKeyFromPrivateKey(privateKey: Uint8Array): Uint8Arr
 /**
  * Sign a message using Ed25519.
  *
- * @param privateKey - 32-byte private key
- * @param message - Message to sign
+ * **Security Note**: The private key must be kept secret. The same private key
+ * can safely sign multiple messages.
+ *
+ * @param privateKey - 32-byte Ed25519 private key
+ * @param message - Message to sign (any length)
  * @returns 64-byte Ed25519 signature
+ * @throws {Error} If private key is not 32 bytes
  */
 export function ed25519Sign(privateKey: Uint8Array, message: Uint8Array): Uint8Array {
   if (privateKey.length !== ED25519_PRIVATE_KEY_SIZE) {
@@ -42,10 +46,11 @@ export function ed25519Sign(privateKey: Uint8Array, message: Uint8Array): Uint8A
 /**
  * Verify an Ed25519 signature.
  *
- * @param publicKey - 32-byte public key
- * @param message - Original message
- * @param signature - 64-byte signature
- * @returns true if signature is valid
+ * @param publicKey - 32-byte Ed25519 public key
+ * @param message - Original message that was signed
+ * @param signature - 64-byte Ed25519 signature
+ * @returns `true` if signature is valid, `false` if signature verification fails
+ * @throws {Error} If public key is not 32 bytes or signature is not 64 bytes
  */
 export function ed25519Verify(
   publicKey: Uint8Array,

@@ -16,6 +16,7 @@ export interface SeedMetadata {
 }
 
 export class Seed {
+  // Defensive copy: internal data is never exposed directly to prevent external mutation
   private readonly data: Uint8Array;
   private metadata: SeedMetadata | undefined;
 
@@ -23,12 +24,15 @@ export class Seed {
     if (data.length < MIN_SEED_SIZE) {
       throw CryptoError.invalidSize(MIN_SEED_SIZE, data.length);
     }
+    // Defensive copy on construction to ensure immutability of internal state
     this.data = new Uint8Array(data);
     this.metadata = metadata;
   }
 
   /**
-   * Create a Seed from raw bytes
+   * Create a Seed from raw bytes.
+   *
+   * Note: The input data is copied to prevent external mutation of the seed's internal state.
    */
   static from(data: Uint8Array, metadata?: SeedMetadata): Seed {
     return new Seed(new Uint8Array(data), metadata);
@@ -63,7 +67,9 @@ export class Seed {
   }
 
   /**
-   * Get the raw seed bytes
+   * Get the raw seed bytes.
+   *
+   * Note: Returns a copy to prevent external mutation of the seed's internal state.
    */
   toData(): Uint8Array {
     return new Uint8Array(this.data);

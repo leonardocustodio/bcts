@@ -48,9 +48,14 @@ export function x25519PublicKeyFromPrivateKey(privateKey: Uint8Array): Uint8Arra
 /**
  * Compute a shared secret using X25519 key agreement (ECDH).
  *
- * @param x25519Private - Your private key
- * @param x25519Public - The other party's public key
+ * **Security Note**: The resulting shared secret should be used with a KDF
+ * (like HKDF) before using it as an encryption key. Never use the raw
+ * shared secret directly for encryption.
+ *
+ * @param x25519Private - 32-byte X25519 private key
+ * @param x25519Public - 32-byte X25519 public key from the other party
  * @returns 32-byte shared secret
+ * @throws {Error} If private key is not 32 bytes or public key is not 32 bytes
  */
 export function x25519SharedKey(x25519Private: Uint8Array, x25519Public: Uint8Array): Uint8Array {
   if (x25519Private.length !== X25519_PRIVATE_KEY_SIZE) {

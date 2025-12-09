@@ -10,11 +10,17 @@ import {
 
 /**
  * Sign a message using ECDSA with secp256k1.
- * The message is hashed with double SHA-256 before signing.
  *
- * @param privateKey - 32-byte private key
- * @param message - Message to sign
- * @returns 64-byte signature (r || s in compact format)
+ * The message is hashed with double SHA-256 before signing (Bitcoin standard).
+ *
+ * **Security Note**: The private key must be kept secret. ECDSA requires
+ * cryptographically secure random nonces internally; this is handled by
+ * the underlying library using RFC 6979 deterministic nonces.
+ *
+ * @param privateKey - 32-byte secp256k1 private key
+ * @param message - Message to sign (any length, will be double-SHA256 hashed)
+ * @returns 64-byte compact signature (r || s format)
+ * @throws {Error} If private key is not 32 bytes
  */
 export function ecdsaSign(privateKey: Uint8Array, message: Uint8Array): Uint8Array {
   if (privateKey.length !== ECDSA_PRIVATE_KEY_SIZE) {
@@ -29,12 +35,15 @@ export function ecdsaSign(privateKey: Uint8Array, message: Uint8Array): Uint8Arr
 }
 
 /**
- * Verify an ECDSA signature.
+ * Verify an ECDSA signature with secp256k1.
  *
- * @param publicKey - 33-byte compressed public key
- * @param signature - 64-byte signature
- * @param message - Original message
- * @returns true if signature is valid
+ * The message is hashed with double SHA-256 before verification (Bitcoin standard).
+ *
+ * @param publicKey - 33-byte compressed secp256k1 public key
+ * @param signature - 64-byte compact signature (r || s format)
+ * @param message - Original message that was signed
+ * @returns `true` if signature is valid, `false` if signature verification fails
+ * @throws {Error} If public key is not 33 bytes or signature is not 64 bytes
  */
 export function ecdsaVerify(
   publicKey: Uint8Array,

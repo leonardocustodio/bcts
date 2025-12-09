@@ -40,7 +40,7 @@ export class UUID {
     }
     const data = new Uint8Array(16);
     for (let i = 0; i < 16; i++) {
-      data[i] = parseInt(hex.substr(i * 2, 2), 16);
+      data[i] = parseInt(hex.substring(i * 2, i * 2 + 2), 16);
     }
     return new UUID(data);
   }
@@ -90,13 +90,12 @@ export class UUID {
   }
 
   /**
-   * Get hex string representation
+   * Get hex string representation (lowercase, matching Rust implementation)
    */
   toHex(): string {
     return Array.from(this.data)
       .map((b) => b.toString(16).padStart(2, "0"))
-      .join("")
-      .toUpperCase();
+      .join("");
   }
 
   /**
@@ -104,7 +103,7 @@ export class UUID {
    * Format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
    */
   toString(): string {
-    const hex = this.toHex().toLowerCase();
+    const hex = this.toHex();
     return `${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}`;
   }
 

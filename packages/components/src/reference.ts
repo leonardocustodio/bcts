@@ -118,10 +118,10 @@ export class Reference {
 
     switch (format) {
       case "hex":
+        // Lowercase hex, matching Rust implementation
         return Array.from(shortData)
           .map((b) => b.toString(16).padStart(2, "0"))
-          .join("")
-          .toUpperCase();
+          .join("");
 
       case "bytewords":
         return Array.from(shortData)

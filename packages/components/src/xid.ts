@@ -40,7 +40,7 @@ export class XID {
     }
     const data = new Uint8Array(32);
     for (let i = 0; i < 32; i++) {
-      data[i] = parseInt(hex.substr(i * 2, 2), 16);
+      data[i] = parseInt(hex.substring(i * 2, i * 2 + 2), 16);
     }
     return new XID(data);
   }
@@ -71,13 +71,12 @@ export class XID {
   }
 
   /**
-   * Get hex string representation
+   * Get hex string representation (lowercase, matching Rust implementation)
    */
   toHex(): string {
     return Array.from(this.data)
       .map((b) => b.toString(16).padStart(2, "0"))
-      .join("")
-      .toUpperCase();
+      .join("");
   }
 
   /**
@@ -88,13 +87,12 @@ export class XID {
   }
 
   /**
-   * Get short reference (first 4 bytes) as hex
+   * Get short reference (first 4 bytes) as hex (lowercase, matching Rust implementation)
    */
   shortReference(): string {
     return Array.from(this.data.slice(0, 4))
       .map((b) => b.toString(16).padStart(2, "0"))
-      .join("")
-      .toUpperCase();
+      .join("");
   }
 
   /**

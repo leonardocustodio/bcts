@@ -149,8 +149,14 @@ function bytesToHex(bytes: Uint8Array): string {
 }
 
 // Helper function to check if bytes start with a specific CBOR tag
+// Note: Only supports CBOR tags up to 65535. Tags larger than Number.MAX_SAFE_INTEGER
+// will lose precision when converted from bigint.
 function startsWithCborTag(bytes: Uint8Array, tagValue: number | bigint): boolean {
   // Convert bigint to number if needed (envelope tag 200 fits in number)
+  // CBOR tags in practice are small values (envelope=200, digest=40001, etc.)
+  if (typeof tagValue === 'bigint' && tagValue > BigInt(Number.MAX_SAFE_INTEGER)) {
+    console.warn('CBOR tag value exceeds Number.MAX_SAFE_INTEGER, precision may be lost')
+  }
   const tag = typeof tagValue === 'bigint' ? Number(tagValue) : tagValue
   if (bytes.length < 2) return false
 
