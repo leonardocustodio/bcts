@@ -1,4 +1,10 @@
-# tags (WIP)
+# Blockchain Commons CBOR Tags for TypeScript
+
+> Disclaimer: This package is under active development and APIs may change.
+
+## Introduction
+
+This package defines the CBOR tags for serialized data types used in Blockchain Commons projects.
 
 ## Rust Reference Implementation
 

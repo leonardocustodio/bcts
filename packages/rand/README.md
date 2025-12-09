@@ -1,4 +1,12 @@
-# rand (WIP)
+# Blockchain Commons Random Number Utilities for TypeScript
+
+> Disclaimer: This package is under active development and APIs may change.
+
+## Introduction
+
+`rand` exposes a uniform API for the random number primitives used in higher-level [Blockchain Commons](https://blockchaincommons.com) projects, including a cryptographically strong random number generator and a deterministic random number generator.
+
+The crate also includes several convenience functions for generating secure and deterministic random numbers.
 
 ## Rust Reference Implementation
 

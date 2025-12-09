@@ -1,6 +1,10 @@
-# known-values (WIP)
+# Blockchain Commons Known Values for TypeScript
 
-This package has no stable version yet. Use with caution.
+> Disclaimer: This package is under active development and APIs may change.
+
+## Introduction
+
+This package defines the [known values](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2023-002-known-value.md) used in Blockchain Commons projects.
 
 ## Rust Reference Implementation
 

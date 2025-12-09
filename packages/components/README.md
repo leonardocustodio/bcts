@@ -1,6 +1,12 @@
-# components (WIP)
+# Blockchain Commons Secure Components for TypeScript
 
-This package has no stable version yet. Use with caution.
+> Disclaimer: This package is under active development and APIs may change.
+
+## Introduction
+
+A collection of useful primitives for cryptography, semantic graphs, and cryptocurrency, primarily for use in higher-level [Blockchain Commons](https://blockchaincommons.com) projects. All the types are [CBOR](https://cbor.io) serializable, and a number of them can also be serialized to and from [URs](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-005-ur.md).
+
+Also includes a library of CBOR tags and UR types for use with these types.
 
 ## Rust Reference Implementation
 

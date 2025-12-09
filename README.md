@@ -59,21 +59,23 @@ bun run format
 bun run test --filter=@blockchain-commons/dcbor
 ```
 
-## 📚 Specifications & Reference Implementations
+## 📚 Specifications
 
-This TypeScript implementation follows the Rust reference implementations as the source of truth:
+Each package implements specifications from Blockchain Commons. The specifications are the source of truth:
 
-- **[Deterministic CBOR (dCBOR)](https://github.com/BlockchainCommons/bc-dcbor-rust)** - A deterministic binary encoding format based on CBOR (RFC 8949)
-- **[CBOR Tags](https://github.com/BlockchainCommons/bc-tags-rust)** - Registry of CBOR tags for Blockchain Commons
-- **[Known Values](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2023-002-known-value.md)** - Compact ontological identifiers (BCR-2023-002)
-- **[Uniform Resources (UR)](https://github.com/BlockchainCommons/bc-ur-rust)** - Binary data encoding optimized for QR codes and URIs (BCR-2020-005)
-- **[Gordian Envelope](https://github.com/BlockchainCommons/bc-envelope-rust)** - Privacy-focused structured data containers with support for encryption, elision, and signatures
-- **[Shamir's Secret Sharing](https://github.com/BlockchainCommons/bc-shamir-rust)** - Split secrets into shares with threshold reconstruction
-- **[SSKR](https://github.com/BlockchainCommons/bc-sskr-rust)** - Sharded Secret Key Reconstruction with hierarchical groups (BCR-2020-011)
-- **[Provenance Mark](https://github.com/BlockchainCommons/provenance-mark-rust)** - Cryptographic provenance marks for digital authenticity
-- **[XID](https://github.com/BlockchainCommons/bc-xid-rust)** - Extensible Identifiers for decentralized digital identity
+| Specification | Link | BCR |
+|---|---|---|
+| **Deterministic CBOR (dCBOR)** | [IETF Internet Draft](https://datatracker.ietf.org/doc/draft-mcnally-deterministic-cbor/) | Based on RFC-8949 |
+| **Known Values** | [BCR-2023-002](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2023-002-known-value.md) | Compact ontological identifiers |
+| **Uniform Resources (UR)** | [BCR-2020-005](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-005-ur.md) | Binary data encoding for QR codes |
+| **Gordian Envelope** | [IETF Internet Draft](https://datatracker.ietf.org/doc/draft-mcnally-envelope/) | Privacy-focused data structures |
+| **Shamir's Secret Sharing** | [BCR-2020-011 (SSKR)](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-011-sskr.md) | Secret sharing with threshold reconstruction |
+| **SSKR (Sharded Secret Key Reconstruction)** | [BCR-2020-011](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-011-sskr.md) | Hierarchical secret sharing with groups |
+| **Provenance Marks** | [White Paper](https://provemark.com) | Cryptographic authenticity marks |
+| **XIDs (Extensible Identifiers)** | [Design Paper](https://hackmd.io/@bc-community/SkdxVyY11g) | Decentralized digital identity |
 
-For complete specifications and reference implementations in other languages, visit:
-- [BlockchainCommons GitHub](https://github.com/BlockchainCommons)
-- [BlockchainCommons Documentation](https://www.blockchaincommons.com/)
-- [Research Papers](https://github.com/BlockchainCommons/Research)
+## 👥 Credits
+
+This TypeScript implementation is a direct port from the work of [@ChristopherA](https://github.com/ChristopherA) and [@WolfMcNally](https://github.com/wolfmcnally).
+
+Consider visiting [Blockchain Commons](https://www.blockchaincommons.com/) to learn more about the organization and their mission.
