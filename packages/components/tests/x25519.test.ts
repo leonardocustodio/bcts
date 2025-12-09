@@ -171,9 +171,9 @@ describe("X25519PrivateKey", () => {
     });
 
     it("should produce different shared secrets with different keys", () => {
-      const [alice1, _] = X25519PrivateKey.keypair();
-      const [alice2, __] = X25519PrivateKey.keypair();
-      const [bob, bobPublic] = X25519PrivateKey.keypair();
+      const [alice1] = X25519PrivateKey.keypair();
+      const [alice2] = X25519PrivateKey.keypair();
+      const [_bob, bobPublic] = X25519PrivateKey.keypair();
 
       const shared1 = alice1.sharedKeyWith(bobPublic);
       const shared2 = alice2.sharedKeyWith(bobPublic);

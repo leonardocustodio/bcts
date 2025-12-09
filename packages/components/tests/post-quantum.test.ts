@@ -460,7 +460,7 @@ describe("MLKEMPrivateKey", () => {
     });
 
     it("should fail decapsulation with wrong private key", () => {
-      const [privateKey1, publicKey1] = MLKEMPrivateKey.keypair(MLKEMLevel.MLKEM768);
+      const [_privateKey1, publicKey1] = MLKEMPrivateKey.keypair(MLKEMLevel.MLKEM768);
       const [privateKey2] = MLKEMPrivateKey.keypair(MLKEMLevel.MLKEM768);
 
       const { sharedSecret: original, ciphertext } = publicKey1.encapsulate();
@@ -614,8 +614,8 @@ describe("Post-Quantum Integration", () => {
     // Alice generates ML-KEM keypair
     const [aliceKemPrivate, aliceKemPublic] = MLKEMPrivateKey.keypair(MLKEMLevel.MLKEM768);
 
-    // Alice generates ML-DSA keypair
-    const [aliceDsaPrivate, aliceDsaPublic] = MLDSAPrivateKey.keypair(MLDSALevel.MLDSA65);
+    // Alice generates ML-DSA keypair (not used in this test, but demonstrates typical usage)
+    const [_aliceDsaPrivate, _aliceDsaPublic] = MLDSAPrivateKey.keypair(MLDSALevel.MLDSA65);
 
     // Bob uses Alice's public KEM key to encapsulate a shared secret
     const { sharedSecret: bobSecret, ciphertext } = aliceKemPublic.encapsulate();

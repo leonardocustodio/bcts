@@ -1,8 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  SeededRandomNumberGenerator,
-  makeFakeRandomNumberGenerator,
-} from "@blockchain-commons/rand";
+import { SeededRandomNumberGenerator } from "@blockchain-commons/rand";
 import {
   EncapsulationScheme,
   EncapsulationPrivateKey,

@@ -17,11 +17,7 @@ import {
   keyDerivationMethodToString,
   HKDFParams,
   PBKDF2Params,
-  DEFAULT_PBKDF2_ITERATIONS,
   ScryptParams,
-  DEFAULT_SCRYPT_LOG_N,
-  DEFAULT_SCRYPT_R,
-  DEFAULT_SCRYPT_P,
   Argon2idParams,
   hkdfParams,
   pbkdf2Params,
@@ -30,7 +26,6 @@ import {
   keyDerivationParamsMethod,
   isPasswordBased,
   keyDerivationParamsToString,
-  keyDerivationParamsFromCbor,
   EncryptedKey,
 } from "../src/encrypted-key/index.js";
 import { SymmetricKey } from "../src/symmetric/symmetric-key.js";

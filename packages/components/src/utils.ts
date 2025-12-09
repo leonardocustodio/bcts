@@ -70,18 +70,21 @@ export function hexToBytes(hex: string): Uint8Array {
  * ```
  */
 export function toBase64(data: Uint8Array): string {
-  // Use btoa for browser compatibility, or Buffer for Node.js
-  if (typeof btoa !== "undefined") {
+  // Use globalThis.btoa for browser/modern Node.js compatibility
+  const globalBtoa = globalThis.btoa as ((data: string) => string) | undefined;
+  if (typeof globalBtoa === "function") {
     // Convert bytes to binary string without spread operator to avoid
     // call stack limits for large arrays (spread would fail at ~65k bytes)
     let binary = "";
-    for (let i = 0; i < data.length; i++) {
-      binary += String.fromCharCode(data[i]);
+    for (const byte of data) {
+      binary += String.fromCharCode(byte);
     }
-    return btoa(binary);
+    return globalBtoa(binary);
   }
   // Node.js environment (fallback for Node < 18)
-  return Buffer.from(data).toString("base64");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Buffer: NodeBuffer } = require("buffer") as { Buffer: typeof Buffer };
+  return NodeBuffer.from(data).toString("base64");
 }
 
 /**
@@ -100,9 +103,10 @@ export function toBase64(data: Uint8Array): string {
  * ```
  */
 export function fromBase64(base64: string): Uint8Array {
-  // Use atob for browser compatibility, or Buffer for Node.js
-  if (typeof atob !== "undefined") {
-    const binary = atob(base64);
+  // Use globalThis.atob for browser/modern Node.js compatibility
+  const globalAtob = globalThis.atob as ((data: string) => string) | undefined;
+  if (typeof globalAtob === "function") {
+    const binary = globalAtob(base64);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) {
       bytes[i] = binary.charCodeAt(i);
@@ -110,7 +114,9 @@ export function fromBase64(base64: string): Uint8Array {
     return bytes;
   }
   // Node.js environment (fallback for Node < 18)
-  return new Uint8Array(Buffer.from(base64, "base64"));
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Buffer: NodeBuffer } = require("buffer") as { Buffer: typeof Buffer };
+  return new Uint8Array(NodeBuffer.from(base64, "base64"));
 }
 
 /**

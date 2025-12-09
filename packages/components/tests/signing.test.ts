@@ -19,9 +19,6 @@ import {
   createKeypairUsing,
   defaultSignatureScheme,
   Ed25519PrivateKey,
-  Ed25519PublicKey,
-  hexToBytes,
-  bytesToHex,
 } from "../src";
 import { SecureRandomNumberGenerator } from "@blockchain-commons/rand";
 
