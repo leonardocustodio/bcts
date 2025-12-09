@@ -272,10 +272,7 @@ export class Signature implements CborTaggedEncodable, CborTaggedDecodable<Signa
    */
   static fromTaggedCbor(cborValue: Cbor): Signature {
     // Create a dummy instance for accessing instance methods
-    const dummy = new Signature(
-      SignatureScheme.Ed25519,
-      new Uint8Array(ED25519_SIGNATURE_SIZE),
-    );
+    const dummy = new Signature(SignatureScheme.Ed25519, new Uint8Array(ED25519_SIGNATURE_SIZE));
     return dummy.fromTaggedCbor(cborValue);
   }
 
@@ -292,10 +289,7 @@ export class Signature implements CborTaggedEncodable, CborTaggedDecodable<Signa
    */
   static fromUntaggedCborData(data: Uint8Array): Signature {
     const cborValue = decodeCbor(data);
-    const dummy = new Signature(
-      SignatureScheme.Ed25519,
-      new Uint8Array(ED25519_SIGNATURE_SIZE),
-    );
+    const dummy = new Signature(SignatureScheme.Ed25519, new Uint8Array(ED25519_SIGNATURE_SIZE));
     return dummy.fromUntaggedCbor(cborValue);
   }
 }

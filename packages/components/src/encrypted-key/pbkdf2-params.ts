@@ -12,17 +12,8 @@
  * Ported from bc-components-rust/src/encrypted_key/pbkdf2_params.rs
  */
 
-import {
-  type Cbor,
-  cbor,
-  expectArray,
-  expectNumber,
-  expectBytes,
-} from "@blockchain-commons/dcbor";
-import {
-  pbkdf2HmacSha256,
-  pbkdf2HmacSha512,
-} from "@blockchain-commons/crypto";
+import { type Cbor, cbor, expectArray, expectNumber, expectBytes } from "@blockchain-commons/dcbor";
+import { pbkdf2HmacSha256, pbkdf2HmacSha512 } from "@blockchain-commons/crypto";
 
 import { Salt } from "../salt.js";
 import { Nonce } from "../nonce.js";

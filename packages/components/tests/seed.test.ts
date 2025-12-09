@@ -159,7 +159,7 @@ describe("Seed", () => {
 
       expect(tags.length).toBe(2); // TAG_SEED and TAG_SEED_V1
       expect(tags[0].value).toBe(40300); // TAG_SEED
-      expect(tags[1].value).toBe(300);   // TAG_SEED_V1
+      expect(tags[1].value).toBe(300); // TAG_SEED_V1
     });
 
     it("should serialize to untagged CBOR", () => {

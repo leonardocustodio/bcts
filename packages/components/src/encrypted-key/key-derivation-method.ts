@@ -15,10 +15,7 @@
  * Ported from bc-components-rust/src/encrypted_key/key_derivation_method.rs
  */
 
-import {
-  type Cbor,
-  expectNumber,
-} from "@blockchain-commons/dcbor";
+import { type Cbor, expectNumber } from "@blockchain-commons/dcbor";
 
 /**
  * Enum representing supported key derivation methods.

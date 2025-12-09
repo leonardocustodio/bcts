@@ -218,7 +218,9 @@ describe("XID", () => {
       const urString = xid.urString();
 
       // Expected from Rust test: ur:xid/hdcxuedeguisgevwhdaxnbluenutlbglhfiygamsamadmojkdydtneteeowffhwprtemcaatledk
-      expect(urString).toBe("ur:xid/hdcxuedeguisgevwhdaxnbluenutlbglhfiygamsamadmojkdydtneteeowffhwprtemcaatledk");
+      expect(urString).toBe(
+        "ur:xid/hdcxuedeguisgevwhdaxnbluenutlbglhfiygamsamadmojkdydtneteeowffhwprtemcaatledk",
+      );
     });
 
     it("should throw on invalid UR type", () => {

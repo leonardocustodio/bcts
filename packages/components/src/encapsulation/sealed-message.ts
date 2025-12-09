@@ -186,8 +186,7 @@ export class SealedMessage
    */
   equals(other: SealedMessage): boolean {
     return (
-      this._message.equals(other._message) &&
-      this._encapsulatedKey.equals(other._encapsulatedKey)
+      this._message.equals(other._message) && this._encapsulatedKey.equals(other._encapsulatedKey)
     );
   }
 
@@ -214,10 +213,7 @@ export class SealedMessage
    * Format: [EncryptedMessage (tagged), EncapsulationCiphertext (tagged)]
    */
   untaggedCbor(): Cbor {
-    const elements: Cbor[] = [
-      this._message.taggedCbor(),
-      this._encapsulatedKey.taggedCbor(),
-    ];
+    const elements: Cbor[] = [this._message.taggedCbor(), this._encapsulatedKey.taggedCbor()];
     return cbor(elements);
   }
 

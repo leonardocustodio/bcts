@@ -110,7 +110,9 @@ export class EncapsulationPrivateKey
   /**
    * Generate a new keypair using the given RNG.
    */
-  static keypairUsing(rng: RandomNumberGenerator): [EncapsulationPrivateKey, EncapsulationPublicKey] {
+  static keypairUsing(
+    rng: RandomNumberGenerator,
+  ): [EncapsulationPrivateKey, EncapsulationPublicKey] {
     const privateKey = EncapsulationPrivateKey.newUsing(rng);
     const publicKey = privateKey.publicKey();
     return [privateKey, publicKey];

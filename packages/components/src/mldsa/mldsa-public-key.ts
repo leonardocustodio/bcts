@@ -262,9 +262,7 @@ export class MLDSAPublicKey
    */
   static fromUR(ur: UR): MLDSAPublicKey {
     if (ur.urTypeStr() !== TAG_MLDSA_PUBLIC_KEY.name) {
-      throw new Error(
-        `Expected UR type ${TAG_MLDSA_PUBLIC_KEY.name}, got ${ur.urTypeStr()}`,
-      );
+      throw new Error(`Expected UR type ${TAG_MLDSA_PUBLIC_KEY.name}, got ${ur.urTypeStr()}`);
     }
     const dummyData = new Uint8Array(mldsaPublicKeySize(MLDSALevel.MLDSA44));
     const dummy = new MLDSAPublicKey(MLDSALevel.MLDSA44, dummyData);

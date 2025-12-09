@@ -114,12 +114,16 @@ describe("ARID", () => {
 
   describe("comparison", () => {
     it("should compare ARIDs correctly", () => {
-      const arid1 = ARID.fromHex("0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20");
-      const arid2 = ARID.fromHex("2102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20");
+      const arid1 = ARID.fromHex(
+        "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20",
+      );
+      const arid2 = ARID.fromHex(
+        "2102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20",
+      );
 
       expect(arid1.compare(arid2)).toBe(-1); // arid1 < arid2
-      expect(arid2.compare(arid1)).toBe(1);  // arid2 > arid1
-      expect(arid1.compare(arid1)).toBe(0);  // equal
+      expect(arid2.compare(arid1)).toBe(1); // arid2 > arid1
+      expect(arid1.compare(arid1)).toBe(0); // equal
     });
   });
 
@@ -150,7 +154,7 @@ describe("ARID", () => {
     it("should not be equal to an ARID with different data", () => {
       const arid1 = ARID.fromHex(TEST_HEX);
       const arid2 = ARID.fromHex(
-        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       );
 
       expect(arid1.equals(arid2)).toBe(false);

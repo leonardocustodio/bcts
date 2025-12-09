@@ -144,10 +144,7 @@ export class PublicKeys
    * Format: [<SigningPublicKey>, <EncapsulationPublicKey>]
    */
   untaggedCbor(): Cbor {
-    return cbor([
-      this._signingPublicKey.taggedCbor(),
-      this._encapsulationPublicKey.taggedCbor(),
-    ]);
+    return cbor([this._signingPublicKey.taggedCbor(), this._encapsulationPublicKey.taggedCbor()]);
   }
 
   /**
@@ -256,9 +253,7 @@ export class PublicKeys
    */
   static fromUR(ur: UR): PublicKeys {
     if (ur.urTypeStr() !== TAG_PUBLIC_KEYS.name) {
-      throw new Error(
-        `Expected UR type ${TAG_PUBLIC_KEYS.name}, got ${ur.urTypeStr()}`,
-      );
+      throw new Error(`Expected UR type ${TAG_PUBLIC_KEYS.name}, got ${ur.urTypeStr()}`);
     }
     // We need a dummy instance to call instance methods
     const signingKey = SigningPublicKey.fromUntaggedCborData(

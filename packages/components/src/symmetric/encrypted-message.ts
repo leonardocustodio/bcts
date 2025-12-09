@@ -61,7 +61,9 @@ import { Digest } from "../digest.js";
 import { AuthenticationTag } from "./authentication-tag.js";
 import { bytesToHex } from "../utils.js";
 
-export class EncryptedMessage implements CborTaggedEncodable, CborTaggedDecodable<EncryptedMessage>, UREncodable {
+export class EncryptedMessage
+  implements CborTaggedEncodable, CborTaggedDecodable<EncryptedMessage>, UREncodable
+{
   private readonly _ciphertext: Uint8Array;
   private readonly _aad: Uint8Array;
   private readonly _nonce: Nonce;
@@ -92,9 +94,7 @@ export class EncryptedMessage implements CborTaggedEncodable, CborTaggedDecodabl
     nonce: Nonce,
     auth: Uint8Array | AuthenticationTag,
   ): EncryptedMessage {
-    const authTag = auth instanceof AuthenticationTag
-      ? auth
-      : AuthenticationTag.fromData(auth);
+    const authTag = auth instanceof AuthenticationTag ? auth : AuthenticationTag.fromData(auth);
     return new EncryptedMessage(ciphertext, aad, nonce, authTag);
   }
 

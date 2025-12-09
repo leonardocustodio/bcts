@@ -162,10 +162,7 @@ export class PrivateKeys
    * Format: [<SigningPrivateKey>, <EncapsulationPrivateKey>]
    */
   untaggedCbor(): Cbor {
-    return cbor([
-      this._signingPrivateKey.taggedCbor(),
-      this._encapsulationPrivateKey.taggedCbor(),
-    ]);
+    return cbor([this._signingPrivateKey.taggedCbor(), this._encapsulationPrivateKey.taggedCbor()]);
   }
 
   /**
@@ -260,9 +257,7 @@ export class PrivateKeys
    */
   static fromUR(ur: UR): PrivateKeys {
     if (ur.urTypeStr() !== TAG_PRIVATE_KEYS.name) {
-      throw new Error(
-        `Expected UR type ${TAG_PRIVATE_KEYS.name}, got ${ur.urTypeStr()}`,
-      );
+      throw new Error(`Expected UR type ${TAG_PRIVATE_KEYS.name}, got ${ur.urTypeStr()}`);
     }
     const dummy = PrivateKeys.new();
     return dummy.fromUntaggedCbor(ur.cbor());

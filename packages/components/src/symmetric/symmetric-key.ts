@@ -186,11 +186,7 @@ export class SymmetricKey implements CborTaggedEncodable, CborTaggedDecodable<Sy
    * Encrypt the given plaintext with this key, and the given additional
    * authenticated data and nonce.
    */
-  encrypt(
-    plaintext: Uint8Array,
-    aad?: Uint8Array,
-    nonce?: Nonce,
-  ): EncryptedMessage {
+  encrypt(plaintext: Uint8Array, aad?: Uint8Array, nonce?: Nonce): EncryptedMessage {
     // Import dynamically to avoid circular dependency
     const { EncryptedMessage } = require("./encrypted-message.js");
 

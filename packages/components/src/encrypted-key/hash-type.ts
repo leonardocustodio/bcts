@@ -13,11 +13,7 @@
  * Ported from bc-components-rust/src/encrypted_key/hash_type.rs
  */
 
-import {
-  type Cbor,
-  cbor,
-  expectNumber,
-} from "@blockchain-commons/dcbor";
+import { type Cbor, cbor, expectNumber } from "@blockchain-commons/dcbor";
 
 /**
  * Enum representing supported hash types for key derivation.

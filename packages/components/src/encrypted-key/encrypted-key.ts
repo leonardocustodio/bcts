@@ -38,10 +38,7 @@ import { ENCRYPTED_KEY as TAG_ENCRYPTED_KEY } from "@blockchain-commons/tags";
 import { SymmetricKey } from "../symmetric/symmetric-key.js";
 import { EncryptedMessage } from "../symmetric/encrypted-message.js";
 import { CryptoError } from "../error.js";
-import {
-  KeyDerivationMethod,
-  keyDerivationMethodFromIndex,
-} from "./key-derivation-method.js";
+import { KeyDerivationMethod, keyDerivationMethodFromIndex } from "./key-derivation-method.js";
 import { HKDFParams } from "./hkdf-params.js";
 import { PBKDF2Params } from "./pbkdf2-params.js";
 import { ScryptParams } from "./scrypt-params.js";

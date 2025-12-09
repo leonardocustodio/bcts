@@ -351,7 +351,8 @@ export function generateSSKRSharesCbor(
   spec: import("@blockchain-commons/sskr").Spec,
   secret: import("@blockchain-commons/sskr").Secret,
 ): SSKRShareCbor[][] {
-  const { sskrGenerate } = require("@blockchain-commons/sskr") as typeof import("@blockchain-commons/sskr");
+  const { sskrGenerate } =
+    require("@blockchain-commons/sskr") as typeof import("@blockchain-commons/sskr");
   const rawGroups = sskrGenerate(spec, secret);
   return rawGroups.map((group) => group.map((shareData) => SSKRShareCbor.fromData(shareData)));
 }
@@ -362,8 +363,11 @@ export function generateSSKRSharesCbor(
  * @param shares - The shares to combine
  * @returns The recovered secret
  */
-export function combineSSKRSharesCbor(shares: SSKRShareCbor[]): import("@blockchain-commons/sskr").Secret {
-  const { sskrCombine } = require("@blockchain-commons/sskr") as typeof import("@blockchain-commons/sskr");
+export function combineSSKRSharesCbor(
+  shares: SSKRShareCbor[],
+): import("@blockchain-commons/sskr").Secret {
+  const { sskrCombine } =
+    require("@blockchain-commons/sskr") as typeof import("@blockchain-commons/sskr");
   const rawShares = shares.map((share) => share.data());
   return sskrCombine(rawShares);
 }

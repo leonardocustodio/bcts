@@ -16,12 +16,7 @@
  * Ported from bc-components-rust/src/symmetric/authentication_tag.rs
  */
 
-import {
-  type Cbor,
-  toByteString,
-  expectBytes,
-  decodeCbor,
-} from "@blockchain-commons/dcbor";
+import { type Cbor, toByteString, expectBytes, decodeCbor } from "@blockchain-commons/dcbor";
 import { CryptoError } from "../error.js";
 import { bytesToHex, hexToBytes, toBase64 } from "../utils.js";
 

@@ -23,10 +23,7 @@
  * Ported from bc-components-rust/src/ec_key/schnorr_public_key.rs
  */
 
-import {
-  SCHNORR_PUBLIC_KEY_SIZE,
-  schnorrVerify,
-} from "@blockchain-commons/crypto";
+import { SCHNORR_PUBLIC_KEY_SIZE, schnorrVerify } from "@blockchain-commons/crypto";
 import { CryptoError } from "../error.js";
 import { bytesToHex, hexToBytes, toBase64 } from "../utils.js";
 

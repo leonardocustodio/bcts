@@ -360,11 +360,7 @@ describe("EncryptedKey", () => {
       const secret = testSecret();
       const contentKey = testContentKey();
 
-      const encrypted = EncryptedKey.lock(
-        KeyDerivationMethod.HKDF,
-        secret,
-        contentKey,
-      );
+      const encrypted = EncryptedKey.lock(KeyDerivationMethod.HKDF, secret, contentKey);
       expect(encrypted.toString()).toBe("EncryptedKey(HKDF(SHA256))");
       expect(encrypted.method()).toBe(KeyDerivationMethod.HKDF);
       expect(encrypted.isPasswordBased()).toBe(false);
@@ -377,11 +373,7 @@ describe("EncryptedKey", () => {
       const secret = testSecret();
       const contentKey = testContentKey();
 
-      const encrypted = EncryptedKey.lock(
-        KeyDerivationMethod.HKDF,
-        secret,
-        contentKey,
-      );
+      const encrypted = EncryptedKey.lock(KeyDerivationMethod.HKDF, secret, contentKey);
       const cborData = encrypted.taggedCborData();
       const restored = EncryptedKey.fromTaggedCborData(cborData);
       const decrypted = restored.unlock(secret);
@@ -463,11 +455,7 @@ describe("EncryptedKey", () => {
       const secret = testSecret();
       const contentKey = testContentKey();
 
-      const encrypted = EncryptedKey.lock(
-        KeyDerivationMethod.Argon2id,
-        secret,
-        contentKey,
-      );
+      const encrypted = EncryptedKey.lock(KeyDerivationMethod.Argon2id, secret, contentKey);
       expect(encrypted.toString()).toBe("EncryptedKey(Argon2id)");
       expect(encrypted.method()).toBe(KeyDerivationMethod.Argon2id);
       expect(encrypted.isPasswordBased()).toBe(true);
@@ -480,11 +468,7 @@ describe("EncryptedKey", () => {
       const secret = testSecret();
       const contentKey = testContentKey();
 
-      const encrypted = EncryptedKey.lock(
-        KeyDerivationMethod.Argon2id,
-        secret,
-        contentKey,
-      );
+      const encrypted = EncryptedKey.lock(KeyDerivationMethod.Argon2id, secret, contentKey);
       const cborData = encrypted.taggedCborData();
       const restored = EncryptedKey.fromTaggedCborData(cborData);
       const decrypted = restored.unlock(secret);
@@ -499,11 +483,7 @@ describe("EncryptedKey", () => {
       const wrongSecret = new TextEncoder().encode("wrong secret");
       const contentKey = testContentKey();
 
-      const encrypted = EncryptedKey.lock(
-        KeyDerivationMethod.HKDF,
-        secret,
-        contentKey,
-      );
+      const encrypted = EncryptedKey.lock(KeyDerivationMethod.HKDF, secret, contentKey);
       expect(() => encrypted.unlock(wrongSecret)).toThrow();
     });
 
@@ -536,11 +516,7 @@ describe("EncryptedKey", () => {
       const wrongSecret = new TextEncoder().encode("wrong secret");
       const contentKey = testContentKey();
 
-      const encrypted = EncryptedKey.lock(
-        KeyDerivationMethod.Argon2id,
-        secret,
-        contentKey,
-      );
+      const encrypted = EncryptedKey.lock(KeyDerivationMethod.Argon2id, secret, contentKey);
       expect(() => encrypted.unlock(wrongSecret)).toThrow();
     });
   });
@@ -550,11 +526,7 @@ describe("EncryptedKey", () => {
       const secret = testSecret();
       const contentKey = testContentKey();
 
-      const hkdf = EncryptedKey.lock(
-        KeyDerivationMethod.HKDF,
-        secret,
-        contentKey,
-      );
+      const hkdf = EncryptedKey.lock(KeyDerivationMethod.HKDF, secret, contentKey);
       expect(hkdf.params().type).toBe("hkdf");
 
       const salt = Salt.newWithLen(16);
@@ -566,11 +538,7 @@ describe("EncryptedKey", () => {
       const scrypt = EncryptedKey.lockOpt(scryptParams(scryptP), secret, contentKey);
       expect(scrypt.params().type).toBe("scrypt");
 
-      const argon2id = EncryptedKey.lock(
-        KeyDerivationMethod.Argon2id,
-        secret,
-        contentKey,
-      );
+      const argon2id = EncryptedKey.lock(KeyDerivationMethod.Argon2id, secret, contentKey);
       expect(argon2id.params().type).toBe("argon2id");
     });
   });
@@ -579,11 +547,7 @@ describe("EncryptedKey", () => {
     it("should be equal to itself", () => {
       const secret = testSecret();
       const contentKey = testContentKey();
-      const encrypted = EncryptedKey.lock(
-        KeyDerivationMethod.HKDF,
-        secret,
-        contentKey,
-      );
+      const encrypted = EncryptedKey.lock(KeyDerivationMethod.HKDF, secret, contentKey);
       expect(encrypted.equals(encrypted)).toBe(true);
     });
   });
@@ -592,11 +556,7 @@ describe("EncryptedKey", () => {
     it("should serialize to UR string", () => {
       const secret = testSecret();
       const contentKey = testContentKey();
-      const encrypted = EncryptedKey.lock(
-        KeyDerivationMethod.HKDF,
-        secret,
-        contentKey,
-      );
+      const encrypted = EncryptedKey.lock(KeyDerivationMethod.HKDF, secret, contentKey);
       const urString = encrypted.urString();
 
       expect(urString.startsWith("ur:encrypted-key/")).toBe(true);
@@ -605,11 +565,7 @@ describe("EncryptedKey", () => {
     it("should roundtrip through UR string", () => {
       const secret = testSecret();
       const contentKey = testContentKey();
-      const encrypted = EncryptedKey.lock(
-        KeyDerivationMethod.HKDF,
-        secret,
-        contentKey,
-      );
+      const encrypted = EncryptedKey.lock(KeyDerivationMethod.HKDF, secret, contentKey);
       const urString = encrypted.urString();
       const restored = EncryptedKey.fromURString(urString);
       const decrypted = restored.unlock(secret);

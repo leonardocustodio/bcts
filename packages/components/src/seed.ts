@@ -307,7 +307,7 @@ export class Seed implements CborTaggedEncodable, CborTaggedDecodable<Seed>, URE
     const note = map.get<number, string>(4);
 
     const metadata: SeedMetadata | undefined =
-      (name || note || createdAt)
+      name || note || createdAt
         ? { name: name ?? undefined, note: note ?? undefined, createdAt }
         : undefined;
 

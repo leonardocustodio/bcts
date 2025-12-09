@@ -18,10 +18,7 @@
  * Ported from bc-components-rust/src/private_key_base.rs
  */
 
-import {
-  SecureRandomNumberGenerator,
-  type RandomNumberGenerator,
-} from "@blockchain-commons/rand";
+import { SecureRandomNumberGenerator, type RandomNumberGenerator } from "@blockchain-commons/rand";
 import {
   type Cbor,
   type Tag,
@@ -67,9 +64,7 @@ export class PrivateKeyBase
 
   private constructor(data: Uint8Array) {
     if (data.length !== PRIVATE_KEY_BASE_SIZE) {
-      throw new Error(
-        `PrivateKeyBase must be ${PRIVATE_KEY_BASE_SIZE} bytes, got ${data.length}`,
-      );
+      throw new Error(`PrivateKeyBase must be ${PRIVATE_KEY_BASE_SIZE} bytes, got ${data.length}`);
     }
     this._data = new Uint8Array(data);
   }
@@ -163,10 +158,7 @@ export class PrivateKeyBase
   ed25519PrivateKeys(): PrivateKeys {
     // Import at runtime to avoid circular dependency
     const { PrivateKeys } = require("./private-keys.js") as typeof import("./private-keys.js");
-    return PrivateKeys.withKeys(
-      this.ed25519SigningPrivateKey(),
-      this.encapsulationPrivateKey(),
-    );
+    return PrivateKeys.withKeys(this.ed25519SigningPrivateKey(), this.encapsulationPrivateKey());
   }
 
   /**
@@ -313,9 +305,7 @@ export class PrivateKeyBase
    */
   static fromUR(ur: UR): PrivateKeyBase {
     if (ur.urTypeStr() !== TAG_PRIVATE_KEY_BASE.name) {
-      throw new Error(
-        `Expected UR type ${TAG_PRIVATE_KEY_BASE.name}, got ${ur.urTypeStr()}`,
-      );
+      throw new Error(`Expected UR type ${TAG_PRIVATE_KEY_BASE.name}, got ${ur.urTypeStr()}`);
     }
     const dummy = new PrivateKeyBase(new Uint8Array(PRIVATE_KEY_BASE_SIZE));
     return dummy.fromUntaggedCbor(ur.cbor());

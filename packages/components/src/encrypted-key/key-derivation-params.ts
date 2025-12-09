@@ -8,18 +8,11 @@
  * Ported from bc-components-rust/src/encrypted_key/key_derivation_params.rs
  */
 
-import {
-  type Cbor,
-  expectArray,
-  expectNumber,
-} from "@blockchain-commons/dcbor";
+import { type Cbor, expectArray, expectNumber } from "@blockchain-commons/dcbor";
 
 import type { SymmetricKey } from "../symmetric/symmetric-key.js";
 import type { EncryptedMessage } from "../symmetric/encrypted-message.js";
-import {
-  KeyDerivationMethod,
-  keyDerivationMethodFromIndex,
-} from "./key-derivation-method.js";
+import { KeyDerivationMethod, keyDerivationMethodFromIndex } from "./key-derivation-method.js";
 import { HKDFParams } from "./hkdf-params.js";
 import { PBKDF2Params } from "./pbkdf2-params.js";
 import { ScryptParams } from "./scrypt-params.js";

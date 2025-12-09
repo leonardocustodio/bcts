@@ -246,9 +246,7 @@ export class MLKEMCiphertext
    */
   static fromUR(ur: UR): MLKEMCiphertext {
     if (ur.urTypeStr() !== TAG_MLKEM_CIPHERTEXT.name) {
-      throw new Error(
-        `Expected UR type ${TAG_MLKEM_CIPHERTEXT.name}, got ${ur.urTypeStr()}`,
-      );
+      throw new Error(`Expected UR type ${TAG_MLKEM_CIPHERTEXT.name}, got ${ur.urTypeStr()}`);
     }
     const dummyData = new Uint8Array(mlkemCiphertextSize(MLKEMLevel.MLKEM512));
     const dummy = new MLKEMCiphertext(MLKEMLevel.MLKEM512, dummyData);

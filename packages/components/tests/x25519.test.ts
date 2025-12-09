@@ -7,13 +7,7 @@
  * - ECDH key agreement
  */
 
-import {
-  X25519PrivateKey,
-  X25519PublicKey,
-  SymmetricKey,
-  hexToBytes,
-  bytesToHex,
-} from "../src";
+import { X25519PrivateKey, X25519PublicKey, SymmetricKey, hexToBytes, bytesToHex } from "../src";
 import { SecureRandomNumberGenerator } from "@blockchain-commons/rand";
 
 // Test vectors

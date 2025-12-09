@@ -246,9 +246,7 @@ export class MLDSASignature
    */
   static fromUR(ur: UR): MLDSASignature {
     if (ur.urTypeStr() !== TAG_MLDSA_SIGNATURE.name) {
-      throw new Error(
-        `Expected UR type ${TAG_MLDSA_SIGNATURE.name}, got ${ur.urTypeStr()}`,
-      );
+      throw new Error(`Expected UR type ${TAG_MLDSA_SIGNATURE.name}, got ${ur.urTypeStr()}`);
     }
     const dummyData = new Uint8Array(mldsaSignatureSize(MLDSALevel.MLDSA44));
     const dummy = new MLDSASignature(MLDSALevel.MLDSA44, dummyData);

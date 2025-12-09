@@ -136,7 +136,8 @@ export class MLKEMPublicKey
     const result = mlkemEncapsulate(this._level, this._data);
     const sharedSecret = SymmetricKey.fromData(result.sharedSecret);
     // Import at runtime to avoid circular dependency
-    const { MLKEMCiphertext: Ct } = require("./mlkem-ciphertext.js") as typeof import("./mlkem-ciphertext.js");
+    const { MLKEMCiphertext: Ct } =
+      require("./mlkem-ciphertext.js") as typeof import("./mlkem-ciphertext.js");
     const ciphertext = Ct.fromBytes(this._level, result.ciphertext);
     return { sharedSecret, ciphertext };
   }
@@ -277,9 +278,7 @@ export class MLKEMPublicKey
    */
   static fromUR(ur: UR): MLKEMPublicKey {
     if (ur.urTypeStr() !== TAG_MLKEM_PUBLIC_KEY.name) {
-      throw new Error(
-        `Expected UR type ${TAG_MLKEM_PUBLIC_KEY.name}, got ${ur.urTypeStr()}`,
-      );
+      throw new Error(`Expected UR type ${TAG_MLKEM_PUBLIC_KEY.name}, got ${ur.urTypeStr()}`);
     }
     const dummyData = new Uint8Array(mlkemPublicKeySize(MLKEMLevel.MLKEM512));
     const dummy = new MLKEMPublicKey(MLKEMLevel.MLKEM512, dummyData);

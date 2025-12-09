@@ -58,7 +58,9 @@ import { CryptoError } from "./error.js";
 import { bytesToHex, hexToBytes, toBase64 } from "./utils.js";
 import type { DigestProvider } from "./digest-provider.js";
 
-export class Digest implements DigestProvider, CborTaggedEncodable, CborTaggedDecodable<Digest>, UREncodable {
+export class Digest
+  implements DigestProvider, CborTaggedEncodable, CborTaggedDecodable<Digest>, UREncodable
+{
   static readonly DIGEST_SIZE = SHA256_SIZE;
 
   private readonly _data: Uint8Array;

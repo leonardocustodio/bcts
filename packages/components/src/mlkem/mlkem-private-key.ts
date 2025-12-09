@@ -131,7 +131,8 @@ export class MLKEMPrivateKey
     const keypairData = mlkemGenerateKeypairUsing(level, rng);
     const privateKey = new MLKEMPrivateKey(level, keypairData.secretKey);
     // Import at runtime to avoid circular dependency
-    const { MLKEMPublicKey: PubKey } = require("./mlkem-public-key.js") as typeof import("./mlkem-public-key.js");
+    const { MLKEMPublicKey: PubKey } =
+      require("./mlkem-public-key.js") as typeof import("./mlkem-public-key.js");
     const publicKey = PubKey.fromBytes(level, keypairData.publicKey);
     return [privateKey, publicKey];
   }
@@ -320,9 +321,7 @@ export class MLKEMPrivateKey
    */
   static fromUR(ur: UR): MLKEMPrivateKey {
     if (ur.urTypeStr() !== TAG_MLKEM_PRIVATE_KEY.name) {
-      throw new Error(
-        `Expected UR type ${TAG_MLKEM_PRIVATE_KEY.name}, got ${ur.urTypeStr()}`,
-      );
+      throw new Error(`Expected UR type ${TAG_MLKEM_PRIVATE_KEY.name}, got ${ur.urTypeStr()}`);
     }
     const dummyData = new Uint8Array(mlkemPrivateKeySize(MLKEMLevel.MLKEM512));
     const dummy = new MLKEMPrivateKey(MLKEMLevel.MLKEM512, dummyData);

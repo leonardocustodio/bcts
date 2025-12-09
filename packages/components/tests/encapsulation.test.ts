@@ -1,5 +1,8 @@
 import { describe, it, expect } from "@jest/globals";
-import { SeededRandomNumberGenerator, makeFakeRandomNumberGenerator } from "@blockchain-commons/rand";
+import {
+  SeededRandomNumberGenerator,
+  makeFakeRandomNumberGenerator,
+} from "@blockchain-commons/rand";
 import {
   EncapsulationScheme,
   EncapsulationPrivateKey,

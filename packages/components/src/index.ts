@@ -65,7 +65,11 @@ export {
   SigningPrivateKey,
   SigningPublicKey,
 } from "./signing/index.js";
-export { createKeypair, createKeypairUsing, defaultSignatureScheme } from "./signing/signature-scheme.js";
+export {
+  createKeypair,
+  createKeypairUsing,
+  defaultSignatureScheme,
+} from "./signing/signature-scheme.js";
 
 // Key encapsulation (from encapsulation/ module)
 export {
@@ -172,4 +176,8 @@ export {
   MLKEMPublicKey,
   MLKEMCiphertext,
 } from "./mlkem/index.js";
-export type { MLKEMKeypairData, MLKEMEncapsulationResult, MLKEMEncapsulationPair } from "./mlkem/index.js";
+export type {
+  MLKEMKeypairData,
+  MLKEMEncapsulationResult,
+  MLKEMEncapsulationPair,
+} from "./mlkem/index.js";

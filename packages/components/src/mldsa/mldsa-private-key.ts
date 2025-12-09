@@ -131,7 +131,8 @@ export class MLDSAPrivateKey
     const keypairData = mldsaGenerateKeypairUsing(level, rng);
     const privateKey = new MLDSAPrivateKey(level, keypairData.secretKey);
     // Import at runtime to avoid circular dependency
-    const { MLDSAPublicKey: PubKey } = require("./mldsa-public-key.js") as typeof import("./mldsa-public-key.js");
+    const { MLDSAPublicKey: PubKey } =
+      require("./mldsa-public-key.js") as typeof import("./mldsa-public-key.js");
     const publicKey = PubKey.fromBytes(level, keypairData.publicKey);
     return [privateKey, publicKey];
   }
@@ -177,7 +178,8 @@ export class MLDSAPrivateKey
   sign(message: Uint8Array): MLDSASignature {
     const sigBytes = mldsaSign(this._level, this._data, message);
     // Import at runtime to avoid circular dependency
-    const { MLDSASignature: Sig } = require("./mldsa-signature.js") as typeof import("./mldsa-signature.js");
+    const { MLDSASignature: Sig } =
+      require("./mldsa-signature.js") as typeof import("./mldsa-signature.js");
     return Sig.fromBytes(this._level, sigBytes);
   }
 
@@ -357,9 +359,7 @@ export class MLDSAPrivateKey
    */
   static fromUR(ur: UR): MLDSAPrivateKey {
     if (ur.urTypeStr() !== TAG_MLDSA_PRIVATE_KEY.name) {
-      throw new Error(
-        `Expected UR type ${TAG_MLDSA_PRIVATE_KEY.name}, got ${ur.urTypeStr()}`,
-      );
+      throw new Error(`Expected UR type ${TAG_MLDSA_PRIVATE_KEY.name}, got ${ur.urTypeStr()}`);
     }
     const dummyData = new Uint8Array(mldsaPrivateKeySize(MLDSALevel.MLDSA44));
     const dummy = new MLDSAPrivateKey(MLDSALevel.MLDSA44, dummyData);

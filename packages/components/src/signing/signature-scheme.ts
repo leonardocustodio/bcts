@@ -46,9 +46,7 @@ export function defaultSignatureScheme(): SignatureScheme {
  * @param scheme - The signature scheme to use
  * @returns A tuple containing a signing private key and its corresponding public key
  */
-export function createKeypair(
-  scheme: SignatureScheme,
-): [SigningPrivateKey, SigningPublicKey] {
+export function createKeypair(scheme: SignatureScheme): [SigningPrivateKey, SigningPublicKey] {
   // Import dynamically to avoid circular dependency
   const { SigningPrivateKey } = require("./signing-private-key.js");
 
