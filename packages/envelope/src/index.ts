@@ -16,10 +16,8 @@ export * from "./extension";
 
 // Re-export everything from the format module
 // Import for side effects (registers prototype extensions like treeFormat)
-// NOTE: This must be a regular export (not `export type *`) to include
-// the module augmentation declarations for treeFormat, shortId, summary
 import "./format";
-export * from "./format";
+export type * from "./format";
 
 // Re-export everything from the utils module
 export * from "./utils";

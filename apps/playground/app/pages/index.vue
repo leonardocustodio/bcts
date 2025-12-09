@@ -2,7 +2,6 @@
 import { ref, shallowRef, computed, watch } from 'vue'
 import { decodeCbor, cborData, cbor, hexToBytes, hexOpt, diagnosticOpt, MajorType, type Cbor } from '@blockchain-commons/dcbor'
 import { UR, decodeBytewords, encodeBytewords, BytewordsStyle } from '@blockchain-commons/uniform-resources'
-import { envelopeFromCbor } from '@blockchain-commons/envelope'
 import { envelopeFromCbor, type Envelope } from '@blockchain-commons/envelope'
 import { ENVELOPE } from '@blockchain-commons/tags'
 
