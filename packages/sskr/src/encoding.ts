@@ -6,7 +6,7 @@ import { splitSecret, recoverSecret, ShamirError } from "@blockchain-commons/sha
 
 import { SSKRError, SSKRErrorType } from "./error.js";
 import { Secret } from "./secret.js";
-import { Spec } from "./spec.js";
+import type { Spec } from "./spec.js";
 import { SSKRShare } from "./share.js";
 import { METADATA_SIZE_BYTES } from "./index.js";
 
@@ -248,8 +248,8 @@ function combineShares(shares: SSKRShare[]): Secret {
         if (share.memberThreshold() !== group.memberThreshold) {
           throw new SSKRError(SSKRErrorType.MemberThresholdInvalid);
         }
-        for (let k = 0; k < group.memberIndexes.length; k++) {
-          if (share.memberIndex() === group.memberIndexes[k]) {
+        for (const memberIndex of group.memberIndexes) {
+          if (share.memberIndex() === memberIndex) {
             throw new SSKRError(SSKRErrorType.DuplicateMemberIndex);
           }
         }

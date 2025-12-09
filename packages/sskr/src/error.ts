@@ -1,6 +1,6 @@
 // Ported from bc-sskr-rust/src/error.rs
 
-import { ShamirError } from "@blockchain-commons/shamir";
+import type { ShamirError } from "@blockchain-commons/shamir";
 
 /**
  * Error types for SSKR operations.
@@ -68,7 +68,9 @@ export class SSKRError extends Error {
       case SSKRErrorType.ShareSetInvalid:
         return "SSKR shares were invalid";
       case SSKRErrorType.ShamirError:
-        return shamirError ? `SSKR Shamir error: ${shamirError.message}` : "SSKR Shamir error";
+        return shamirError != null
+          ? `SSKR Shamir error: ${shamirError.message}`
+          : "SSKR Shamir error";
     }
   }
 

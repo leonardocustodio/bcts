@@ -1,6 +1,6 @@
 // Ported from bc-sskr-rust/src/share.rs
 
-import { Secret } from "./secret.js";
+import type { Secret } from "./secret.js";
 
 /**
  * A share in the SSKR scheme.
