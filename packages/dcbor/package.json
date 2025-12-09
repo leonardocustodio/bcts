@@ -35,9 +35,9 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "test": "jest --testPathIgnorePatterns=cli.test.ts",
-    "test:watch": "jest --watch",
-    "test:cli": "jest cli.test.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:cli": "vitest run tests/cli.test.ts",
     "test:examples": "npm run build && node scripts/test-examples.js",
     "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' 'tests/**/*.ts' --fix",
@@ -64,16 +64,14 @@
     "@blockchain-commons/tsconfig": "workspace:*",
     "@eslint/js": "^9.39.1",
     "@types/collections": "^5.1.5",
-    "@types/jest": "^30.0.0",
     "@typescript-eslint/eslint-plugin": "^8.49.0",
     "@typescript-eslint/parser": "^8.49.0",
     "eslint": "^9.39.1",
-    "jest": "^30.2.0",
-    "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "tsdown": "^0.17.2",
     "typedoc": "^0.28.15",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "byte-data": "^19.0.1",

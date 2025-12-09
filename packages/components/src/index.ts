@@ -181,3 +181,7 @@ export type {
   MLKEMEncapsulationResult,
   MLKEMEncapsulationPair,
 } from "./mlkem/index.js";
+
+// Re-export commonly used tags for higher-level packages
+// This allows packages like known-values to depend on components instead of tags directly
+export { KNOWN_VALUE } from "@blockchain-commons/tags";

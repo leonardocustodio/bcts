@@ -68,7 +68,7 @@ import {
   decodeCbor,
   MajorType,
 } from "@blockchain-commons/dcbor";
-import { KNOWN_VALUE } from "@blockchain-commons/tags";
+import { KNOWN_VALUE } from "@blockchain-commons/components";
 
 /**
  * The numeric value for the CBOR tag used for Known Values.
