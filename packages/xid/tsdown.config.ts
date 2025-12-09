@@ -8,10 +8,16 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   target: "es2022",
-  globalName: "BCTags",
+  globalName: "BCXID",
   outputOptions: {
     globals: {
+      "@bcts/components": "BCComponents",
       "@bcts/dcbor": "BCDcbor",
+      "@bcts/envelope": "BCEnvelope",
+      "@bcts/known-values": "BCKnownValues",
+      "@bcts/provenance-mark": "BCProvenanceMark",
+      "@bcts/rand": "BCRand",
+      "@bcts/uniform-resources": "BCUR",
     },
   },
 });

@@ -11,10 +11,12 @@ export default defineConfig({
   globalName: "BCEnvelope",
   outputOptions: {
     globals: {
+      "@bcts/components": "BCComponents",
+      "@bcts/crypto": "BCCrypto",
       "@bcts/dcbor": "BCDcbor",
       "@bcts/known-values": "BCKnownValues",
-      "@bcts/components": "BCComponents",
-      "@bcts/uniform-resources": "BCUniformResources",
+      "@bcts/rand": "BCRand",
+      "@bcts/uniform-resources": "BCUR",
     },
   },
 });

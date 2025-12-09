@@ -11,8 +11,8 @@ export default defineConfig({
   globalName: "BCKnownValues",
   outputOptions: {
     globals: {
+      "@bcts/components": "BCComponents",
       "@bcts/dcbor": "BCDcbor",
-      "@bcts/tags": "BCTags",
     },
   },
 });
