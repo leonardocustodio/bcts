@@ -104,3 +104,22 @@ export {
   EncryptedKey,
 } from "./encrypted-key/index.js";
 export type { KeyDerivation, KeyDerivationParams } from "./encrypted-key/index.js";
+
+// Key management containers
+export { PrivateKeyBase } from "./private-key-base.js";
+export { PrivateKeys } from "./private-keys.js";
+export { PublicKeys } from "./public-keys.js";
+
+// SSKR integration with CBOR/UR serialization
+export {
+  SSKRShareCbor,
+  generateSSKRSharesCbor,
+  combineSSKRSharesCbor,
+  // Re-exports from @blockchain-commons/sskr for convenience
+  sskrGenerate,
+  sskrGenerateUsing,
+  sskrCombine,
+  SSKRSecret,
+  SSKRGroupSpec,
+  SSKRSpec,
+} from "./sskr.js";
