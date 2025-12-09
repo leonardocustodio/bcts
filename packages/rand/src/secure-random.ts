@@ -48,7 +48,7 @@ export function nextU64(): bigint {
 /**
  * A random number generator that can be used as a source of
  * cryptographically-strong randomness.
- * 
+ *
  * Uses the Web Crypto API (crypto.getRandomValues) which is available
  * in both browsers and Node.js >= 15.
  */

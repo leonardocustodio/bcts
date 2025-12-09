@@ -11,7 +11,7 @@ export type WideMulResult = [bigint, bigint];
 /**
  * Performs wide multiplication for unsigned integers.
  * Returns (low, high) parts of the full-width result.
- * 
+ *
  * This is equivalent to Rust's widening_mul for unsigned types.
  */
 export function wideMul(a: bigint, b: bigint, bits: number): WideMulResult {

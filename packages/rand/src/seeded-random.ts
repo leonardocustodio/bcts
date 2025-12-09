@@ -28,33 +28,33 @@ function rotl(x: bigint, k: number): bigint {
  */
 function xoshiro256StarStar(state: Xoshiro256State): bigint {
   const mask = 0xffffffffffffffffn;
-  
+
   // result = rotl(s1 * 5, 7) * 9
   const result = (rotl((state.s1 * 5n) & mask, 7) * 9n) & mask;
-  
+
   // t = s1 << 17
   const t = (state.s1 << 17n) & mask;
-  
+
   // Update state
   state.s2 ^= state.s0;
   state.s3 ^= state.s1;
   state.s1 ^= state.s2;
   state.s0 ^= state.s3;
-  
+
   state.s2 ^= t;
   state.s3 = rotl(state.s3, 45);
-  
+
   return result;
 }
 
 /**
  * A random number generator that can be used as a source of deterministic
  * pseudo-randomness for testing purposes.
- * 
+ *
  * Uses the Xoshiro256** algorithm, which is the same algorithm used by
  * rand_xoshiro in Rust. This ensures cross-platform compatibility with
  * the Rust implementation.
- * 
+ *
  * WARNING: This is NOT cryptographically secure and should only be used
  * for testing purposes.
  */
@@ -63,14 +63,14 @@ export class SeededRandomNumberGenerator implements RandomNumberGenerator {
 
   /**
    * Creates a new seeded random number generator.
-   * 
+   *
    * The seed should be a 256-bit value, represented as an array of 4 64-bit
    * integers (as bigints). For the output distribution to look random, the seed
    * should not have any obvious patterns, like all zeroes or all ones.
-   * 
+   *
    * This is not cryptographically secure, and should only be used for
    * testing purposes.
-   * 
+   *
    * @param seed - Array of 4 64-bit unsigned integers as bigints
    */
   constructor(seed: [bigint, bigint, bigint, bigint]) {
@@ -85,7 +85,7 @@ export class SeededRandomNumberGenerator implements RandomNumberGenerator {
   /**
    * Creates a new seeded random number generator from a seed array.
    * Convenience method that accepts numbers and converts to bigints.
-   * 
+   *
    * @param seed - Array of 4 64-bit unsigned integers
    */
   static fromSeed(seed: [bigint, bigint, bigint, bigint]): SeededRandomNumberGenerator {
@@ -108,8 +108,8 @@ export class SeededRandomNumberGenerator implements RandomNumberGenerator {
 
   /**
    * Fills the given Uint8Array with random bytes.
-   * 
-   * Note: This implementation matches the Rust behavior exactly - 
+   *
+   * Note: This implementation matches the Rust behavior exactly -
    * it uses one nextU64() call per byte (taking only the low byte),
    * which matches the Swift version's behavior.
    */
@@ -121,7 +121,7 @@ export class SeededRandomNumberGenerator implements RandomNumberGenerator {
 
   /**
    * Returns a Uint8Array of random bytes of the given size.
-   * 
+   *
    * This might not be the most efficient implementation,
    * but it works the same as the Swift version.
    */
@@ -162,7 +162,7 @@ export function makeFakeRandomNumberGenerator(): SeededRandomNumberGenerator {
 /**
  * Creates a Uint8Array of random data with a fixed seed.
  * This is useful for reproducible testing.
- * 
+ *
  * @param size - The number of bytes to generate
  * @returns A Uint8Array of pseudo-random bytes
  */

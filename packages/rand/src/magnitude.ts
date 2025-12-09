@@ -4,19 +4,19 @@
  * Converts a signed integer to its unsigned magnitude.
  * For positive numbers, returns the number unchanged.
  * For negative numbers, returns the absolute value (wrapping for MIN values).
- * 
+ *
  * This matches Rust's wrapping_abs() behavior.
  */
 export function toMagnitude(value: number, bits: 8 | 16 | 32): number {
   switch (bits) {
     case 8: {
       // i8 to u8: wrapping_abs
-      const i8Value = value << 24 >> 24; // Sign extend to i8
+      const i8Value = (value << 24) >> 24; // Sign extend to i8
       return Math.abs(i8Value) & 0xff;
     }
     case 16: {
       // i16 to u16: wrapping_abs
-      const i16Value = value << 16 >> 16; // Sign extend to i16
+      const i16Value = (value << 16) >> 16; // Sign extend to i16
       return Math.abs(i16Value) & 0xffff;
     }
     case 32: {

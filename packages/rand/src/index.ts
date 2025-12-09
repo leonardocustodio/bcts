@@ -22,12 +22,7 @@ export {
 } from "./widening.js";
 
 // Magnitude conversion utilities
-export {
-  toMagnitude,
-  toMagnitude64,
-  fromMagnitude,
-  fromMagnitude64,
-} from "./magnitude.js";
+export { toMagnitude, toMagnitude64, fromMagnitude, fromMagnitude64 } from "./magnitude.js";
 
 // Random number generator interface and utilities
 export {
@@ -35,7 +30,9 @@ export {
   rngRandomData,
   rngFillRandomData,
   rngNextWithUpperBound,
+  rngNextWithUpperBoundU32,
   rngNextInRange,
+  rngNextInRangeI32,
   rngNextInClosedRange,
   rngNextInClosedRangeI32,
   rngRandomArray,

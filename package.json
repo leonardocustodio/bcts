@@ -24,6 +24,7 @@
     "packages/dcbor",
     "packages/envelope",
     "packages/known-values",
+    "packages/rand",
     "packages/tags",
     "packages/uniform-resources",
     "shared/*"
