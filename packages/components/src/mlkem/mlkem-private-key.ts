@@ -46,7 +46,7 @@ import {
   mlkemGenerateKeypairUsing,
   mlkemDecapsulate,
 } from "./mlkem-level.js";
-import type { MLKEMPublicKey } from "./mlkem-public-key.js";
+import { MLKEMPublicKey } from "./mlkem-public-key.js";
 import type { MLKEMCiphertext } from "./mlkem-ciphertext.js";
 import { SymmetricKey } from "../symmetric/symmetric-key.js";
 import { bytesToHex } from "../utils.js";
@@ -130,10 +130,7 @@ export class MLKEMPrivateKey
   ): [MLKEMPrivateKey, MLKEMPublicKey] {
     const keypairData = mlkemGenerateKeypairUsing(level, rng);
     const privateKey = new MLKEMPrivateKey(level, keypairData.secretKey);
-    // Import at runtime to avoid circular dependency
-    const { MLKEMPublicKey: PubKey } =
-      require("./mlkem-public-key.js") as typeof import("./mlkem-public-key.js");
-    const publicKey = PubKey.fromBytes(level, keypairData.publicKey);
+    const publicKey = MLKEMPublicKey.fromBytes(level, keypairData.publicKey);
     return [privateKey, publicKey];
   }
 

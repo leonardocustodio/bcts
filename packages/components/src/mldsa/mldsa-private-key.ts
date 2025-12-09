@@ -47,8 +47,8 @@ import {
   mldsaGenerateKeypairUsing,
   mldsaSign,
 } from "./mldsa-level.js";
-import type { MLDSAPublicKey } from "./mldsa-public-key.js";
-import type { MLDSASignature } from "./mldsa-signature.js";
+import { MLDSAPublicKey } from "./mldsa-public-key.js";
+import { MLDSASignature } from "./mldsa-signature.js";
 import { bytesToHex } from "../utils.js";
 
 /**
@@ -130,10 +130,7 @@ export class MLDSAPrivateKey
   ): [MLDSAPrivateKey, MLDSAPublicKey] {
     const keypairData = mldsaGenerateKeypairUsing(level, rng);
     const privateKey = new MLDSAPrivateKey(level, keypairData.secretKey);
-    // Import at runtime to avoid circular dependency
-    const { MLDSAPublicKey: PubKey } =
-      require("./mldsa-public-key.js") as typeof import("./mldsa-public-key.js");
-    const publicKey = PubKey.fromBytes(level, keypairData.publicKey);
+    const publicKey = MLDSAPublicKey.fromBytes(level, keypairData.publicKey);
     return [privateKey, publicKey];
   }
 
@@ -177,10 +174,7 @@ export class MLDSAPrivateKey
    */
   sign(message: Uint8Array): MLDSASignature {
     const sigBytes = mldsaSign(this._level, this._data, message);
-    // Import at runtime to avoid circular dependency
-    const { MLDSASignature: Sig } =
-      require("./mldsa-signature.js") as typeof import("./mldsa-signature.js");
-    return Sig.fromBytes(this._level, sigBytes);
+    return MLDSASignature.fromBytes(this._level, sigBytes);
   }
 
   /**

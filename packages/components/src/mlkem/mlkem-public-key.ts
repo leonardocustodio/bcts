@@ -43,7 +43,7 @@ import {
   mlkemPublicKeySize,
   mlkemEncapsulate,
 } from "./mlkem-level.js";
-import type { MLKEMCiphertext } from "./mlkem-ciphertext.js";
+import { MLKEMCiphertext } from "./mlkem-ciphertext.js";
 import { SymmetricKey } from "../symmetric/symmetric-key.js";
 import { bytesToHex } from "../utils.js";
 
@@ -135,10 +135,7 @@ export class MLKEMPublicKey
   encapsulate(): MLKEMEncapsulationPair {
     const result = mlkemEncapsulate(this._level, this._data);
     const sharedSecret = SymmetricKey.fromData(result.sharedSecret);
-    // Import at runtime to avoid circular dependency
-    const { MLKEMCiphertext: Ct } =
-      require("./mlkem-ciphertext.js") as typeof import("./mlkem-ciphertext.js");
-    const ciphertext = Ct.fromBytes(this._level, result.ciphertext);
+    const ciphertext = MLKEMCiphertext.fromBytes(this._level, result.ciphertext);
     return { sharedSecret, ciphertext };
   }
 
