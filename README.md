@@ -35,22 +35,6 @@ bun playground
 
 **Live Demo:** https://leonardocustodio.github.io/blockchain-commons
 
-## 🚀 Quick Start
-
-### Prerequisites
-- Node.js >= 18.0.0
-- [Bun](https://bun.sh/) (>=1.2.22) - Package manager and runtime
-
-### Installation
-
-```bash
-# Install dependencies
-bun install
-
-# Build all packages
-bun run build
-```
-
 ## 🛠️ Development
 
 This is a monorepo managed with Turborepo. Common commands:
