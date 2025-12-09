@@ -59,7 +59,7 @@ export class URI implements CborTaggedEncodable, CborTaggedDecodable<URI>, UREnc
       new URL(uri);
       return new URI(uri);
     } catch {
-      throw CryptoError.invalidData("URI", "invalid URI format");
+      throw CryptoError.invalidData("URI: invalid URI format");
     }
   }
 

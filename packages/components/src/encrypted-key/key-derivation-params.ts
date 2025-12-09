@@ -159,7 +159,7 @@ export function keyDerivationParamsFromCbor(cborValue: Cbor): KeyDerivationParam
   }
 
   const index = expectNumber(array[0]);
-  const method = keyDerivationMethodFromIndex(index);
+  const method = keyDerivationMethodFromIndex(Number(index));
 
   if (method === undefined) {
     throw new Error(`Invalid KeyDerivationMethod index: ${index}`);

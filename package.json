@@ -10,7 +10,7 @@
     "docs": "turbo run docs",
     "playground": "turbo run dev --filter=@bcts/playground",
     "clean": "turbo run clean",
-    "publish-packages": "turbo run build lint test && changeset version && changeset publish"
+    "publish": "turbo run build lint test typecheck docs && changeset version && changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.8",

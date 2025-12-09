@@ -178,7 +178,7 @@ export class PBKDF2Params implements KeyDerivation {
 
     const saltData = expectBytes(array[1]);
     const salt = Salt.fromData(saltData);
-    const iterations = expectNumber(array[2]);
+    const iterations = Number(expectNumber(array[2]));
     const hashType = hashTypeFromCbor(array[3]);
 
     return new PBKDF2Params(salt, iterations, hashType);

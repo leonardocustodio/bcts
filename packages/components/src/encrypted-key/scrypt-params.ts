@@ -190,9 +190,9 @@ export class ScryptParams implements KeyDerivation {
 
     const saltData = expectBytes(array[1]);
     const salt = Salt.fromData(saltData);
-    const logN = expectNumber(array[2]);
-    const r = expectNumber(array[3]);
-    const p = expectNumber(array[4]);
+    const logN = Number(expectNumber(array[2]));
+    const r = Number(expectNumber(array[3]));
+    const p = Number(expectNumber(array[4]));
 
     return new ScryptParams(salt, logN, r, p);
   }

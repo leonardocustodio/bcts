@@ -1,14 +1,5 @@
 import { sha256 } from "@bcts/crypto";
 
-declare global {
-  const TextEncoder: new () => {
-    encode(input: string): Uint8Array;
-  };
-  const TextDecoder: new () => {
-    decode(input: Uint8Array): string;
-  };
-}
-
 /// A cryptographic digest used to uniquely identify digital objects.
 ///
 /// Digests in Gordian Envelope are always SHA-256 hashes (32 bytes).
