@@ -9,4 +9,9 @@ export default defineConfig({
   clean: true,
   target: "es2022",
   globalName: "BCTags",
+  outputOptions: {
+    globals: {
+      "@blockchain-commons/dcbor": "BCDcbor",
+    },
+  },
 });
