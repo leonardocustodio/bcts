@@ -67,6 +67,9 @@ This TypeScript implementation follows the Rust reference implementations as the
 - **[Known Values](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2023-002-known-value.md)** - Compact ontological identifiers (BCR-2023-002)
 - **[Uniform Resources (UR)](https://github.com/BlockchainCommons/bc-ur-rust)** - Binary data encoding optimized for QR codes and URIs (BCR-2020-005)
 - **[Gordian Envelope](https://github.com/BlockchainCommons/bc-envelope-rust)** - Privacy-focused structured data containers with support for encryption, elision, and signatures
+- **[Shamir's Secret Sharing](https://github.com/BlockchainCommons/bc-shamir-rust)** - Split secrets into shares with threshold reconstruction
+- **[SSKR](https://github.com/BlockchainCommons/bc-sskr-rust)** - Sharded Secret Key Reconstruction with hierarchical groups (BCR-2020-011)
+- **[Provenance Mark](https://github.com/BlockchainCommons/provenance-mark-rust)** - Cryptographic provenance marks for digital authenticity
 
 For complete specifications and reference implementations in other languages, visit:
 - [BlockchainCommons GitHub](https://github.com/BlockchainCommons)
