@@ -1,6 +1,6 @@
 # @blockchain-commons/crypto
 
-Cryptographic utilities for TypeScript, ported from [bc-crypto-rust](https://github.com/BlockchainCommons/bc-crypto-rust).
+Cryptographic utilities for TypeScript, ported from [bc-crypto-rust](https://github.com/BlockchainCommons/bc-crypto-rust) **v0.14.0** ([commit](https://github.com/BlockchainCommons/bc-crypto-rust/tree/4f2b791320730578b04943c833c4a9e6c232fc4d)).
 
 > **⚠️ Work in Progress**: This package is under active development and APIs may change.
 
