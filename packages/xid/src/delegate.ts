@@ -89,7 +89,7 @@ export class Delegate implements HasPermissions, EnvelopeEncodable {
    */
   intoEnvelope(): Envelope {
     const doc = this._controller.read();
-    const envelope = (doc.intoEnvelope() as { wrap(): Envelope }).wrap();
+    const envelope = (doc.intoEnvelope() as unknown as { wrap(): Envelope }).wrap();
     return this._permissions.addToEnvelope(envelope);
   }
 

@@ -7,8 +7,22 @@
  * Ported from bc-xid-rust/src/service.rs
  */
 
-import { Envelope, type EnvelopeEncodable } from "@blockchain-commons/envelope";
-import { KEY, DELEGATE, NAME, CAPABILITY, ALLOW } from "@blockchain-commons/known-values";
+import {
+  Envelope,
+  type EnvelopeEncodable,
+  type EnvelopeEncodableValue,
+} from "@blockchain-commons/envelope";
+import {
+  KEY,
+  DELEGATE,
+  NAME,
+  CAPABILITY,
+  ALLOW,
+  type KnownValue,
+} from "@blockchain-commons/known-values";
+
+// Helper to convert KnownValue to EnvelopeEncodableValue
+const kv = (v: KnownValue): EnvelopeEncodableValue => v as unknown as EnvelopeEncodableValue;
 import type { Reference } from "@blockchain-commons/components";
 import { Permissions, type HasPermissions } from "./permissions.js";
 import { privilegeFromEnvelope } from "./privilege.js";
@@ -182,23 +196,23 @@ export class Service implements HasPermissions, EnvelopeEncodable {
     // Add key references
     for (const keyRef of this._keyReferences) {
       const refBytes = hexToBytes(keyRef);
-      envelope = envelope.addAssertion(KEY, refBytes);
+      envelope = envelope.addAssertion(kv(KEY), refBytes);
     }
 
     // Add delegate references
     for (const delegateRef of this._delegateReferences) {
       const refBytes = hexToBytes(delegateRef);
-      envelope = envelope.addAssertion(DELEGATE, refBytes);
+      envelope = envelope.addAssertion(kv(DELEGATE), refBytes);
     }
 
     // Add capability if not empty
     if (this._capability !== "") {
-      envelope = envelope.addAssertion(CAPABILITY, this._capability);
+      envelope = envelope.addAssertion(kv(CAPABILITY), this._capability);
     }
 
     // Add name if not empty
     if (this._name !== "") {
-      envelope = envelope.addAssertion(NAME, this._name);
+      envelope = envelope.addAssertion(kv(NAME), this._name);
     }
 
     // Add permissions
@@ -227,14 +241,14 @@ export class Service implements HasPermissions, EnvelopeEncodable {
         continue;
       }
 
-      const predicateEnv = assertionCase.assertion.predicate() as Envelope;
+      const predicateEnv = assertionCase.assertion.predicate();
       const predicateCase = predicateEnv.case();
       if (predicateCase.type !== "knownValue") {
         continue;
       }
 
       const predicate = predicateCase.value.value();
-      const object = assertionCase.assertion.object() as Envelope;
+      const object = assertionCase.assertion.object();
 
       // Check for nested assertions
       const objectAssertions = (object as unknown as { assertions(): Envelope[] }).assertions();

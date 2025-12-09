@@ -7,10 +7,18 @@
  * Ported from bc-xid-rust/src/provenance.rs
  */
 
-import { Envelope, type EnvelopeEncodable } from "@blockchain-commons/envelope";
-import { PROVENANCE_GENERATOR, SALT } from "@blockchain-commons/known-values";
+import {
+  Envelope,
+  type EnvelopeEncodable,
+  type EnvelopeEncodableValue,
+} from "@blockchain-commons/envelope";
+import { PROVENANCE_GENERATOR, SALT, type KnownValue } from "@blockchain-commons/known-values";
 import { Salt } from "@blockchain-commons/components";
+
+// Helper to convert KnownValue to EnvelopeEncodableValue
+const kv = (v: KnownValue): EnvelopeEncodableValue => v as unknown as EnvelopeEncodableValue;
 import { ProvenanceMark, ProvenanceMarkGenerator } from "@blockchain-commons/provenance-mark";
+import { cborData, decodeCbor } from "@blockchain-commons/dcbor";
 import { XIDError } from "./error.js";
 
 /**
@@ -145,6 +153,12 @@ export class Provenance implements EnvelopeEncodable {
    * Get a mutable reference to the generator, decrypting if necessary.
    */
   generatorMut(password?: Uint8Array): ProvenanceMarkGenerator | undefined {
+    type EnvelopeExt = Envelope & {
+      decryptSubject(p: Uint8Array): Envelope;
+      tryUnwrap(): Envelope;
+      asByteString(): Uint8Array | undefined;
+    };
+
     if (this._generator === undefined) return undefined;
 
     if (this._generator.data.type === "decrypted") {
@@ -153,18 +167,15 @@ export class Provenance implements EnvelopeEncodable {
 
     // Try to decrypt
     if (password !== undefined) {
-      const encryptedEnvelope = this._generator.data.envelope;
+      const encryptedEnvelope = this._generator.data.envelope as EnvelopeExt;
       try {
-        const decrypted = (
-          encryptedEnvelope as unknown as { decryptSubject(p: Uint8Array): Envelope }
-        ).decryptSubject(password);
-        const unwrapped = (decrypted as unknown as { tryUnwrap(): Envelope }).tryUnwrap();
+        const decrypted = encryptedEnvelope.decryptSubject(password) as EnvelopeExt;
+        const unwrapped = decrypted.tryUnwrap() as EnvelopeExt;
         // Extract generator from unwrapped envelope
-        const generatorData = (
-          unwrapped as unknown as { asByteString(): Uint8Array | undefined }
-        ).asByteString();
+        const generatorData = unwrapped.asByteString();
         if (generatorData !== undefined) {
-          const generator = ProvenanceMarkGenerator.fromCbor(generatorData);
+          const json = decodeCbor(generatorData) as unknown as Record<string, unknown>;
+          const generator = ProvenanceMarkGenerator.fromJSON(json);
           // Replace encrypted with decrypted
           this._generator = {
             data: { type: "decrypted", generator },
@@ -184,8 +195,14 @@ export class Provenance implements EnvelopeEncodable {
    * Convert to envelope with specified options.
    */
   intoEnvelopeOpt(generatorOptions: XIDGeneratorOptionsValue = XIDGeneratorOptions.Omit): Envelope {
+    type EnvelopeExt = Envelope & {
+      elide(): Envelope;
+      wrap(): Envelope;
+      encryptSubject(p: Uint8Array): Envelope;
+    };
+
     // Create envelope with the mark as subject
-    let envelope = Envelope.new(this._mark.toCbor());
+    let envelope = Envelope.new(this._mark.toCborData());
 
     // Handle generator
     if (this._generator !== undefined) {
@@ -194,9 +211,9 @@ export class Provenance implements EnvelopeEncodable {
       if (data.type === "encrypted") {
         // Always preserve encrypted generators
         const assertionEnvelope = Envelope.newAssertion(
-          PROVENANCE_GENERATOR,
+          kv(PROVENANCE_GENERATOR),
           data.envelope,
-        ).addAssertion(SALT, salt.toData());
+        ).addAssertion(kv(SALT), salt.toData());
         envelope = envelope.addAssertionEnvelope(assertionEnvelope);
       } else if (data.type === "decrypted") {
         // Handle decrypted generators based on options
@@ -205,31 +222,34 @@ export class Provenance implements EnvelopeEncodable {
 
         switch (option) {
           case XIDGeneratorOptions.Include: {
+            const generatorBytes = cborData(data.generator.toJSON());
             const assertionEnvelope = Envelope.newAssertion(
-              PROVENANCE_GENERATOR,
-              data.generator.toCbor(),
-            ).addAssertion(SALT, salt.toData());
+              kv(PROVENANCE_GENERATOR),
+              generatorBytes,
+            ).addAssertion(kv(SALT), salt.toData());
             envelope = envelope.addAssertionEnvelope(assertionEnvelope);
             break;
           }
           case XIDGeneratorOptions.Elide: {
-            const assertionEnvelope = Envelope.newAssertion(
-              PROVENANCE_GENERATOR,
-              data.generator.toCbor(),
-            )
-              .addAssertion(SALT, salt.toData())
-              .elide();
+            const generatorBytes2 = cborData(data.generator.toJSON());
+            const baseAssertion = Envelope.newAssertion(
+              kv(PROVENANCE_GENERATOR),
+              generatorBytes2,
+            ).addAssertion(kv(SALT), salt.toData());
+            const assertionEnvelope = (baseAssertion as EnvelopeExt).elide();
             envelope = envelope.addAssertionEnvelope(assertionEnvelope);
             break;
           }
           case XIDGeneratorOptions.Encrypt: {
             if (typeof generatorOptions === "object") {
-              const generatorEnvelope = Envelope.new(data.generator.toCbor());
-              const encrypted = generatorEnvelope.wrap().encryptSubject(generatorOptions.password);
+              const generatorBytes3 = cborData(data.generator.toJSON());
+              const generatorEnvelope = Envelope.new(generatorBytes3) as EnvelopeExt;
+              const wrapped = generatorEnvelope.wrap() as EnvelopeExt;
+              const encrypted = wrapped.encryptSubject(generatorOptions.password);
               const assertionEnvelope = Envelope.newAssertion(
-                PROVENANCE_GENERATOR,
+                kv(PROVENANCE_GENERATOR),
                 encrypted,
-              ).addAssertion(SALT, salt.toData());
+              ).addAssertion(kv(SALT), salt.toData());
               envelope = envelope.addAssertionEnvelope(assertionEnvelope);
             }
             break;
@@ -254,42 +274,41 @@ export class Provenance implements EnvelopeEncodable {
    * Try to extract a Provenance from an envelope, optionally with password for decryption.
    */
   static tryFromEnvelope(envelope: Envelope, password?: Uint8Array): Provenance {
+    type EnvelopeExt = Envelope & {
+      asByteString(): Uint8Array | undefined;
+      assertionsWithPredicate(p: unknown): Envelope[];
+      decryptSubject(p: Uint8Array): Envelope;
+      tryUnwrap(): Envelope;
+    };
+    const env = envelope as EnvelopeExt;
+
     // Extract mark from subject
-    const markData = (
-      envelope as unknown as { asByteString(): Uint8Array | undefined }
-    ).asByteString();
+    const markData = env.asByteString();
     if (markData === undefined) {
       throw XIDError.provenanceMark(new Error("Could not extract mark from envelope"));
     }
-    const mark = ProvenanceMark.fromCbor(markData);
+    const mark = ProvenanceMark.fromCborData(markData);
 
     // Extract optional generator
     let generator: { data: GeneratorData; salt: Salt } | undefined;
 
-    const generatorAssertions = (
-      envelope as unknown as { assertionsWithPredicate(p: unknown): Envelope[] }
-    ).assertionsWithPredicate(PROVENANCE_GENERATOR);
+    const generatorAssertions = env.assertionsWithPredicate(PROVENANCE_GENERATOR);
     if (generatorAssertions.length > 0) {
-      const generatorAssertion = generatorAssertions[0] as Envelope;
+      const generatorAssertion = generatorAssertions[0] as EnvelopeExt;
       const assertionCase = generatorAssertion.case();
 
       if (assertionCase.type === "assertion") {
-        const generatorObject = assertionCase.assertion.object() as Envelope;
+        const generatorObject = assertionCase.assertion.object() as EnvelopeExt;
 
         // Extract salt
-        const saltAssertions = (
-          generatorAssertion as unknown as { assertionsWithPredicate(p: unknown): Envelope[] }
-        ).assertionsWithPredicate(SALT);
+        const saltAssertions = generatorAssertion.assertionsWithPredicate(SALT);
         let salt: Salt;
         if (saltAssertions.length > 0) {
-          const saltAssertion = saltAssertions[0] as Envelope;
+          const saltAssertion = saltAssertions[0];
           const saltCase = saltAssertion.case();
           if (saltCase.type === "assertion") {
-            const saltData = (
-              saltCase.assertion.object() as Envelope as unknown as {
-                asByteString(): Uint8Array | undefined;
-              }
-            ).asByteString();
+            const saltObj = saltCase.assertion.object() as EnvelopeExt;
+            const saltData = saltObj.asByteString();
             if (saltData !== undefined) {
               salt = Salt.from(saltData);
             } else {
@@ -307,15 +326,12 @@ export class Provenance implements EnvelopeEncodable {
         if (objCase.type === "encrypted") {
           if (password !== undefined) {
             try {
-              const decrypted = (
-                generatorObject as unknown as { decryptSubject(p: Uint8Array): Envelope }
-              ).decryptSubject(password);
-              const unwrapped = (decrypted as unknown as { tryUnwrap(): Envelope }).tryUnwrap();
-              const generatorData = (
-                unwrapped as unknown as { asByteString(): Uint8Array | undefined }
-              ).asByteString();
+              const decrypted = generatorObject.decryptSubject(password) as EnvelopeExt;
+              const unwrapped = decrypted.tryUnwrap() as EnvelopeExt;
+              const generatorData = unwrapped.asByteString();
               if (generatorData !== undefined) {
-                const gen = ProvenanceMarkGenerator.fromCbor(generatorData);
+                const json = decodeCbor(generatorData) as unknown as Record<string, unknown>;
+                const gen = ProvenanceMarkGenerator.fromJSON(json);
                 generator = {
                   data: { type: "decrypted", generator: gen },
                   salt,
@@ -337,11 +353,10 @@ export class Provenance implements EnvelopeEncodable {
           }
         } else {
           // Plain text generator
-          const generatorData = (
-            generatorObject as unknown as { asByteString(): Uint8Array | undefined }
-          ).asByteString();
+          const generatorData = generatorObject.asByteString();
           if (generatorData !== undefined) {
-            const gen = ProvenanceMarkGenerator.fromCbor(generatorData);
+            const json2 = decodeCbor(generatorData) as unknown as Record<string, unknown>;
+            const gen = ProvenanceMarkGenerator.fromJSON(json2);
             generator = {
               data: { type: "decrypted", generator: gen },
               salt,
@@ -363,10 +378,11 @@ export class Provenance implements EnvelopeEncodable {
 
   /**
    * Clone this Provenance.
+   * Note: ProvenanceMark is immutable so we can use the same instance.
    */
   clone(): Provenance {
     return new Provenance(
-      this._mark.clone(),
+      this._mark,
       this._generator !== undefined
         ? { data: this._generator.data, salt: this._generator.salt }
         : undefined,
