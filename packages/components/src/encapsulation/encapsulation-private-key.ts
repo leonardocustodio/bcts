@@ -49,7 +49,7 @@ export class EncapsulationPrivateKey
   implements CborTaggedEncodable, CborTaggedDecodable<EncapsulationPrivateKey>, UREncodable
 {
   private readonly _scheme: EncapsulationScheme;
-  private readonly _x25519PrivateKey?: X25519PrivateKey;
+  private readonly _x25519PrivateKey: X25519PrivateKey | undefined;
 
   private constructor(scheme: EncapsulationScheme, x25519PrivateKey?: X25519PrivateKey) {
     this._scheme = scheme;

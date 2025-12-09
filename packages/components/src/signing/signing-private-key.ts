@@ -53,8 +53,8 @@ export class SigningPrivateKey
   implements Signer, Verifier, CborTaggedEncodable, CborTaggedDecodable<SigningPrivateKey>
 {
   private readonly _type: SignatureScheme;
-  private readonly _ed25519Key?: Ed25519PrivateKey;
-  private readonly _sr25519Key?: Sr25519PrivateKey;
+  private readonly _ed25519Key: Ed25519PrivateKey | undefined;
+  private readonly _sr25519Key: Sr25519PrivateKey | undefined;
 
   private constructor(
     type: SignatureScheme,

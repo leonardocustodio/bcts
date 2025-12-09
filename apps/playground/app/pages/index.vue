@@ -352,12 +352,12 @@ onMounted(() => {
                 <h2 class="font-semibold text-sm text-green-900 dark:text-green-300">Output</h2>
               </div>
               <UTabs
+                v-model="outputView"
                 :items="[
                   { label: 'Annotated Hex', value: 'hex' },
                   { label: 'Diagnostic', value: 'diagnostic' },
                   ...(isEnvelopeInput ? [{ label: 'Envelope', value: 'envelope' }] : [])
                 ]"
-                v-model="outputView"
                 size="xs"
                 class="w-auto"
                 :ui="{ root: 'gap-0', list: 'p-0.5' }"

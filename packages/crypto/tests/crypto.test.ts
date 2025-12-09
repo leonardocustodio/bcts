@@ -38,7 +38,7 @@ import {
   // KDF
   scrypt,
   scryptOpt,
-  argon2idHash,
+  argon2idHash as _argon2idHash,
   argon2idHashOpt,
   // Memzero
   memzero,

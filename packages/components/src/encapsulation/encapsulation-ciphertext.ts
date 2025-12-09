@@ -38,7 +38,7 @@ export class EncapsulationCiphertext
   implements CborTaggedEncodable, CborTaggedDecodable<EncapsulationCiphertext>
 {
   private readonly _scheme: EncapsulationScheme;
-  private readonly _x25519PublicKey?: X25519PublicKey;
+  private readonly _x25519PublicKey: X25519PublicKey | undefined;
 
   private constructor(scheme: EncapsulationScheme, x25519PublicKey?: X25519PublicKey) {
     this._scheme = scheme;
