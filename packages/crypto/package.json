@@ -36,8 +36,8 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "test": "jest",
-    "test:watch": "jest --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix",
     "typecheck": "tsc --noEmit",
@@ -70,14 +70,12 @@
     "@blockchain-commons/eslint": "workspace:*",
     "@blockchain-commons/tsconfig": "workspace:*",
     "@eslint/js": "^9.39.1",
-    "@types/jest": "^30.0.0",
     "@types/node": "^24.10.1",
     "eslint": "^9.39.1",
-    "jest": "^30.2.0",
-    "ts-jest": "^29.4.5",
     "ts-node": "^10.9.2",
     "typedoc": "^0.28.15",
     "tsdown": "^0.17.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   }
 }
