@@ -88,14 +88,20 @@ export class Sr25519PublicKey {
   /**
    * Verify a signature using a custom context.
    *
+   * Note: The @scure/sr25519 library uses a hardcoded "substrate" context.
+   * Custom context is accepted for API compatibility but only signatures created
+   * with "substrate" context will verify correctly.
+   *
    * @param signature - The 64-byte signature
    * @param message - The message that was signed
-   * @param context - The signing context
+   * @param context - The signing context (only "substrate" is supported)
    * @returns true if the signature is valid
    */
-  verifyWithContext(signature: Uint8Array, message: Uint8Array, context: Uint8Array): boolean {
+  verifyWithContext(signature: Uint8Array, message: Uint8Array, _context: Uint8Array): boolean {
     try {
-      return sr25519.verify(signature, message, this._data, context);
+      // Note: @scure/sr25519 verify() uses hardcoded "substrate" context
+      // Arguments: verify(message, signature, publicKey)
+      return sr25519.verify(message, signature, this._data);
     } catch {
       return false;
     }

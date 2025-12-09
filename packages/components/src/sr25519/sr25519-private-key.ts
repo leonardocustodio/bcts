@@ -179,13 +179,19 @@ export class Sr25519PrivateKey {
   /**
    * Sign a message using a custom context.
    *
+   * Note: The @scure/sr25519 library uses a hardcoded "substrate" context.
+   * Custom context is accepted for API compatibility but only "substrate" context
+   * will produce signatures verifiable by this library.
+   *
    * @param message - The message to sign
-   * @param context - The signing context
+   * @param context - The signing context (only "substrate" is supported)
    * @returns 64-byte signature
    */
-  signWithContext(message: Uint8Array, context: Uint8Array): Uint8Array {
+  signWithContext(message: Uint8Array, _context: Uint8Array): Uint8Array {
     const secretKey = sr25519.secretFromSeed(this._seed);
-    return sr25519.sign(message, secretKey, context);
+    // Note: @scure/sr25519 sign() uses hardcoded "substrate" context
+    // Arguments: sign(secretKey, message, random?)
+    return sr25519.sign(secretKey, message);
   }
 
   // ============================================================================
