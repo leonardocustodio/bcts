@@ -14,26 +14,13 @@ export const SCHNORR_PUBLIC_KEY_SIZE = 32; // x-only
 
 /**
  * Generate a new random ECDSA private key using secp256k1.
+ *
+ * Note: Unlike some implementations, this directly returns the random bytes
+ * without validation. The secp256k1 library will handle any edge cases when
+ * the key is used.
  */
 export function ecdsaNewPrivateKeyUsing(rng: RandomNumberGenerator): Uint8Array {
-  // Generate random bytes and ensure they're valid for secp256k1
-  let privateKey: Uint8Array;
-  do {
-    privateKey = rng.randomData(ECDSA_PRIVATE_KEY_SIZE);
-  } while (!isValidPrivateKey(privateKey));
-  return privateKey;
-}
-
-/**
- * Check if a private key is valid for secp256k1.
- */
-function isValidPrivateKey(key: Uint8Array): boolean {
-  try {
-    secp256k1.getPublicKey(key);
-    return true;
-  } catch {
-    return false;
-  }
+  return rng.randomData(ECDSA_PRIVATE_KEY_SIZE);
 }
 
 /**
@@ -70,23 +57,13 @@ export function ecdsaCompressPublicKey(uncompressed: Uint8Array): Uint8Array {
 
 /**
  * Derive an ECDSA private key from key material using HKDF.
+ *
+ * Note: This directly returns the HKDF output without validation,
+ * matching the Rust reference implementation behavior.
  */
 export function ecdsaDerivePrivateKey(keyMaterial: Uint8Array): Uint8Array {
   const salt = new TextEncoder().encode("signing");
-  let derivedKey: Uint8Array;
-  let counter = 0;
-
-  // Keep deriving until we get a valid key
-  do {
-    const saltWithCounter =
-      counter === 0
-        ? salt
-        : new Uint8Array([...salt, ...new TextEncoder().encode(counter.toString())]);
-    derivedKey = hkdfHmacSha256(keyMaterial, saltWithCounter, ECDSA_PRIVATE_KEY_SIZE);
-    counter++;
-  } while (!isValidPrivateKey(derivedKey));
-
-  return derivedKey;
+  return hkdfHmacSha256(keyMaterial, salt, ECDSA_PRIVATE_KEY_SIZE);
 }
 
 /**

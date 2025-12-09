@@ -111,7 +111,11 @@ export function aeadChaCha20Poly1305DecryptWithAad(
   try {
     const cipher = chacha20poly1305(key, nonce, aad);
     return cipher.decrypt(sealed);
-  } catch {
-    throw CryptoError.aead(new AeadError("Decryption failed: authentication error"));
+  } catch (error) {
+    // Preserve the original error for debugging while wrapping in our error type
+    const aeadError = new AeadError(
+      `Decryption failed: ${error instanceof Error ? error.message : "authentication error"}`
+    );
+    throw CryptoError.aead(aeadError);
   }
 }
