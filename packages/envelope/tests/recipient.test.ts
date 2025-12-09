@@ -2,9 +2,9 @@ import { Envelope, PrivateKeyBase, SymmetricKey, HAS_RECIPIENT } from "../src";
 
 describe("Recipient (Public-Key Encryption)", () => {
   describe("Key generation", () => {
-    it("should generate key pairs", async () => {
-      const alice = await PrivateKeyBase.generate();
-      const bob = await PrivateKeyBase.generate();
+    it("should generate key pairs", () => {
+      const alice = PrivateKeyBase.generate();
+      const bob = PrivateKeyBase.generate();
 
       expect(alice.publicKeys().hex().length).toBeGreaterThan(0);
       expect(bob.publicKeys().hex().length).toBeGreaterThan(0);
@@ -12,47 +12,47 @@ describe("Recipient (Public-Key Encryption)", () => {
   });
 
   describe("Single-recipient encryption", () => {
-    it("should encrypt for single recipient", async () => {
-      const bob = await PrivateKeyBase.generate();
+    it("should encrypt for single recipient", () => {
+      const bob = PrivateKeyBase.generate();
       const message = Envelope.new("Secret message for Bob");
 
-      const encrypted = await message.encryptSubjectToRecipient(bob.publicKeys());
+      const encrypted = message.encryptSubjectToRecipient(bob.publicKeys());
 
       expect(encrypted.subject().case().type).toBe("encrypted");
       expect(encrypted.assertions().length).toBeGreaterThan(0);
     });
 
-    it("should decrypt for intended recipient", async () => {
-      const bob = await PrivateKeyBase.generate();
+    it("should decrypt for intended recipient", () => {
+      const bob = PrivateKeyBase.generate();
       const message = Envelope.new("Secret message for Bob");
 
-      const encrypted = await message.encryptSubjectToRecipient(bob.publicKeys());
-      const decrypted = await encrypted.decryptSubjectToRecipient(bob);
+      const encrypted = message.encryptSubjectToRecipient(bob.publicKeys());
+      const decrypted = encrypted.decryptSubjectToRecipient(bob);
 
       expect(decrypted.subject().asText()).toBe("Secret message for Bob");
     });
   });
 
   describe("Wrong recipient", () => {
-    it("should fail decryption for wrong recipient", async () => {
-      const alice = await PrivateKeyBase.generate();
-      const bob = await PrivateKeyBase.generate();
+    it("should fail decryption for wrong recipient", () => {
+      const alice = PrivateKeyBase.generate();
+      const bob = PrivateKeyBase.generate();
       const message = Envelope.new("Secret message for Bob");
 
-      const encrypted = await message.encryptSubjectToRecipient(bob.publicKeys());
+      const encrypted = message.encryptSubjectToRecipient(bob.publicKeys());
 
-      await expect(encrypted.decryptSubjectToRecipient(alice)).rejects.toThrow();
+      expect(() => encrypted.decryptSubjectToRecipient(alice)).toThrow();
     });
   });
 
   describe("Multi-recipient encryption", () => {
-    it("should encrypt for multiple recipients", async () => {
-      const alice = await PrivateKeyBase.generate();
-      const bob = await PrivateKeyBase.generate();
-      const charlie = await PrivateKeyBase.generate();
+    it("should encrypt for multiple recipients", () => {
+      const alice = PrivateKeyBase.generate();
+      const bob = PrivateKeyBase.generate();
+      const charlie = PrivateKeyBase.generate();
 
       const message = Envelope.new("Secret for Alice, Bob, and Charlie");
-      const encrypted = await message.encryptSubjectToRecipients([
+      const encrypted = message.encryptSubjectToRecipients([
         alice.publicKeys(),
         bob.publicKeys(),
         charlie.publicKeys(),
@@ -62,21 +62,21 @@ describe("Recipient (Public-Key Encryption)", () => {
       expect(encrypted.subject().case().type).toBe("encrypted");
     });
 
-    it("should allow all recipients to decrypt", async () => {
-      const alice = await PrivateKeyBase.generate();
-      const bob = await PrivateKeyBase.generate();
-      const charlie = await PrivateKeyBase.generate();
+    it("should allow all recipients to decrypt", () => {
+      const alice = PrivateKeyBase.generate();
+      const bob = PrivateKeyBase.generate();
+      const charlie = PrivateKeyBase.generate();
 
       const message = Envelope.new("Secret for all");
-      const encrypted = await message.encryptSubjectToRecipients([
+      const encrypted = message.encryptSubjectToRecipients([
         alice.publicKeys(),
         bob.publicKeys(),
         charlie.publicKeys(),
       ]);
 
-      const aliceDecrypted = await encrypted.decryptSubjectToRecipient(alice);
-      const bobDecrypted = await encrypted.decryptSubjectToRecipient(bob);
-      const charlieDecrypted = await encrypted.decryptSubjectToRecipient(charlie);
+      const aliceDecrypted = encrypted.decryptSubjectToRecipient(alice);
+      const bobDecrypted = encrypted.decryptSubjectToRecipient(bob);
+      const charlieDecrypted = encrypted.decryptSubjectToRecipient(charlie);
 
       expect(aliceDecrypted.subject().asText()).toBe("Secret for all");
       expect(bobDecrypted.subject().asText()).toBe("Secret for all");
@@ -85,23 +85,23 @@ describe("Recipient (Public-Key Encryption)", () => {
   });
 
   describe("Adding recipients incrementally", () => {
-    it("should add recipients one at a time", async () => {
-      const alice = await PrivateKeyBase.generate();
-      const bob = await PrivateKeyBase.generate();
-      const dave = await PrivateKeyBase.generate();
+    it("should add recipients one at a time", () => {
+      const alice = PrivateKeyBase.generate();
+      const bob = PrivateKeyBase.generate();
+      const dave = PrivateKeyBase.generate();
 
       const message = Envelope.new("Secret message");
-      const contentKey = await SymmetricKey.generate();
+      const contentKey = SymmetricKey.generate();
 
-      const baseEncrypted = await message.encryptSubject(contentKey);
-      const withAlice = await baseEncrypted.addRecipient(alice.publicKeys(), contentKey);
-      const withBob = await withAlice.addRecipient(bob.publicKeys(), contentKey);
-      const withDave = await withBob.addRecipient(dave.publicKeys(), contentKey);
+      const baseEncrypted = message.encryptSubject(contentKey);
+      const withAlice = baseEncrypted.addRecipient(alice.publicKeys(), contentKey);
+      const withBob = withAlice.addRecipient(bob.publicKeys(), contentKey);
+      const withDave = withBob.addRecipient(dave.publicKeys(), contentKey);
 
       expect(withDave.recipients().length).toBe(3);
 
-      const aliceDecrypted = await withDave.decryptSubjectToRecipient(alice);
-      const daveDecrypted = await withDave.decryptSubjectToRecipient(dave);
+      const aliceDecrypted = withDave.decryptSubjectToRecipient(alice);
+      const daveDecrypted = withDave.decryptSubjectToRecipient(dave);
 
       expect(aliceDecrypted.subject().asText()).toBe("Secret message");
       expect(daveDecrypted.subject().asText()).toBe("Secret message");
@@ -109,18 +109,18 @@ describe("Recipient (Public-Key Encryption)", () => {
   });
 
   describe("Entire envelope encryption", () => {
-    it("should encrypt entire envelope to recipients", async () => {
-      const alice = await PrivateKeyBase.generate();
-      const bob = await PrivateKeyBase.generate();
+    it("should encrypt entire envelope to recipients", () => {
+      const alice = PrivateKeyBase.generate();
+      const bob = PrivateKeyBase.generate();
 
       const document = Envelope.new("Contract terms and conditions");
 
-      const encrypted = await document.encryptToRecipients([alice.publicKeys(), bob.publicKeys()]);
+      const encrypted = document.encryptToRecipients([alice.publicKeys(), bob.publicKeys()]);
 
       expect(encrypted.recipients().length).toBe(2);
 
-      const aliceDoc = await encrypted.decryptToRecipient(alice);
-      const bobDoc = await encrypted.decryptToRecipient(bob);
+      const aliceDoc = encrypted.decryptToRecipient(alice);
+      const bobDoc = encrypted.decryptToRecipient(bob);
 
       expect(aliceDoc.subject().asText()).toBe("Contract terms and conditions");
       expect(bobDoc.subject().asText()).toBe("Contract terms and conditions");
@@ -128,17 +128,17 @@ describe("Recipient (Public-Key Encryption)", () => {
   });
 
   describe("Key serialization", () => {
-    it("should serialize and restore keys", async () => {
-      const alice = await PrivateKeyBase.generate();
+    it("should serialize and restore keys", () => {
+      const alice = PrivateKeyBase.generate();
 
       const privateHex = alice.hex();
       const publicHex = alice.publicKeys().hex();
 
-      const restored = await PrivateKeyBase.fromHex(privateHex, publicHex);
+      const restored = PrivateKeyBase.fromHex(privateHex, publicHex);
 
       const message = Envelope.new("Test serialization");
-      const encrypted = await message.encryptSubjectToRecipient(restored.publicKeys());
-      const decrypted = await encrypted.decryptSubjectToRecipient(restored);
+      const encrypted = message.encryptSubjectToRecipient(restored.publicKeys());
+      const decrypted = encrypted.decryptSubjectToRecipient(restored);
 
       expect(decrypted.subject().asText()).toBe("Test serialization");
     });
@@ -151,19 +151,19 @@ describe("Recipient (Public-Key Encryption)", () => {
   });
 
   describe("Large payload encryption", () => {
-    it("should handle large payloads", async () => {
-      const alice = await PrivateKeyBase.generate();
-      const bob = await PrivateKeyBase.generate();
+    it("should handle large payloads", () => {
+      const alice = PrivateKeyBase.generate();
+      const bob = PrivateKeyBase.generate();
 
       const largeData = "X".repeat(10000);
       const largeEnvelope = Envelope.new(largeData);
 
-      const encrypted = await largeEnvelope.encryptSubjectToRecipients([
+      const encrypted = largeEnvelope.encryptSubjectToRecipients([
         alice.publicKeys(),
         bob.publicKeys(),
       ]);
 
-      const decrypted = await encrypted.decryptSubjectToRecipient(alice);
+      const decrypted = encrypted.decryptSubjectToRecipient(alice);
 
       expect(decrypted.subject().asText().length).toBe(largeData.length);
     });

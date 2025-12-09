@@ -11,9 +11,20 @@
  * - Support for multiple signatures on a single envelope
  */
 
-import { secp256k1 } from "@noble/curves/secp256k1.js";
 import { Envelope } from "../base/envelope";
 import { EnvelopeError } from "../base/error";
+import {
+  ecdsaSign,
+  ecdsaVerify,
+  ecdsaPublicKeyFromPrivateKey,
+  ECDSA_PRIVATE_KEY_SIZE,
+  ECDSA_PUBLIC_KEY_SIZE,
+  ECDSA_UNCOMPRESSED_PUBLIC_KEY_SIZE,
+} from "@blockchain-commons/crypto";
+import {
+  SecureRandomNumberGenerator,
+  rngRandomData,
+} from "@blockchain-commons/rand";
 
 /**
  * Known value for the 'signed' predicate.
@@ -94,13 +105,14 @@ export interface Verifier {
 
 /**
  * ECDSA signing key using secp256k1 curve.
+ * Uses @blockchain-commons/crypto functions.
  */
 export class SigningPrivateKey implements Signer {
   readonly #privateKey: Uint8Array;
 
   constructor(privateKey: Uint8Array) {
-    if (privateKey.length !== 32) {
-      throw new Error("Private key must be 32 bytes");
+    if (privateKey.length !== ECDSA_PRIVATE_KEY_SIZE) {
+      throw new Error(`Private key must be ${ECDSA_PRIVATE_KEY_SIZE} bytes`);
     }
     this.#privateKey = privateKey;
   }
@@ -109,7 +121,8 @@ export class SigningPrivateKey implements Signer {
    * Generates a new random private key.
    */
   static generate(): SigningPrivateKey {
-    const privateKey: Uint8Array = secp256k1.utils.randomSecretKey();
+    const rng = new SecureRandomNumberGenerator();
+    const privateKey = rngRandomData(rng, ECDSA_PRIVATE_KEY_SIZE);
     return new SigningPrivateKey(privateKey);
   }
 
@@ -128,7 +141,7 @@ export class SigningPrivateKey implements Signer {
    * Returns the corresponding public key.
    */
   publicKey(): SigningPublicKey {
-    const publicKey = secp256k1.getPublicKey(this.#privateKey, true); // compressed
+    const publicKey = ecdsaPublicKeyFromPrivateKey(this.#privateKey);
     return new SigningPublicKey(publicKey);
   }
 
@@ -136,11 +149,7 @@ export class SigningPrivateKey implements Signer {
    * Signs data and returns a Signature.
    */
   sign(data: Uint8Array): Signature {
-    const signature = secp256k1.sign(data, this.#privateKey);
-    // secp256k1.Signature has toCompactRawBytes() method
-    const signatureBytes: Uint8Array = (
-      signature as unknown as { toCompactRawBytes(): Uint8Array }
-    ).toCompactRawBytes();
+    const signatureBytes = ecdsaSign(this.#privateKey, data);
     return new Signature(signatureBytes);
   }
 
@@ -154,13 +163,16 @@ export class SigningPrivateKey implements Signer {
 
 /**
  * ECDSA public key for signature verification using secp256k1 curve.
+ * Uses @blockchain-commons/crypto functions.
  */
 export class SigningPublicKey implements Verifier {
   readonly #publicKey: Uint8Array;
 
   constructor(publicKey: Uint8Array) {
-    if (publicKey.length !== 33 && publicKey.length !== 65) {
-      throw new Error("Public key must be 33 bytes (compressed) or 65 bytes (uncompressed)");
+    if (publicKey.length !== ECDSA_PUBLIC_KEY_SIZE && publicKey.length !== ECDSA_UNCOMPRESSED_PUBLIC_KEY_SIZE) {
+      throw new Error(
+        `Public key must be ${ECDSA_PUBLIC_KEY_SIZE} bytes (compressed) or ${ECDSA_UNCOMPRESSED_PUBLIC_KEY_SIZE} bytes (uncompressed)`,
+      );
     }
     this.#publicKey = publicKey;
   }
@@ -181,11 +193,7 @@ export class SigningPublicKey implements Verifier {
    */
   verify(data: Uint8Array, signature: Signature): boolean {
     try {
-      // Use the Signature class's fromCompact static method
-      const sig = (
-        secp256k1.Signature as unknown as { fromCompact(data: Uint8Array): unknown }
-      ).fromCompact(signature.data());
-      return secp256k1.verify(sig as Parameters<typeof secp256k1.verify>[0], data, this.#publicKey);
+      return ecdsaVerify(this.#publicKey, signature.data(), data);
     } catch {
       return false;
     }

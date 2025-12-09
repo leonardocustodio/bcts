@@ -1,6 +1,6 @@
-import sodium from "libsodium-wrappers";
+// Test setup file for envelope package
+// No async initialization needed since we now use @blockchain-commons/crypto
+// which has synchronous implementations
 
-// Initialize libsodium before all tests
-beforeAll(async () => {
-  await sodium.ready;
-});
+// This file is intentionally minimal - just sets up the test environment
+export {};

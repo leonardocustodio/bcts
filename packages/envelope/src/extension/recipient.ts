@@ -1,7 +1,22 @@
 import { Envelope } from "../base/envelope";
 import { EnvelopeError } from "../base/error";
 import { SymmetricKey } from "./encrypt";
-import sodium from "libsodium-wrappers";
+import {
+  x25519NewPrivateKeyUsing,
+  x25519PublicKeyFromPrivateKey,
+  x25519SharedKey,
+  aeadChaCha20Poly1305EncryptWithAad,
+  aeadChaCha20Poly1305DecryptWithAad,
+  hkdfHmacSha256,
+  X25519_PUBLIC_KEY_SIZE,
+  X25519_PRIVATE_KEY_SIZE,
+  SYMMETRIC_NONCE_SIZE,
+  SYMMETRIC_AUTH_SIZE,
+} from "@blockchain-commons/crypto";
+import {
+  SecureRandomNumberGenerator,
+  rngRandomData,
+} from "@blockchain-commons/rand";
 
 /// Extension for public-key encryption to specific recipients.
 ///
@@ -14,7 +29,7 @@ import sodium from "libsodium-wrappers";
 ///
 /// 1. A random symmetric content key is generated
 /// 2. The envelope's subject is encrypted with the content key
-/// 3. The content key is encrypted to each recipient's public key using libsodium sealed boxes
+/// 3. The content key is encrypted to each recipient's public key using X25519 key agreement
 /// 4. Each encrypted content key is added as a `hasRecipient` assertion
 ///
 /// ## Sealed Box Security:
@@ -24,11 +39,13 @@ import sodium from "libsodium-wrappers";
 /// decrypt the message later. Recipients must try each sealed message
 /// until one decrypts successfully.
 ///
+/// Uses @blockchain-commons/crypto functions for X25519 and ChaCha20-Poly1305.
+///
 /// @example
 /// ```typescript
 /// // Generate recipient keys
-/// const alice = await PrivateKeyBase.generate();
-/// const bob = await PrivateKeyBase.generate();
+/// const alice = PrivateKeyBase.generate();
+/// const bob = PrivateKeyBase.generate();
 ///
 /// // Encrypt to multiple recipients
 /// const envelope = Envelope.new("Secret message")
@@ -49,8 +66,8 @@ export class PublicKeyBase {
   readonly #publicKey: Uint8Array;
 
   constructor(publicKey: Uint8Array) {
-    if (publicKey.length !== 32) {
-      throw new Error("Public key must be 32 bytes");
+    if (publicKey.length !== X25519_PUBLIC_KEY_SIZE) {
+      throw new Error(`Public key must be ${X25519_PUBLIC_KEY_SIZE} bytes`);
     }
     this.#publicKey = publicKey;
   }
@@ -91,19 +108,20 @@ export class PrivateKeyBase {
   }
 
   /// Generates a new random X25519 key pair
-  static async generate(): Promise<PrivateKeyBase> {
-    await sodium.ready;
-    const keyPair = sodium.crypto_box_keypair();
-    return new PrivateKeyBase(keyPair.privateKey, keyPair.publicKey);
+  static generate(): PrivateKeyBase {
+    const rng = new SecureRandomNumberGenerator();
+    const privateKey = x25519NewPrivateKeyUsing(rng);
+    const publicKey = x25519PublicKeyFromPrivateKey(privateKey);
+    return new PrivateKeyBase(privateKey, publicKey);
   }
 
   /// Creates a private key from existing bytes
   static fromBytes(privateKey: Uint8Array, publicKey: Uint8Array): PrivateKeyBase {
-    if (privateKey.length !== 32) {
-      throw new Error("Private key must be 32 bytes");
+    if (privateKey.length !== X25519_PRIVATE_KEY_SIZE) {
+      throw new Error(`Private key must be ${X25519_PRIVATE_KEY_SIZE} bytes`);
     }
-    if (publicKey.length !== 32) {
-      throw new Error("Public key must be 32 bytes");
+    if (publicKey.length !== X25519_PUBLIC_KEY_SIZE) {
+      throw new Error(`Public key must be ${X25519_PUBLIC_KEY_SIZE} bytes`);
     }
     return new PrivateKeyBase(privateKey, publicKey);
   }
@@ -139,16 +157,9 @@ export class PrivateKeyBase {
   }
 
   /// Decrypts a sealed message to get the content key
-  async unseal(sealedMessage: SealedMessage): Promise<SymmetricKey> {
-    await sodium.ready;
-
+  unseal(sealedMessage: SealedMessage): SymmetricKey {
     try {
-      const decrypted = sodium.crypto_box_seal_open(
-        sealedMessage.data(),
-        this.#publicKey.data(),
-        this.#privateKey,
-      );
-
+      const decrypted = sealedMessage.decrypt(this.#privateKey, this.#publicKey.data());
       return SymmetricKey.from(decrypted);
     } catch (_error) {
       throw EnvelopeError.general("Failed to unseal message: not a recipient");
@@ -157,7 +168,9 @@ export class PrivateKeyBase {
 }
 
 /// Represents a sealed message - encrypted content key for a recipient
-/// Uses libsodium's sealed box construction with ephemeral X25519 keys
+/// Uses X25519 key agreement + ChaCha20-Poly1305 AEAD
+///
+/// Format: ephemeral_public_key (32 bytes) || nonce (12 bytes) || ciphertext || auth_tag (16 bytes)
 export class SealedMessage {
   readonly #data: Uint8Array;
 
@@ -166,17 +179,92 @@ export class SealedMessage {
   }
 
   /// Creates a sealed message by encrypting a symmetric key to a recipient's public key
-  static async seal(
-    contentKey: SymmetricKey,
-    recipientPublicKey: PublicKeyBase,
-  ): Promise<SealedMessage> {
-    await sodium.ready;
+  /// Uses X25519 ECDH for key agreement and ChaCha20-Poly1305 for encryption
+  static seal(contentKey: SymmetricKey, recipientPublicKey: PublicKeyBase): SealedMessage {
+    const rng = new SecureRandomNumberGenerator();
 
-    // Use libsodium's sealed box to encrypt the content key
-    // This creates an ephemeral key pair internally and discards the private key
-    const sealed = sodium.crypto_box_seal(contentKey.data(), recipientPublicKey.data());
+    // Generate ephemeral key pair
+    const ephemeralPrivate = x25519NewPrivateKeyUsing(rng);
+    const ephemeralPublic = x25519PublicKeyFromPrivateKey(ephemeralPrivate);
+
+    // Compute shared secret using X25519 ECDH
+    const sharedSecret = x25519SharedKey(ephemeralPrivate, recipientPublicKey.data());
+
+    // Derive encryption key from shared secret using HKDF
+    const salt = new TextEncoder().encode("sealed_message");
+    const encryptionKey = hkdfHmacSha256(sharedSecret, salt, 32);
+
+    // Generate random nonce
+    const nonce = rngRandomData(rng, SYMMETRIC_NONCE_SIZE);
+
+    // Encrypt content key using ChaCha20-Poly1305
+    const plaintext = contentKey.data();
+    const [ciphertext, authTag] = aeadChaCha20Poly1305EncryptWithAad(
+      plaintext,
+      encryptionKey,
+      nonce,
+      new Uint8Array(0), // No AAD for sealed box
+    );
+
+    // Format: ephemeral_public_key || nonce || ciphertext || auth_tag
+    const totalLength = ephemeralPublic.length + nonce.length + ciphertext.length + authTag.length;
+    const sealed = new Uint8Array(totalLength);
+    let offset = 0;
+
+    sealed.set(ephemeralPublic, offset);
+    offset += ephemeralPublic.length;
+
+    sealed.set(nonce, offset);
+    offset += nonce.length;
+
+    sealed.set(ciphertext, offset);
+    offset += ciphertext.length;
+
+    sealed.set(authTag, offset);
 
     return new SealedMessage(sealed);
+  }
+
+  /// Decrypts this sealed message using recipient's private key
+  decrypt(recipientPrivate: Uint8Array, _recipientPublic: Uint8Array): Uint8Array {
+    // Parse sealed message format: ephemeral_public_key || nonce || ciphertext || auth_tag
+    const minLength = X25519_PUBLIC_KEY_SIZE + SYMMETRIC_NONCE_SIZE + SYMMETRIC_AUTH_SIZE;
+    if (this.#data.length < minLength) {
+      throw new Error("Sealed message too short");
+    }
+
+    let offset = 0;
+
+    // Extract ephemeral public key
+    const ephemeralPublic = this.#data.slice(offset, offset + X25519_PUBLIC_KEY_SIZE);
+    offset += X25519_PUBLIC_KEY_SIZE;
+
+    // Extract nonce
+    const nonce = this.#data.slice(offset, offset + SYMMETRIC_NONCE_SIZE);
+    offset += SYMMETRIC_NONCE_SIZE;
+
+    // Extract ciphertext and auth tag
+    const ciphertextAndTag = this.#data.slice(offset);
+    const ciphertext = ciphertextAndTag.slice(0, -SYMMETRIC_AUTH_SIZE);
+    const authTag = ciphertextAndTag.slice(-SYMMETRIC_AUTH_SIZE);
+
+    // Compute shared secret using X25519 ECDH
+    const sharedSecret = x25519SharedKey(recipientPrivate, ephemeralPublic);
+
+    // Derive decryption key from shared secret using HKDF
+    const salt = new TextEncoder().encode("sealed_message");
+    const decryptionKey = hkdfHmacSha256(sharedSecret, salt, 32);
+
+    // Decrypt using ChaCha20-Poly1305
+    const plaintext = aeadChaCha20Poly1305DecryptWithAad(
+      ciphertext,
+      decryptionKey,
+      nonce,
+      new Uint8Array(0), // No AAD for sealed box
+      authTag,
+    );
+
+    return plaintext;
   }
 
   /// Returns the raw sealed message bytes
@@ -214,10 +302,10 @@ declare module "../base/envelope" {
     ///
     /// @example
     /// ```typescript
-    /// const bob = await PrivateKeyBase.generate();
-    /// const encrypted = await envelope.encryptSubjectToRecipient(bob.publicKeys());
+    /// const bob = PrivateKeyBase.generate();
+    /// const encrypted = envelope.encryptSubjectToRecipient(bob.publicKeys());
     /// ```
-    encryptSubjectToRecipient(recipientPublicKey: PublicKeyBase): Promise<Envelope>;
+    encryptSubjectToRecipient(recipientPublicKey: PublicKeyBase): Envelope;
 
     /// Encrypts the envelope's subject to multiple recipients.
     ///
@@ -230,13 +318,13 @@ declare module "../base/envelope" {
     ///
     /// @example
     /// ```typescript
-    /// const encrypted = await envelope.encryptSubjectToRecipients([
+    /// const encrypted = envelope.encryptSubjectToRecipients([
     ///   alice.publicKeys(),
     ///   bob.publicKeys(),
     ///   charlie.publicKeys()
     /// ]);
     /// ```
-    encryptSubjectToRecipients(recipients: PublicKeyBase[]): Promise<Envelope>;
+    encryptSubjectToRecipients(recipients: PublicKeyBase[]): Envelope;
 
     /// Adds a recipient to an already encrypted envelope.
     ///
@@ -250,10 +338,10 @@ declare module "../base/envelope" {
     ///
     /// @example
     /// ```typescript
-    /// const dave = await PrivateKeyBase.generate();
-    /// const withDave = await encrypted.addRecipient(dave.publicKeys(), contentKey);
+    /// const dave = PrivateKeyBase.generate();
+    /// const withDave = encrypted.addRecipient(dave.publicKeys(), contentKey);
     /// ```
-    addRecipient(recipientPublicKey: PublicKeyBase, contentKey: SymmetricKey): Promise<Envelope>;
+    addRecipient(recipientPublicKey: PublicKeyBase, contentKey: SymmetricKey): Envelope;
 
     /// Decrypts an envelope's subject using a recipient's private key.
     ///
@@ -266,9 +354,9 @@ declare module "../base/envelope" {
     ///
     /// @example
     /// ```typescript
-    /// const decrypted = await encrypted.decryptSubjectToRecipient(bob);
+    /// const decrypted = encrypted.decryptSubjectToRecipient(bob);
     /// ```
-    decryptSubjectToRecipient(recipientPrivateKey: PrivateKeyBase): Promise<Envelope>;
+    decryptSubjectToRecipient(recipientPrivateKey: PrivateKeyBase): Envelope;
 
     /// Convenience method to decrypt and unwrap an envelope.
     ///
@@ -281,9 +369,9 @@ declare module "../base/envelope" {
     ///
     /// @example
     /// ```typescript
-    /// const original = await wrappedEncrypted.decryptToRecipient(alice);
+    /// const original = wrappedEncrypted.decryptToRecipient(alice);
     /// ```
-    decryptToRecipient(recipientPrivateKey: PrivateKeyBase): Promise<Envelope>;
+    decryptToRecipient(recipientPrivateKey: PrivateKeyBase): Envelope;
 
     /// Convenience method to encrypt an entire envelope to recipients.
     ///
@@ -295,12 +383,12 @@ declare module "../base/envelope" {
     ///
     /// @example
     /// ```typescript
-    /// const encrypted = await envelope.encryptToRecipients([
+    /// const encrypted = envelope.encryptToRecipients([
     ///   alice.publicKeys(),
     ///   bob.publicKeys()
     /// ]);
     /// ```
-    encryptToRecipients(recipients: PublicKeyBase[]): Promise<Envelope>;
+    encryptToRecipients(recipients: PublicKeyBase[]): Envelope;
 
     /// Returns all sealed messages (recipient assertions) in the envelope.
     ///
@@ -321,61 +409,61 @@ declare module "../base/envelope" {
 /// Implementation of encryptSubjectToRecipient()
 // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
 if (Envelope?.prototype) {
-  Envelope.prototype.encryptSubjectToRecipient = async function (
+  Envelope.prototype.encryptSubjectToRecipient = function (
     this: Envelope,
     recipientPublicKey: PublicKeyBase,
-  ): Promise<Envelope> {
+  ): Envelope {
     // Generate a random content key
-    const contentKey = await SymmetricKey.generate();
+    const contentKey = SymmetricKey.generate();
 
     // Encrypt the subject with the content key
-    const encrypted = await this.encryptSubject(contentKey);
+    const encrypted = this.encryptSubject(contentKey);
 
     // Add the recipient
     return encrypted.addRecipient(recipientPublicKey, contentKey);
   };
 
   /// Implementation of encryptSubjectToRecipients()
-  Envelope.prototype.encryptSubjectToRecipients = async function (
+  Envelope.prototype.encryptSubjectToRecipients = function (
     this: Envelope,
     recipients: PublicKeyBase[],
-  ): Promise<Envelope> {
+  ): Envelope {
     if (recipients.length === 0) {
       throw EnvelopeError.general("Must provide at least one recipient");
     }
 
     // Generate a random content key
-    const contentKey = await SymmetricKey.generate();
+    const contentKey = SymmetricKey.generate();
 
     // Encrypt the subject with the content key
-    let result = await this.encryptSubject(contentKey);
+    let result = this.encryptSubject(contentKey);
 
     // Add each recipient
     for (const recipient of recipients) {
-      result = await result.addRecipient(recipient, contentKey);
+      result = result.addRecipient(recipient, contentKey);
     }
 
     return result;
   };
 
   /// Implementation of addRecipient()
-  Envelope.prototype.addRecipient = async function (
+  Envelope.prototype.addRecipient = function (
     this: Envelope,
     recipientPublicKey: PublicKeyBase,
     contentKey: SymmetricKey,
-  ): Promise<Envelope> {
+  ): Envelope {
     // Create a sealed message with the content key
-    const sealedMessage = await SealedMessage.seal(contentKey, recipientPublicKey);
+    const sealedMessage = SealedMessage.seal(contentKey, recipientPublicKey);
 
     // Store the sealed message as bytes in the assertion
     return this.addAssertion(HAS_RECIPIENT, sealedMessage.data());
   };
 
   /// Implementation of decryptSubjectToRecipient()
-  Envelope.prototype.decryptSubjectToRecipient = async function (
+  Envelope.prototype.decryptSubjectToRecipient = function (
     this: Envelope,
     recipientPrivateKey: PrivateKeyBase,
-  ): Promise<Envelope> {
+  ): Envelope {
     // Check that the subject is encrypted
     const subjectCase = this.subject().case();
     if (subjectCase.type !== "encrypted") {
@@ -409,7 +497,7 @@ if (Envelope?.prototype) {
         const sealedMessage = new SealedMessage(sealedData);
 
         // Try to unseal with our private key
-        contentKey = await recipientPrivateKey.unseal(sealedMessage);
+        contentKey = recipientPrivateKey.unseal(sealedMessage);
         break; // Success!
       } catch {
         // Not for us, try next one
@@ -426,19 +514,19 @@ if (Envelope?.prototype) {
   };
 
   /// Implementation of decryptToRecipient()
-  Envelope.prototype.decryptToRecipient = async function (
+  Envelope.prototype.decryptToRecipient = function (
     this: Envelope,
     recipientPrivateKey: PrivateKeyBase,
-  ): Promise<Envelope> {
-    const decrypted = await this.decryptSubjectToRecipient(recipientPrivateKey);
+  ): Envelope {
+    const decrypted = this.decryptSubjectToRecipient(recipientPrivateKey);
     return decrypted.unwrap();
   };
 
   /// Implementation of encryptToRecipients()
-  Envelope.prototype.encryptToRecipients = async function (
+  Envelope.prototype.encryptToRecipients = function (
     this: Envelope,
     recipients: PublicKeyBase[],
-  ): Promise<Envelope> {
+  ): Envelope {
     return this.wrap().encryptSubjectToRecipients(recipients);
   };
 

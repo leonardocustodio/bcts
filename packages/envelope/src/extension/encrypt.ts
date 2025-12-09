@@ -1,13 +1,24 @@
 import { Envelope } from "../base/envelope";
 import { EnvelopeError } from "../base/error";
 import { type Digest } from "../base/digest";
-import sodium from "libsodium-wrappers";
 import { cborData, decodeCbor } from "@blockchain-commons/dcbor";
+import {
+  aeadChaCha20Poly1305EncryptWithAad,
+  aeadChaCha20Poly1305DecryptWithAad,
+  SYMMETRIC_KEY_SIZE,
+  SYMMETRIC_NONCE_SIZE,
+  SYMMETRIC_AUTH_SIZE,
+} from "@blockchain-commons/crypto";
+import {
+  SecureRandomNumberGenerator,
+  rngRandomData,
+  type RandomNumberGenerator,
+} from "@blockchain-commons/rand";
 
 /// Extension for encrypting and decrypting envelopes using symmetric encryption.
 ///
 /// This module extends Gordian Envelope with functions for symmetric encryption
-/// and decryption using the IETF-ChaCha20-Poly1305 construct (libsodium). It enables
+/// and decryption using the IETF-ChaCha20-Poly1305 construct. It enables
 /// privacy-enhancing operations by allowing envelope elements to be encrypted
 /// without changing the envelope's digest, similar to elision.
 ///
@@ -39,21 +50,27 @@ import { cborData, decodeCbor } from "@blockchain-commons/dcbor";
 /// console.log(envelope.digest().equals(decrypted.digest())); // true
 /// ```
 
+/// Helper function to create a secure RNG
+function createSecureRng(): RandomNumberGenerator {
+  return new SecureRandomNumberGenerator();
+}
+
 /// Represents a symmetric encryption key (256-bit)
+/// Matches bc-components-rust/src/symmetric/symmetric_key.rs
 export class SymmetricKey {
   readonly #key: Uint8Array;
 
   constructor(key: Uint8Array) {
-    if (key.length !== 32) {
-      throw new Error("Symmetric key must be 32 bytes");
+    if (key.length !== SYMMETRIC_KEY_SIZE) {
+      throw new Error(`Symmetric key must be ${SYMMETRIC_KEY_SIZE} bytes`);
     }
     this.#key = key;
   }
 
   /// Generates a new random symmetric key
-  static async generate(): Promise<SymmetricKey> {
-    await sodium.ready;
-    const key = sodium.randombytes_buf(32);
+  static generate(): SymmetricKey {
+    const rng = createSecureRng();
+    const key = rngRandomData(rng, SYMMETRIC_KEY_SIZE);
     return new SymmetricKey(key);
   }
 
@@ -68,31 +85,29 @@ export class SymmetricKey {
   }
 
   /// Encrypts data with associated digest (AAD)
-  async encrypt(plaintext: Uint8Array, digest: Digest): Promise<EncryptedMessage> {
-    await sodium.ready;
+  /// Uses IETF ChaCha20-Poly1305 with 12-byte nonce
+  encrypt(plaintext: Uint8Array, digest: Digest): EncryptedMessage {
+    const rng = createSecureRng();
 
-    // Generate a random nonce (24 bytes for XChaCha20-Poly1305)
-    const nonce = sodium.randombytes_buf(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
+    // Generate a random nonce (12 bytes for IETF ChaCha20-Poly1305)
+    const nonce = rngRandomData(rng, SYMMETRIC_NONCE_SIZE);
 
     // Use digest as additional authenticated data (AAD)
     const aad = digest.data();
 
-    // Encrypt using XChaCha20-Poly1305
-    const ciphertext = sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(
+    // Encrypt using IETF ChaCha20-Poly1305
+    const [ciphertext, authTag] = aeadChaCha20Poly1305EncryptWithAad(
       plaintext,
-      aad,
-      null, // no secret nonce
-      nonce,
       this.#key,
+      nonce,
+      aad,
     );
 
-    return new EncryptedMessage(ciphertext, nonce, digest);
+    return new EncryptedMessage(ciphertext, nonce, authTag, digest);
   }
 
   /// Decrypts an encrypted message
-  async decrypt(message: EncryptedMessage): Promise<Uint8Array> {
-    await sodium.ready;
-
+  decrypt(message: EncryptedMessage): Uint8Array {
     const digest = message.aadDigest();
     if (digest === undefined) {
       throw EnvelopeError.general("Missing digest in encrypted message");
@@ -101,12 +116,12 @@ export class SymmetricKey {
     const aad = digest.data();
 
     try {
-      const plaintext = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
-        null, // no secret nonce
+      const plaintext = aeadChaCha20Poly1305DecryptWithAad(
         message.ciphertext(),
-        aad,
-        message.nonce(),
         this.#key,
+        message.nonce(),
+        aad,
+        message.authTag(),
       );
 
       return plaintext;
@@ -116,15 +131,23 @@ export class SymmetricKey {
   }
 }
 
-/// Represents an encrypted message with nonce and optional AAD digest
+/// Represents an encrypted message with nonce, auth tag, and optional AAD digest
+/// Matches bc-components-rust/src/symmetric/encrypted_message.rs
 export class EncryptedMessage {
   readonly #ciphertext: Uint8Array;
   readonly #nonce: Uint8Array;
+  readonly #authTag: Uint8Array;
   readonly #aadDigest?: Digest;
 
-  constructor(ciphertext: Uint8Array, nonce: Uint8Array, aadDigest?: Digest) {
+  constructor(
+    ciphertext: Uint8Array,
+    nonce: Uint8Array,
+    authTag: Uint8Array,
+    aadDigest?: Digest,
+  ) {
     this.#ciphertext = ciphertext;
     this.#nonce = nonce;
+    this.#authTag = authTag;
     if (aadDigest !== undefined) {
       this.#aadDigest = aadDigest;
     }
@@ -138,6 +161,11 @@ export class EncryptedMessage {
   /// Returns the nonce
   nonce(): Uint8Array {
     return this.#nonce;
+  }
+
+  /// Returns the authentication tag
+  authTag(): Uint8Array {
+    return this.#authTag;
   }
 
   /// Returns the optional AAD digest
@@ -163,7 +191,7 @@ declare module "../base/envelope" {
     /// it must first be wrapped using the `wrap()` method, or you
     /// can use the `encrypt()` convenience method.
     ///
-    /// The encryption uses XChaCha20-Poly1305 and preserves the envelope's
+    /// The encryption uses IETF ChaCha20-Poly1305 and preserves the envelope's
     /// digest, allowing for features like selective disclosure and
     /// signature verification to work even on encrypted envelopes.
     ///
@@ -174,11 +202,11 @@ declare module "../base/envelope" {
     /// @example
     /// ```typescript
     /// const envelope = Envelope.new("Secret data");
-    /// const key = await SymmetricKey.generate();
-    /// const encrypted = await envelope.encryptSubject(key);
+    /// const key = SymmetricKey.generate();
+    /// const encrypted = envelope.encryptSubject(key);
     /// console.log(encrypted.subject().isEncrypted()); // true
     /// ```
-    encryptSubject(key: SymmetricKey): Promise<Envelope>;
+    encryptSubject(key: SymmetricKey): Envelope;
 
     /// Returns a new envelope with its subject decrypted.
     ///
@@ -192,10 +220,10 @@ declare module "../base/envelope" {
     ///
     /// @example
     /// ```typescript
-    /// const decrypted = await encrypted.decryptSubject(key);
+    /// const decrypted = encrypted.decryptSubject(key);
     /// console.log(decrypted.asText()); // "Secret data"
     /// ```
-    decryptSubject(key: SymmetricKey): Promise<Envelope>;
+    decryptSubject(key: SymmetricKey): Envelope;
 
     /// Convenience method to encrypt an entire envelope including its assertions.
     ///
@@ -209,10 +237,10 @@ declare module "../base/envelope" {
     /// @example
     /// ```typescript
     /// const envelope = Envelope.new("Alice").addAssertion("knows", "Bob");
-    /// const key = await SymmetricKey.generate();
-    /// const encrypted = await envelope.encrypt(key);
+    /// const key = SymmetricKey.generate();
+    /// const encrypted = envelope.encrypt(key);
     /// ```
-    encrypt(key: SymmetricKey): Promise<Envelope>;
+    encrypt(key: SymmetricKey): Envelope;
 
     /// Convenience method to decrypt an entire envelope that was encrypted
     /// using the `encrypt()` method.
@@ -226,10 +254,10 @@ declare module "../base/envelope" {
     ///
     /// @example
     /// ```typescript
-    /// const decrypted = await encrypted.decrypt(key);
+    /// const decrypted = encrypted.decrypt(key);
     /// console.log(envelope.digest().equals(decrypted.digest())); // true
     /// ```
-    decrypt(key: SymmetricKey): Promise<Envelope>;
+    decrypt(key: SymmetricKey): Envelope;
 
     /// Checks if this envelope is encrypted
     isEncrypted(): boolean;
@@ -239,10 +267,7 @@ declare module "../base/envelope" {
 /// Implementation of encryptSubject()
 // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
 if (Envelope?.prototype) {
-  Envelope.prototype.encryptSubject = async function (
-    this: Envelope,
-    key: SymmetricKey,
-  ): Promise<Envelope> {
+  Envelope.prototype.encryptSubject = function (this: Envelope, key: SymmetricKey): Envelope {
     const c = this.case();
 
     // Can't encrypt if already encrypted or elided
@@ -260,13 +285,12 @@ if (Envelope?.prototype) {
       }
 
       // Get the subject's CBOR data
-
       const subjectCbor = c.subject.taggedCbor();
       const encodedCbor = cborData(subjectCbor);
       const subjectDigest = c.subject.digest();
 
       // Encrypt the subject
-      const encryptedMessage = await key.encrypt(encodedCbor, subjectDigest);
+      const encryptedMessage = key.encrypt(encodedCbor, subjectDigest);
 
       // Create encrypted envelope
       const encryptedSubject = Envelope.fromCase({
@@ -279,12 +303,11 @@ if (Envelope?.prototype) {
     }
 
     // For other cases, encrypt the entire envelope
-
     const cbor = this.taggedCbor();
     const encodedCbor = cborData(cbor);
     const digest = this.digest();
 
-    const encryptedMessage = await key.encrypt(encodedCbor, digest);
+    const encryptedMessage = key.encrypt(encodedCbor, digest);
 
     return Envelope.fromCase({
       type: "encrypted",
@@ -293,10 +316,7 @@ if (Envelope?.prototype) {
   };
 
   /// Implementation of decryptSubject()
-  Envelope.prototype.decryptSubject = async function (
-    this: Envelope,
-    key: SymmetricKey,
-  ): Promise<Envelope> {
+  Envelope.prototype.decryptSubject = function (this: Envelope, key: SymmetricKey): Envelope {
     const subjectCase = this.subject().case();
 
     if (subjectCase.type !== "encrypted") {
@@ -311,10 +331,9 @@ if (Envelope?.prototype) {
     }
 
     // Decrypt the subject
-    const decryptedData = await key.decrypt(message);
+    const decryptedData = key.decrypt(message);
 
     // Parse back to envelope
-
     const cbor = decodeCbor(decryptedData);
     const resultSubject = Envelope.fromTaggedCbor(cbor);
 
@@ -339,19 +358,13 @@ if (Envelope?.prototype) {
   };
 
   /// Implementation of encrypt() - convenience method
-  Envelope.prototype.encrypt = async function (
-    this: Envelope,
-    key: SymmetricKey,
-  ): Promise<Envelope> {
+  Envelope.prototype.encrypt = function (this: Envelope, key: SymmetricKey): Envelope {
     return this.wrap().encryptSubject(key);
   };
 
   /// Implementation of decrypt() - convenience method
-  Envelope.prototype.decrypt = async function (
-    this: Envelope,
-    key: SymmetricKey,
-  ): Promise<Envelope> {
-    const decrypted = await this.decryptSubject(key);
+  Envelope.prototype.decrypt = function (this: Envelope, key: SymmetricKey): Envelope {
+    const decrypted = this.decryptSubject(key);
     return decrypted.unwrap();
   };
 

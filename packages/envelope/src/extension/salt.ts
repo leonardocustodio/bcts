@@ -1,5 +1,11 @@
 import { Envelope } from "../base/envelope";
 import { EnvelopeError } from "../base/error";
+import {
+  SecureRandomNumberGenerator,
+  rngRandomData,
+  rngNextInClosedRange,
+  type RandomNumberGenerator,
+} from "@blockchain-commons/rand";
 
 /// Extension for adding salt to envelopes to prevent correlation.
 ///
@@ -12,6 +18,8 @@ import { EnvelopeError } from "../base/error";
 /// Decorrelation is an important privacy feature that prevents third parties
 /// from determining whether two elided envelopes originally contained the same
 /// information by comparing their digests.
+///
+/// Based on bc-envelope-rust/src/extension/salt.rs and bc-components-rust/src/salt.rs
 ///
 /// @example
 /// ```typescript
@@ -31,41 +39,28 @@ export const SALT = "salt";
 /// Minimum salt size in bytes (64 bits)
 const MIN_SALT_SIZE = 8;
 
-/// Default salt size range
-const DEFAULT_SALT_RANGE = { min: 8, max: 16 };
+/// Creates a new SecureRandomNumberGenerator instance
+function createSecureRng(): RandomNumberGenerator {
+  return new SecureRandomNumberGenerator();
+}
 
-/// Generates random bytes using crypto
-function generateRandomBytes(length: number): Uint8Array {
-  // Use Web Crypto API available in browsers and Node.js 19+
-  const cryptoObj = (
-    globalThis as { crypto?: { getRandomValues?: (array: Uint8Array) => Uint8Array } }
-  ).crypto;
-
-  if (cryptoObj?.getRandomValues !== undefined) {
-    const array = new Uint8Array(length);
-    cryptoObj.getRandomValues(array);
-    return array;
-  }
-
-  throw new Error(
-    "Web Crypto API not available. " +
-      "Please use a modern browser or Node.js 19+ which includes global crypto support.",
-  );
+/// Generates random bytes using the rand package
+function generateRandomBytes(length: number, rng?: RandomNumberGenerator): Uint8Array {
+  const actualRng = rng ?? createSecureRng();
+  return rngRandomData(actualRng, length);
 }
 
 /// Calculates salt size proportional to envelope size
-function calculateProportionalSaltSize(envelopeSize: number): number {
-  // For small envelopes: 8-16 bytes
-  // For larger envelopes: 5-25% of the envelope's size
-  const minSize = DEFAULT_SALT_RANGE.min;
-  const maxSize = DEFAULT_SALT_RANGE.max;
-
-  if (envelopeSize <= 100) {
-    return minSize + Math.floor(Math.random() * (maxSize - minSize + 1));
-  }
-
-  const proportional = Math.floor(envelopeSize * (0.05 + Math.random() * 0.2));
-  return Math.max(minSize, Math.min(proportional, 1024)); // Cap at 1KB
+/// This matches the Rust implementation in bc-components-rust/src/salt.rs
+function calculateProportionalSaltSize(
+  envelopeSize: number,
+  rng?: RandomNumberGenerator,
+): number {
+  const actualRng = rng ?? createSecureRng();
+  const count = envelopeSize;
+  const minSize = Math.max(8, Math.ceil(count * 0.05));
+  const maxSize = Math.max(minSize + 8, Math.ceil(count * 0.25));
+  return rngNextInClosedRange(actualRng, minSize, maxSize);
 }
 
 declare module "../base/envelope" {
@@ -181,9 +176,10 @@ declare module "../base/envelope" {
 // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
 if (Envelope?.prototype) {
   Envelope.prototype.addSalt = function (this: Envelope): Envelope {
+    const rng = createSecureRng();
     const envelopeSize = this.cborBytes().length;
-    const saltSize = calculateProportionalSaltSize(envelopeSize);
-    const saltBytes = generateRandomBytes(saltSize);
+    const saltSize = calculateProportionalSaltSize(envelopeSize, rng);
+    const saltBytes = generateRandomBytes(saltSize, rng);
     return this.addAssertion(SALT, saltBytes);
   };
 
@@ -222,8 +218,9 @@ if (Envelope?.prototype) {
         `Maximum salt size must be at least minimum, got min=${min} max=${max}`,
       );
     }
-    const saltSize = min + Math.floor(Math.random() * (max - min + 1));
-    const saltBytes = generateRandomBytes(saltSize);
+    const rng = createSecureRng();
+    const saltSize = rngNextInClosedRange(rng, min, max);
+    const saltBytes = generateRandomBytes(saltSize, rng);
     return this.addAssertion(SALT, saltBytes);
   };
 }
