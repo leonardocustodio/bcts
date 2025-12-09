@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { FakeRandomNumberGenerator } from "@blockchain-commons/rand";
+import { describe, it, expect } from "@jest/globals";
+import { SeededRandomNumberGenerator, makeFakeRandomNumberGenerator } from "@blockchain-commons/rand";
 import {
   EncapsulationScheme,
   EncapsulationPrivateKey,
@@ -53,8 +53,9 @@ describe("EncapsulationPrivateKey", () => {
     });
 
     it("should create deterministic keys with RNG", () => {
-      const rng1 = new FakeRandomNumberGenerator("test-seed");
-      const rng2 = new FakeRandomNumberGenerator("test-seed");
+      const seed: [bigint, bigint, bigint, bigint] = [1n, 2n, 3n, 4n];
+      const rng1 = new SeededRandomNumberGenerator(seed);
+      const rng2 = new SeededRandomNumberGenerator(seed);
       const key1 = EncapsulationPrivateKey.newUsing(rng1);
       const key2 = EncapsulationPrivateKey.newUsing(rng2);
       expect(key1.equals(key2)).toBe(true);
@@ -75,8 +76,9 @@ describe("EncapsulationPrivateKey", () => {
     });
 
     it("should generate deterministic keypair with RNG", () => {
-      const rng1 = new FakeRandomNumberGenerator("keypair-seed");
-      const rng2 = new FakeRandomNumberGenerator("keypair-seed");
+      const seed: [bigint, bigint, bigint, bigint] = [5n, 6n, 7n, 8n];
+      const rng1 = new SeededRandomNumberGenerator(seed);
+      const rng2 = new SeededRandomNumberGenerator(seed);
       const [priv1, pub1] = EncapsulationPrivateKey.keypairUsing(rng1);
       const [priv2, pub2] = EncapsulationPrivateKey.keypairUsing(rng2);
       expect(priv1.equals(priv2)).toBe(true);
@@ -183,7 +185,7 @@ describe("EncapsulationPrivateKey", () => {
       const key = EncapsulationPrivateKey.new();
       const ur = key.ur();
       expect(ur).toBeDefined();
-      expect(ur.type()).toBe("agreement-private-key");
+      expect(ur.urTypeStr()).toBe("agreement-private-key");
     });
 
     it("should serialize to UR string", () => {
@@ -291,7 +293,7 @@ describe("EncapsulationPublicKey", () => {
     it("should serialize to UR", () => {
       const [, publicKey] = EncapsulationPrivateKey.keypair();
       const ur = publicKey.ur();
-      expect(ur.type()).toBe("agreement-public-key");
+      expect(ur.urTypeStr()).toBe("agreement-public-key");
     });
 
     it("should roundtrip through UR", () => {
@@ -532,7 +534,7 @@ describe("SealedMessage", () => {
       const sealed = SealedMessage.new(plaintext, recipientPublic);
 
       const ur = sealed.ur();
-      expect(ur.type()).toBe("crypto-sealed");
+      expect(ur.urTypeStr()).toBe("crypto-sealed");
     });
 
     it("should serialize to UR string", () => {
@@ -584,8 +586,9 @@ describe("createEncapsulationKeypair helpers", () => {
   });
 
   it("should create deterministic keypair with RNG", () => {
-    const rng1 = new FakeRandomNumberGenerator("helper-seed");
-    const rng2 = new FakeRandomNumberGenerator("helper-seed");
+    const seed: [bigint, bigint, bigint, bigint] = [9n, 10n, 11n, 12n];
+    const rng1 = new SeededRandomNumberGenerator(seed);
+    const rng2 = new SeededRandomNumberGenerator(seed);
     const [priv1, pub1] = createEncapsulationKeypairUsing(rng1);
     const [priv2, pub2] = createEncapsulationKeypairUsing(rng2);
     expect(priv1.equals(priv2)).toBe(true);

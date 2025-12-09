@@ -28,7 +28,7 @@ import {
   extractTaggedContent,
   decodeCbor,
   tagsForValues,
-  getTagValue,
+  tagValue,
 } from "@blockchain-commons/dcbor";
 import { UR, type UREncodable } from "@blockchain-commons/uniform-resources";
 import { X25519_PUBLIC_KEY as TAG_X25519_PUBLIC_KEY } from "@blockchain-commons/tags";
@@ -227,16 +227,16 @@ export class EncapsulationPublicKey
    * Creates an EncapsulationPublicKey by decoding it from tagged CBOR.
    */
   fromTaggedCbor(cborValue: Cbor): EncapsulationPublicKey {
-    const tagValue = getTagValue(cborValue);
+    const tag = tagValue(cborValue);
 
-    if (tagValue === TAG_X25519_PUBLIC_KEY.value) {
+    if (tag === TAG_X25519_PUBLIC_KEY.value) {
       const content = extractTaggedContent(cborValue);
       const data = expectBytes(content);
       const publicKey = X25519PublicKey.fromDataRef(data);
       return EncapsulationPublicKey.fromX25519PublicKey(publicKey);
     }
 
-    throw new Error(`Unknown public key tag: ${tagValue}`);
+    throw new Error(`Unknown public key tag: ${tag}`);
   }
 
   /**
@@ -296,14 +296,14 @@ export class EncapsulationPublicKey
    */
   static fromUR(ur: UR): EncapsulationPublicKey {
     // Check for known UR types
-    if (ur.type() === TAG_X25519_PUBLIC_KEY.name) {
+    if (ur.urTypeStr() === TAG_X25519_PUBLIC_KEY.name) {
       const dummy = EncapsulationPublicKey.fromX25519PublicKey(
         X25519PublicKey.fromData(new Uint8Array(32)),
       );
       return dummy.fromUntaggedCbor(ur.cbor());
     }
 
-    throw new Error(`Unknown UR type for EncapsulationPublicKey: ${ur.type()}`);
+    throw new Error(`Unknown UR type for EncapsulationPublicKey: ${ur.urTypeStr()}`);
   }
 
   /**

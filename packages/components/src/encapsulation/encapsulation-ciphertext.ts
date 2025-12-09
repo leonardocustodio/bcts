@@ -23,7 +23,7 @@ import {
   extractTaggedContent,
   decodeCbor,
   tagsForValues,
-  getTagValue,
+  tagValue,
 } from "@blockchain-commons/dcbor";
 import { X25519_PUBLIC_KEY as TAG_X25519_PUBLIC_KEY } from "@blockchain-commons/tags";
 import { X25519PublicKey } from "../x25519/x25519-public-key.js";
@@ -183,16 +183,16 @@ export class EncapsulationCiphertext
    * Creates an EncapsulationCiphertext by decoding it from tagged CBOR.
    */
   fromTaggedCbor(cborValue: Cbor): EncapsulationCiphertext {
-    const tagValue = getTagValue(cborValue);
+    const tag = tagValue(cborValue);
 
-    if (tagValue === TAG_X25519_PUBLIC_KEY.value) {
+    if (tag === TAG_X25519_PUBLIC_KEY.value) {
       const content = extractTaggedContent(cborValue);
       const data = expectBytes(content);
       const publicKey = X25519PublicKey.fromDataRef(data);
       return EncapsulationCiphertext.fromX25519PublicKey(publicKey);
     }
 
-    throw new Error(`Unknown ciphertext tag: ${tagValue}`);
+    throw new Error(`Unknown ciphertext tag: ${tag}`);
   }
 
   /**
