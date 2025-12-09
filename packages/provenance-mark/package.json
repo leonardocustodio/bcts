@@ -69,8 +69,6 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@bcts/components": "workspace:*",
-    "@bcts/crypto": "workspace:*",
     "@bcts/dcbor": "workspace:*",
     "@bcts/rand": "workspace:*",
     "@bcts/tags": "workspace:*",

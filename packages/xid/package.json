@@ -71,10 +71,12 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
+    "@bcts/components": "workspace:*",
     "@bcts/dcbor": "workspace:*",
     "@bcts/envelope": "workspace:*",
     "@bcts/known-values": "workspace:*",
-    "@bcts/components": "workspace:*",
-    "@bcts/provenance-mark": "workspace:*"
+    "@bcts/provenance-mark": "workspace:*",
+    "@bcts/rand": "workspace:*",
+    "@bcts/uniform-resources": "workspace:*"
   }
 }

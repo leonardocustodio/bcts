@@ -183,5 +183,12 @@ export type {
 } from "./mlkem/index.js";
 
 // Re-export commonly used tags for higher-level packages
-// This allows packages like known-values to depend on components instead of tags directly
-export { KNOWN_VALUE } from "@bcts/tags";
+// This allows packages like envelope to depend on components instead of tags directly
+export {
+  KNOWN_VALUE,
+  // Envelope-related tags
+  ENVELOPE,
+  LEAF,
+  ENCRYPTED,
+  COMPRESSED,
+} from "@bcts/tags";

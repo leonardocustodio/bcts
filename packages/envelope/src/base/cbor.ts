@@ -7,7 +7,7 @@ import {
   cborData,
   decodeCbor,
 } from "@bcts/dcbor";
-import { ENVELOPE } from "@bcts/tags";
+import { ENVELOPE } from "@bcts/components";
 import { Envelope } from "./envelope";
 
 const TAG_ENVELOPE = ENVELOPE.value;

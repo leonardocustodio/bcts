@@ -74,11 +74,12 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
+    "@bcts/components": "workspace:*",
     "@bcts/crypto": "workspace:*",
     "@bcts/dcbor": "workspace:*",
     "@bcts/known-values": "workspace:*",
     "@bcts/rand": "workspace:*",
-    "@bcts/tags": "workspace:*",
+    "@bcts/uniform-resources": "workspace:*",
     "pako": "^2.1.0"
   }
 }

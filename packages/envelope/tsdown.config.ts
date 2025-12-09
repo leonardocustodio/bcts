@@ -13,7 +13,8 @@ export default defineConfig({
     globals: {
       "@bcts/dcbor": "BCDcbor",
       "@bcts/known-values": "BCKnownValues",
-      "@bcts/tags": "BCTags",
+      "@bcts/components": "BCComponents",
+      "@bcts/uniform-resources": "BCUniformResources",
     },
   },
 });

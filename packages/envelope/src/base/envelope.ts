@@ -16,7 +16,7 @@ import {
   asTaggedValue,
   tryExpectedTaggedValue,
 } from "@bcts/dcbor";
-import { ENVELOPE, LEAF, ENCRYPTED, COMPRESSED } from "@bcts/tags";
+import { ENVELOPE, LEAF, ENCRYPTED, COMPRESSED } from "@bcts/components";
 
 /// Import tag values from the tags registry
 /// These match the Rust reference implementation in bc-tags-rust

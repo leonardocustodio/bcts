@@ -1,6 +1,6 @@
 // Ported from provenance-mark-rust/src/generator.rs
 
-import { toBase64, fromBase64, bytesToHex } from "@bcts/components";
+import { toBase64, fromBase64, bytesToHex } from "./utils.js";
 import { type Cbor } from "@bcts/dcbor";
 
 import { ProvenanceMarkError, ProvenanceMarkErrorType } from "./error.js";
