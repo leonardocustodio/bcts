@@ -238,8 +238,13 @@ export class CborError extends Error {
     this.errorType = errorType;
 
     // Maintains proper stack trace for where error was thrown (V8 only)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    (Error as any).captureStackTrace?.(this, CborError);
+    if ("captureStackTrace" in Error) {
+      (
+        Error as {
+          captureStackTrace(target: object, constructor: typeof CborError): void;
+        }
+      ).captureStackTrace(this, CborError);
+    }
   }
 
   /**
