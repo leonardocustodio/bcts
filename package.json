@@ -1,6 +1,42 @@
 {
   "name": "bcts",
+  "version": "1.0.0-alpha.9",
   "private": true,
+  "description": "TypeScript implementations of Blockchain Commons specifications including dCBOR, Gordian Envelope, Uniform Resources, SSKR, and other cryptographic standards",
+  "contributors": [
+    {
+      "name": "Leonardo Custodio",
+      "email": "leonardo.custodio@parity.io",
+      "url": "https://github.com/leonardocustodio"
+    },
+    {
+      "name": "Karim Jedda",
+      "email": "karim@parity.io",
+      "url": "https://github.com/KarimJedda"
+    }
+  ],
+  "homepage": "https://bcts.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leonardocustodio/bcts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/leonardocustodio/bcts/issues"
+  },
+  "keywords": [
+    "blockchain-commons",
+    "cbor",
+    "dcbor",
+    "gordian-envelope",
+    "uniform-resources",
+    "sskr",
+    "shamir",
+    "cryptography",
+    "typescript"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "turbo run build",
     "test": "turbo run test",
@@ -12,7 +48,8 @@
     "playground": "turbo run dev --filter=@bcts/playground",
     "clean": "turbo run clean",
     "release": "turbo run build lint test && changeset publish",
-    "version": "changeset version"
+    "version": "changeset version",
+    "bump-version": "bun run scripts/bump-version.ts"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.8",

@@ -5,7 +5,7 @@
   "description": "Blockchain Commons XID for TypeScript",
   "license": "BSD-2-Clause-Patent",
   "author": "Leonardo Custodio <leonardo@custodio.me>",
-  "homepage": "https://github.com/leonardocustodio/bcts",
+  "homepage": "https://bcts.dev",
   "repository": {
     "type": "git",
     "url": "https://github.com/leonardocustodio/bcts",

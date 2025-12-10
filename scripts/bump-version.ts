@@ -14,7 +14,7 @@ interface PackageJson {
 
 const ROOT_DIR = join(import.meta.dirname, "..");
 const WORKSPACE_DIRS = ["packages"];
-const NEW_VERSION = process.argv[2];
+let NEW_VERSION = process.argv[2];
 
 if (!NEW_VERSION) {
   console.error("Usage: bun run scripts/bump-version.ts <new-version>");
@@ -22,9 +22,33 @@ if (!NEW_VERSION) {
   process.exit(1);
 }
 
+// Strip "v" prefix if present
+if (NEW_VERSION.startsWith("v")) {
+  NEW_VERSION = NEW_VERSION.slice(1);
+  console.log(`Stripped "v" prefix, using version: ${NEW_VERSION}\n`);
+}
+
 async function main() {
   console.log(`Bumping all packages to version ${NEW_VERSION}\n`);
 
+  // Bump root package.json first
+  const rootPackageJsonPath = join(ROOT_DIR, "package.json");
+  try {
+    const content = await readFile(rootPackageJsonPath, "utf-8");
+    const packageJson: PackageJson = JSON.parse(content);
+
+    const oldVersion = packageJson.version;
+    packageJson.version = NEW_VERSION;
+
+    await writeFile(rootPackageJsonPath, JSON.stringify(packageJson, null, 2) + "\n");
+    console.log(`✓ ${packageJson.name} (root): ${oldVersion} → ${NEW_VERSION}`);
+  } catch (error) {
+    console.error(`Failed to update root package.json: ${error}`);
+  }
+
+  console.log("");
+
+  // Bump workspace packages
   for (const dir of WORKSPACE_DIRS) {
     const dirPath = join(ROOT_DIR, dir);
     try {
