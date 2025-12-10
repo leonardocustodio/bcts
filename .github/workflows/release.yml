@@ -56,7 +56,7 @@ jobs:
         run: bun run lint
 
       - name: Publish to NPM
-        run: bun changeset publish
+        run: bun changeset publish --provenance
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
