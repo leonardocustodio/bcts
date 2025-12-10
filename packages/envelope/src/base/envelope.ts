@@ -3,7 +3,7 @@ import { Assertion } from "./assertion";
 import { EnvelopeError } from "./error";
 import type { EnvelopeEncodableValue } from "./envelope-encodable";
 import { KnownValue } from "@bcts/known-values";
-import type { Cbor } from "@bcts/dcbor";
+import type { Cbor, CborMap } from "@bcts/dcbor";
 import {
   cbor,
   cborData,
@@ -17,6 +17,20 @@ import {
   tryExpectedTaggedValue,
 } from "@bcts/dcbor";
 import { ENVELOPE, LEAF, ENCRYPTED, COMPRESSED } from "@bcts/components";
+
+// Type imports for extension method declarations
+// These are imported as types only to avoid circular dependencies at runtime
+import type { ObscureAction, ObscureType } from "./elide";
+import type { Visitor } from "./walk";
+import type {
+  SymmetricKey,
+  SealedMessage,
+  PublicKeyBase,
+  PrivateKeyBase,
+  Signer,
+  Verifier,
+  SignatureMetadata,
+} from "../extension";
 
 /// Import tag values from the tags registry
 /// These match the Rust reference implementation in bc-tags-rust
@@ -787,4 +801,188 @@ export class Envelope implements DigestProvider {
   ///
   /// @returns A diagnostic string
   declare diagnostic: () => string;
+
+  //
+  // Extension methods (implemented via prototype extension in extension modules)
+  // These declarations ensure TypeScript recognizes the methods when consuming the package
+  //
+
+  // From assertions.ts
+  declare addAssertionEnvelopes: (assertions: Envelope[]) => Envelope;
+  declare addOptionalAssertionEnvelope: (assertion: Envelope | undefined) => Envelope;
+  declare addOptionalAssertion: (
+    predicate: EnvelopeEncodableValue,
+    object: EnvelopeEncodableValue | undefined,
+  ) => Envelope;
+  declare addNonemptyStringAssertion: (predicate: EnvelopeEncodableValue, str: string) => Envelope;
+  declare addAssertions: (envelopes: Envelope[]) => Envelope;
+  declare addAssertionIf: (
+    condition: boolean,
+    predicate: EnvelopeEncodableValue,
+    object: EnvelopeEncodableValue,
+  ) => Envelope;
+  declare addAssertionEnvelopeIf: (condition: boolean, assertionEnvelope: Envelope) => Envelope;
+  declare removeAssertion: (target: Envelope) => Envelope;
+  declare replaceAssertion: (assertion: Envelope, newAssertion: Envelope) => Envelope;
+  declare replaceSubject: (subject: Envelope) => Envelope;
+
+  // From elide.ts
+  declare elide: () => Envelope;
+  declare elideRemovingSetWithAction: (target: Set<Digest>, action: ObscureAction) => Envelope;
+  declare elideRemovingSet: (target: Set<Digest>) => Envelope;
+  declare elideRemovingArrayWithAction: (
+    target: DigestProvider[],
+    action: ObscureAction,
+  ) => Envelope;
+  declare elideRemovingArray: (target: DigestProvider[]) => Envelope;
+  declare elideRemovingTargetWithAction: (
+    target: DigestProvider,
+    action: ObscureAction,
+  ) => Envelope;
+  declare elideRemovingTarget: (target: DigestProvider) => Envelope;
+  declare elideRevealingSetWithAction: (target: Set<Digest>, action: ObscureAction) => Envelope;
+  declare elideRevealingSet: (target: Set<Digest>) => Envelope;
+  declare elideRevealingArrayWithAction: (
+    target: DigestProvider[],
+    action: ObscureAction,
+  ) => Envelope;
+  declare elideRevealingArray: (target: DigestProvider[]) => Envelope;
+  declare elideRevealingTargetWithAction: (
+    target: DigestProvider,
+    action: ObscureAction,
+  ) => Envelope;
+  declare elideRevealingTarget: (target: DigestProvider) => Envelope;
+  declare unelide: (envelope: Envelope) => Envelope;
+  declare nodesMatching: (
+    targetDigests: Set<Digest> | undefined,
+    obscureTypes: ObscureType[],
+  ) => Set<Digest>;
+  declare walkUnelide: (envelopes: Envelope[]) => Envelope;
+  declare walkReplace: (target: Set<Digest>, replacement: Envelope) => Envelope;
+  declare isIdenticalTo: (other: Envelope) => boolean;
+
+  // From leaf.ts
+  declare tryLeaf: () => Cbor;
+  declare extractString: () => string;
+  declare extractNumber: () => number;
+  declare extractBoolean: () => boolean;
+  declare extractBytes: () => Uint8Array;
+  declare extractNull: () => null;
+
+  // From queries.ts
+  declare isFalse: () => boolean;
+  declare isTrue: () => boolean;
+  declare isBool: () => boolean;
+  declare isNumber: () => boolean;
+  declare isSubjectNumber: () => boolean;
+  declare isNaN: () => boolean;
+  declare isSubjectNaN: () => boolean;
+  declare isNull: () => boolean;
+  declare tryByteString: () => Uint8Array;
+  declare asByteString: () => Uint8Array | undefined;
+  declare asArray: () => readonly Cbor[] | undefined;
+  declare asMap: () => CborMap | undefined;
+  declare asText: () => string | undefined;
+  declare asLeaf: () => Cbor | undefined;
+  declare hasAssertions: () => boolean;
+  declare asAssertion: () => Envelope | undefined;
+  declare tryAssertion: () => Envelope;
+  declare asPredicate: () => Envelope | undefined;
+  declare tryPredicate: () => Envelope;
+  declare asObject: () => Envelope | undefined;
+  declare tryObject: () => Envelope;
+  declare isAssertion: () => boolean;
+  declare isElided: () => boolean;
+  declare isLeaf: () => boolean;
+  declare isNode: () => boolean;
+  declare isWrapped: () => boolean;
+  declare isInternal: () => boolean;
+  declare isObscured: () => boolean;
+  declare assertions: () => Envelope[];
+  declare assertionsWithPredicate: (predicate: EnvelopeEncodableValue) => Envelope[];
+  declare assertionWithPredicate: (predicate: EnvelopeEncodableValue) => Envelope;
+  declare optionalAssertionWithPredicate: (
+    predicate: EnvelopeEncodableValue,
+  ) => Envelope | undefined;
+  declare objectForPredicate: (predicate: EnvelopeEncodableValue) => Envelope;
+  declare optionalObjectForPredicate: (predicate: EnvelopeEncodableValue) => Envelope | undefined;
+  declare objectsForPredicate: (predicate: EnvelopeEncodableValue) => Envelope[];
+  declare elementsCount: () => number;
+
+  // From walk.ts
+  declare walk: <State>(hideNodes: boolean, state: State, visit: Visitor<State>) => void;
+
+  // From wrap.ts
+  declare wrap: () => Envelope;
+  declare tryUnwrap: () => Envelope;
+  declare unwrap: () => Envelope;
+
+  // From attachment.ts
+  declare addAttachment: (
+    payload: EnvelopeEncodableValue,
+    vendor: string,
+    conformsTo?: string,
+  ) => Envelope;
+  declare attachmentPayload: () => Envelope;
+  declare attachmentVendor: () => string;
+  declare attachmentConformsTo: () => string | undefined;
+  declare attachments: () => Envelope[];
+  declare attachmentsWithVendorAndConformsTo: (vendor?: string, conformsTo?: string) => Envelope[];
+
+  // From compress.ts
+  declare compress: () => Envelope;
+  declare decompress: () => Envelope;
+  declare compressSubject: () => Envelope;
+  declare decompressSubject: () => Envelope;
+  declare isCompressed: () => boolean;
+
+  // From encrypt.ts
+  declare encryptSubject: (key: SymmetricKey) => Envelope;
+  declare decryptSubject: (key: SymmetricKey) => Envelope;
+  declare encrypt: (key: SymmetricKey) => Envelope;
+  declare decrypt: (key: SymmetricKey) => Envelope;
+  declare isEncrypted: () => boolean;
+
+  // From proof.ts
+  declare proofContainsSet: (target: Set<Digest>) => Envelope | undefined;
+  declare proofContainsTarget: (target: Envelope) => Envelope | undefined;
+  declare confirmContainsSet: (target: Set<Digest>, proof: Envelope) => boolean;
+  declare confirmContainsTarget: (target: Envelope, proof: Envelope) => boolean;
+
+  // From recipient.ts
+  declare encryptSubjectToRecipient: (recipientPublicKey: PublicKeyBase) => Envelope;
+  declare encryptSubjectToRecipients: (recipients: PublicKeyBase[]) => Envelope;
+  declare addRecipient: (recipientPublicKey: PublicKeyBase, contentKey: SymmetricKey) => Envelope;
+  declare decryptSubjectToRecipient: (recipientPrivateKey: PrivateKeyBase) => Envelope;
+  declare decryptToRecipient: (recipientPrivateKey: PrivateKeyBase) => Envelope;
+  declare encryptToRecipients: (recipients: PublicKeyBase[]) => Envelope;
+  declare recipients: () => SealedMessage[];
+
+  // From salt.ts
+  declare addSalt: () => Envelope;
+  declare addSaltWithLength: (count: number) => Envelope;
+  declare addSaltBytes: (saltBytes: Uint8Array) => Envelope;
+  declare addSaltInRange: (min: number, max: number) => Envelope;
+
+  // From signature.ts
+  declare addSignature: (signer: Signer) => Envelope;
+  declare addSignatureWithMetadata: (signer: Signer, metadata?: SignatureMetadata) => Envelope;
+  declare addSignatures: (signers: Signer[]) => Envelope;
+  declare hasSignatureFrom: (verifier: Verifier) => boolean;
+  declare verifySignatureFrom: (verifier: Verifier) => Envelope;
+  declare signatures: () => Envelope[];
+
+  // From types.ts
+  declare addType: (object: EnvelopeEncodableValue) => Envelope;
+  declare types: () => Envelope[];
+  declare getType: () => Envelope;
+  declare hasType: (t: EnvelopeEncodableValue) => boolean;
+  declare checkType: (t: EnvelopeEncodableValue) => void;
+
+  // Static methods from extensions
+  declare static newAttachment: (
+    payload: EnvelopeEncodableValue,
+    vendor: string,
+    conformsTo?: string,
+  ) => Envelope;
 }

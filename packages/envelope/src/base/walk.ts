@@ -79,32 +79,6 @@ export type Visitor<State> = (
   state: State,
 ) => [State, boolean];
 
-declare module "./envelope" {
-  interface Envelope {
-    /// Walks the envelope structure, calling the visitor function for each
-    /// element.
-    ///
-    /// This function traverses the entire envelope hierarchy and calls the
-    /// visitor function on each element. The traversal can be performed in
-    /// two modes:
-    ///
-    /// - Structure-based traversal (`hideNodes = false`): Visits every element
-    ///   including node containers
-    /// - Tree-based traversal (`hideNodes = true`): Skips node elements and
-    ///   focuses on semantic content
-    ///
-    /// The visitor function can optionally return a context value that is
-    /// passed to child elements, enabling state to be accumulated or passed
-    /// down during traversal.
-    ///
-    /// @param hideNodes - If true, the visitor will not be called for node
-    ///   containers
-    /// @param state - Initial state passed to the visitor
-    /// @param visit - The visitor function called for each element
-    walk<State>(hideNodes: boolean, state: State, visit: Visitor<State>): void;
-  }
-}
-
 /// Implementation of walk()
 Envelope.prototype.walk = function <State>(
   this: Envelope,

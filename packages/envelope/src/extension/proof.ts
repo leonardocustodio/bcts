@@ -47,55 +47,6 @@ import { type Digest } from "../base/digest";
 /// }
 /// ```
 
-declare module "../base/envelope" {
-  interface Envelope {
-    /// Creates a proof that this envelope includes every element in the target set.
-    ///
-    /// An inclusion proof is a specially constructed envelope that:
-    /// - Has the same digest as the original envelope (or an elided version of it)
-    /// - Contains the minimal structure needed to prove the existence of target elements
-    /// - Keeps all other content elided to preserve privacy
-    ///
-    /// @param target - The set of digests representing elements that the proof must include
-    /// @returns A proof envelope if all targets can be proven to exist, undefined otherwise
-    proofContainsSet(target: Set<Digest>): Envelope | undefined;
-
-    /// Creates a proof that this envelope includes the single target element.
-    ///
-    /// This is a convenience method that wraps `proofContainsSet()` for the
-    /// common case of proving the existence of just one element.
-    ///
-    /// @param target - The element that the proof must demonstrate exists in this envelope
-    /// @returns A proof envelope if the target can be proven to exist, undefined otherwise
-    proofContainsTarget(target: Envelope): Envelope | undefined;
-
-    /// Verifies whether this envelope contains all elements in the target set
-    /// using the given inclusion proof.
-    ///
-    /// This method is used by a verifier to check if a proof demonstrates the
-    /// existence of all target elements within this envelope. The verification
-    /// succeeds only if:
-    /// 1. The proof's digest matches this envelope's digest
-    /// 2. The proof contains all the target elements
-    ///
-    /// @param target - The set of digests representing elements that need to be proven to exist
-    /// @param proof - The inclusion proof envelope to verify
-    /// @returns true if all target elements are proven to exist in this envelope by the proof
-    confirmContainsSet(target: Set<Digest>, proof: Envelope): boolean;
-
-    /// Verifies whether this envelope contains the single target element using
-    /// the given inclusion proof.
-    ///
-    /// This is a convenience method that wraps `confirmContainsSet()` for the
-    /// common case of verifying just one element.
-    ///
-    /// @param target - The element that needs to be proven to exist in this envelope
-    /// @param proof - The inclusion proof envelope to verify
-    /// @returns true if the target element is proven to exist in this envelope by the proof
-    confirmContainsTarget(target: Envelope, proof: Envelope): boolean;
-  }
-}
-
 /// Implementation of proof methods on Envelope prototype
 // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
 if (Envelope?.prototype) {

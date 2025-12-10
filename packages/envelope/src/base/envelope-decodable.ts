@@ -117,49 +117,6 @@ export function extractNull(envelope: Envelope): null {
   throw EnvelopeError.cbor("envelope does not contain null");
 }
 
-/// Extension methods for Envelope to support CBOR decoding.
-///
-/// These methods are added to the Envelope class prototype to match
-/// the Rust API.
-declare module "./envelope" {
-  interface Envelope {
-    /// Attempts to extract the leaf CBOR value from this envelope.
-    ///
-    /// @returns The CBOR value contained in the leaf
-    /// @throws {EnvelopeError} If the envelope is not a leaf
-    tryLeaf(): Cbor;
-
-    /// Converts this envelope to a string.
-    ///
-    /// @returns The string value
-    /// @throws {EnvelopeError} If the envelope cannot be converted
-    extractString(): string;
-
-    /// Converts this envelope to a number.
-    ///
-    /// @returns The number value
-    /// @throws {EnvelopeError} If the envelope cannot be converted
-    extractNumber(): number;
-
-    /// Converts this envelope to a boolean.
-    ///
-    /// @returns The boolean value
-    /// @throws {EnvelopeError} If the envelope cannot be converted
-    extractBoolean(): boolean;
-
-    /// Converts this envelope to a byte array.
-    ///
-    /// @returns The byte array value
-    /// @throws {EnvelopeError} If the envelope cannot be converted
-    extractBytes(): Uint8Array;
-
-    /// Extracts null from this envelope.
-    ///
-    /// @throws {EnvelopeError} If the envelope does not contain null
-    extractNull(): null;
-  }
-}
-
 /// Static methods for creating envelopes from CBOR data.
 ///
 /// These are convenience methods that mirror the Rust implementation.
