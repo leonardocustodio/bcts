@@ -51,6 +51,9 @@ bun playground
 
 **Live Demo:** https://bcts.dev
 
+### [Examples](apps/examples)
+A collection of runnable TypeScript examples demonstrating the capabilities of this library.
+
 ## 🛠️ Development
 
 This is a monorepo managed with Turborepo. Common commands:

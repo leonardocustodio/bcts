@@ -1,4 +1,4 @@
-import type { Cbor, CborMap } from "@bcts/dcbor";
+import type { Cbor } from "@bcts/dcbor";
 import { isNumber, isNaN, asArray, asMap, asText } from "@bcts/dcbor";
 import { Envelope } from "./envelope";
 
@@ -7,85 +7,6 @@ import { Envelope } from "./envelope";
 ///
 /// This module extends the Envelope class with convenience methods for
 /// working with leaf values, including type checking and extraction.
-
-declare module "./envelope" {
-  interface Envelope {
-    /// Checks if this envelope contains false.
-    ///
-    /// @returns `true` if the envelope's subject is false, `false` otherwise
-    isFalse(): boolean;
-
-    /// Checks if this envelope contains true.
-    ///
-    /// @returns `true` if the envelope's subject is true, `false` otherwise
-    isTrue(): boolean;
-
-    /// Checks if this envelope contains a boolean value.
-    ///
-    /// @returns `true` if the envelope's subject is a boolean, `false`
-    ///   otherwise
-    isBool(): boolean;
-
-    /// Checks if this envelope is a leaf node that contains a number.
-    ///
-    /// @returns `true` if the envelope is a leaf containing a number, `false`
-    ///   otherwise
-    isNumber(): boolean;
-
-    /// Checks if the subject of this envelope is a number.
-    ///
-    /// @returns `true` if the subject is a number, `false` otherwise
-    isSubjectNumber(): boolean;
-
-    /// Checks if this envelope is a leaf node that contains NaN.
-    ///
-    /// @returns `true` if the envelope is a leaf containing NaN, `false`
-    ///   otherwise
-    isNaN(): boolean;
-
-    /// Checks if the subject of this envelope is NaN.
-    ///
-    /// @returns `true` if the subject is NaN, `false` otherwise
-    isSubjectNaN(): boolean;
-
-    /// Checks if this envelope contains null.
-    ///
-    /// @returns `true` if the envelope's subject is null, `false` otherwise
-    isNull(): boolean;
-
-    /// Attempts to extract the leaf CBOR as a byte string.
-    ///
-    /// @returns The byte string value
-    /// @throws {EnvelopeError} If the envelope is not a leaf or not a byte
-    ///   string
-    tryByteString(): Uint8Array;
-
-    /// Returns the leaf CBOR as a byte string if possible.
-    ///
-    /// @returns The byte string value or undefined
-    asByteString(): Uint8Array | undefined;
-
-    /// Returns the leaf CBOR as an array if possible.
-    ///
-    /// @returns The array value or undefined
-    asArray(): readonly Cbor[] | undefined;
-
-    /// Returns the leaf CBOR as a map if possible.
-    ///
-    /// @returns The map value or undefined
-    asMap(): CborMap | undefined;
-
-    /// Returns the leaf CBOR as text if possible.
-    ///
-    /// @returns The text value or undefined
-    asText(): string | undefined;
-
-    /// Returns the leaf CBOR value if this envelope is a leaf.
-    ///
-    /// @returns The CBOR value or undefined
-    asLeaf(): Cbor | undefined;
-  }
-}
 
 // Note: Static methods Envelope.false() and Envelope.true() are implemented below
 // but cannot be declared in TypeScript module augmentation due to reserved keywords.
