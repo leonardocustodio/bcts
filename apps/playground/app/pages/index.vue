@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, shallowRef, computed, watch, onMounted, provide } from 'vue'
+import { ref, shallowRef, computed, watch, onMounted, inject, type Ref } from 'vue'
 import { decodeCbor, cborData, cbor, hexToBytes, hexOpt, diagnosticOpt, MajorType, type Cbor } from '@bcts/dcbor'
 import { UR, decodeBytewords, encodeBytewords, BytewordsStyle } from '@bcts/uniform-resources'
 import { envelopeFromCbor } from '@bcts/envelope'
 import { ENVELOPE } from '@bcts/tags'
 
 useHead({
-  title: 'dCBOR Playground | Blockchain Commons',
+  title: 'Gordian Playground | Blockchain Commons',
   meta: [{ name: 'description', content: 'Parse and visualize dCBOR data with annotated hex and diagnostic notation' }],
 })
 
@@ -295,14 +295,16 @@ watch([hexInput, inputFormat], () => {
   }, 300)
 })
 
-// Handle example selection from sidebar
-function handleExampleSelect(example: { format: 'hex' | 'ur', value: string }) {
-  inputFormat.value = example.format
-  hexInput.value = example.value
-}
+// Handle example selection from sidebar (injected from layout)
+const selectedExample = inject<Ref<{ format: 'hex' | 'ur', value: string } | null>>('selectedExample')
 
-// Provide handleExampleSelect to the layout
-provide('handleExampleSelect', handleExampleSelect)
+// Watch for example selection from sidebar
+watch(selectedExample!, (example) => {
+  if (example) {
+    inputFormat.value = example.format
+    hexInput.value = example.value
+  }
+})
 
 // Handle input collapse toggle
 function toggleInputCollapse() {
@@ -320,33 +322,46 @@ onMounted(() => {
 </script>
 
 <template>
-  <UDashboardPanel id="playground" :ui="{ body: 'flex flex-col flex-1 overflow-y-auto p-0 gap-0' }">
+  <UDashboardPanel id="playground">
       <template #header>
-        <UDashboardNavbar title="dCBOR Playground">
+        <UDashboardNavbar title="Gordian Playground">
           <template #leading>
             <UDashboardSidebarCollapse />
           </template>
+          <template #right>
+            <UColorModeButton />
+            <UButton
+              to="https://github.com/leonardocustodio/bcts"
+              target="_blank"
+              icon="i-simple-icons-github"
+              color="neutral"
+              variant="ghost"
+              aria-label="GitHub Repository"
+            />
+          </template>
         </UDashboardNavbar>
 
-        <UDashboardToolbar :ui="{ root: 'min-h-[49px] border-b-0' }">
+        <UDashboardToolbar>
           <template #left>
             <div
               :title="isInputCollapsed ? 'Expand input panel' : 'Collapse input panel'"
-              class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity px-2 py-1.5 rounded-md bg-blue-50 dark:bg-blue-950/30"
+              class="flex items-center justify-between gap-3 cursor-pointer hover:opacity-80 transition-opacity px-4 h-full w-full bg-blue-50 dark:bg-blue-950/30"
               @click="toggleInputCollapse"
             >
-              <div class="flex items-center gap-2">
-                <UIcon name="i-heroicons-arrow-down-tray" class="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <h2 class="font-semibold text-sm text-blue-900 dark:text-blue-300">Input</h2>
+              <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2">
+                  <UIcon name="i-heroicons-arrow-down-tray" class="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <h2 class="font-semibold text-sm text-blue-900 dark:text-blue-300">Input</h2>
+                </div>
+                <span class="text-xs text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/50 px-2 py-1 rounded">{{ byteCount }} bytes</span>
               </div>
-              <span class="text-xs text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/50 px-2 py-1 rounded">{{ byteCount }} bytes</span>
               <UIcon v-if="isInputCollapsed" name="i-heroicons-chevron-down" class="w-4 h-4 text-blue-600 dark:text-blue-400" />
               <UIcon v-else name="i-heroicons-chevron-up" class="w-4 h-4 text-blue-600 dark:text-blue-400" />
             </div>
           </template>
 
           <template #right>
-            <div class="flex items-center gap-3 px-2 py-1.5 rounded-md bg-green-50 dark:bg-green-950/30">
+            <div class="flex items-center justify-between gap-3 px-4 h-full w-full bg-green-50 dark:bg-green-950/30">
               <div class="flex items-center gap-2">
                 <UIcon name="i-heroicons-arrow-up-tray" class="w-4 h-4 text-green-600 dark:text-green-400" />
                 <h2 class="font-semibold text-sm text-green-900 dark:text-green-300">Output</h2>
@@ -368,7 +383,7 @@ onMounted(() => {
       </template>
 
       <template #body>
-        <div class="w-full h-full grid grid-cols-2 overflow-hidden">
+        <div :class="['w-full h-full grid overflow-hidden', isInputCollapsed ? 'grid-cols-1' : 'grid-cols-2']">
           <!-- Error Display (Top Bar) - spans both columns -->
           <div v-if="error" class="col-span-2 px-4 py-2 lg:hidden">
             <UAlert

@@ -2,7 +2,9 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
 
 const open = ref(false)
-const handleExampleSelect = inject<((example: { format: 'hex' | 'ur', value: string }) => void) | undefined>('handleExampleSelect')
+
+const selectedExample = ref<{ format: 'hex' | 'ur', value: string } | null>(null)
+provide('selectedExample', selectedExample)
 
 const navigationItems: NavigationMenuItem[] = [
   {
@@ -13,10 +15,10 @@ const navigationItems: NavigationMenuItem[] = [
     label: 'Simple Object',
     icon: 'i-heroicons-cube',
     onSelect: () => {
-      handleExampleSelect?.({
+      selectedExample.value = {
         format: 'hex',
         value: 'a2626964187b646e616d65684a6f686e20446f65'
-      })
+      }
       open.value = false
     }
   },
@@ -24,10 +26,10 @@ const navigationItems: NavigationMenuItem[] = [
     label: 'Collection',
     icon: 'i-heroicons-rectangle-stack',
     onSelect: () => {
-      handleExampleSelect?.({
+      selectedExample.value = {
         format: 'hex',
         value: 'a2646e616d656d4d7920436f6c6c656374696f6e65757365727382d86fa262696401646e616d6571c4b07266616e2042696c616c6fc49f6c75d86fa262696402646e616d6572506965746572205579747465727370726f74'
-      })
+      }
       open.value = false
     }
   },
@@ -35,10 +37,10 @@ const navigationItems: NavigationMenuItem[] = [
     label: 'Single UR',
     icon: 'i-heroicons-link',
     onSelect: () => {
-      handleExampleSelect?.({
+      selectedExample.value = {
         format: 'ur',
         value: 'ur:link3/pdihjzinjtjejklyoeiakpjpjzksdtisjyjyjojkftdldlktktktdmjzinjtjeihieinjtdmiajljndlinjtdljzihjlioiakpjkjyjlieinjldlihjyinjyjzihisgsinjtjeihiegajtihjyisihjnihjeiehsjpjedpiyjljpihjkjyihjyinjyjzihjsfzjzihjljthsjpiejliakpjkjyjlieinjliyhskohsjyhsjpksfeinjoiyjkftdldlidhsiyjeeyidknhsiaihiaidkoimkshsimjpjlideyiojojlecjnjseejojseeidemjsidkojsjyjeiaenjseckkemjnjtjyisktjejpieimhseyisjojpenjsjkimjokpidjziniahejeihkkynimjyinjyjzihheiyjljtjyiofygtcxguhsjtjkimjyinjyjzihhejkinknihihjkjnhsjzjzjejyinjyjzihheiajljzjljpiocnfgfgfgfgfgfgvwylneoe'
-      })
+      }
       open.value = false
     }
   },
@@ -46,10 +48,10 @@ const navigationItems: NavigationMenuItem[] = [
     label: 'Gordian Envelope',
     icon: 'i-heroicons-envelope',
     onSelect: () => {
-      handleExampleSelect?.({
+      selectedExample.value = {
         format: 'ur',
         value: 'ur:envelope/lntpsoksdkgmihjskpihjkjyinjtiocxehdycxfygwghcxiyjljpcxinjtkojliniaihcxcneheyeoeeecoytpsoinjyinjnihjkjyhsjnjotpsosecyinembgieoyahtpsotansgulftansfwlshddahygytnrdaerovwleaycmleeszmckdyisntrhloioltyndeptimrhtkpdsbinvevweolyswfzhggstartahisdebahfteldvdqzoegdfsonmyhhvssksknewnltmtmyaykstacetansgrhdcxhpkbzetyjywsmtjoghwplbcttpwndlgeyaptempazsidflwskstpnllrykeofzkpoytpsoiminjtkojliniaihdpinietpsoiheheyeoeeecoytpsojeiyjpjljndpkthsjzjzihjytpsotansgylftanshfhdcxynisgskboxmesrfeclgddrfnteimknwmmutnehqzpfbdyawkrheovlykpacwfyemtansgrhdcxjsbnolswhpztpdbwkionlbdpwknnrseyskpmwmvoktsbkolechfggsihwdryfgfwoyaxtpsotansghhdfzrlctjkghvsjomodwmnuooytbfpectnpeynrshtfplprydkjnrldmvamojkmkbeteotlgbghtdngodkryhlwpvydewfdsstlnqztbzccxmyvdckmurddppasfpksazsdiytmylbtt'
-      })
+      }
       open.value = false
     }
   },
@@ -145,8 +147,11 @@ const navigationItems: NavigationMenuItem[] = [
       class="bg-elevated/25"
       :ui="{ footer: 'lg:border-t lg:border-default' }"
     >
-      <template #header>
-          <h2 class="font-semibold text-gray-900 dark:text-white">Blockchain Commons</h2>
+      <template #header="{ collapsed }">
+        <div class="flex items-center gap-2">
+          <img src="/bc-logo-black.png" alt="BCTS" class="w-6 h-6 dark:invert">
+          <h2 v-if="!collapsed" class="font-semibold text-gray-900 dark:text-white">BCTS</h2>
+        </div>
       </template>
 
       <template #default="{ collapsed }">
