@@ -347,13 +347,6 @@ function parseInput(input: string, format: InputFormat): Uint8Array {
   }
 }
 
-// Convert bytes to hex string
-function bytesToHex(bytes: Uint8Array): string {
-  return Array.from(bytes)
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('')
-}
-
 // Helper function to check if bytes start with a specific CBOR tag
 function startsWithCborTag(bytes: Uint8Array, tagValue: number | bigint): boolean {
   if (typeof tagValue === 'bigint' && tagValue > BigInt(Number.MAX_SAFE_INTEGER)) {
@@ -645,15 +638,15 @@ watch(activePaneId, () => {
                 <UIcon name="i-heroicons-document-text" class="w-3.5 h-3.5 flex-shrink-0" />
                 <input
                   v-if="editingTabId === tab.id"
+                  v-model="editingTabName"
                   :data-tab-input="tab.id"
                   type="text"
-                  v-model="editingTabName"
                   class="truncate flex-1 bg-transparent border-none outline-none text-xs p-0 m-0 w-full"
                   @blur="finishEditingTab(pane.id, tab.id)"
                   @keydown.enter="finishEditingTab(pane.id, tab.id)"
                   @keydown.escape="editingTabId = null"
                   @click.stop
-                />
+                >
                 <span
                   v-else
                   class="truncate flex-1"
