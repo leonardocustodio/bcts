@@ -173,7 +173,7 @@ function createTab(name?: string, initialInput?: string): TabState {
   return {
     id,
     name: name || `Tab ${tabCounter - 1}`,
-    hexInput: initialInput || 'a2626964187b646e616d65684a6f686e20446f65',
+    hexInput: initialInput ?? '',
     error: null,
     parsedCbor: null,
     annotatedHex: '',
@@ -562,9 +562,10 @@ watch(panes, () => {
 // Handle example selection from sidebar (injected from layout)
 const selectedExample = inject<Ref<{ name: string, format: 'hex' | 'ur', value: string } | null>>('selectedExample')
 
-// Watch for example selection from sidebar
-watch(selectedExample!, (example) => {
-  if (example && activePane.value) {
+// Process a selected example
+function processSelectedExample() {
+  if (selectedExample?.value && activePane.value) {
+    const example = selectedExample.value
     // Create a new tab with the example content
     const newTab = createTab(example.name, example.value)
     activePane.value.tabs.push(newTab)
@@ -574,8 +575,13 @@ watch(selectedExample!, (example) => {
     nextTick(() => parseTabCbor(activePane.value!.id, newTab.id))
 
     // Reset the selected example to allow re-selecting the same example
-    selectedExample!.value = null
+    selectedExample.value = null
   }
+}
+
+// Watch for example selection from sidebar
+watch(selectedExample!, () => {
+  processSelectedExample()
 })
 
 // Initialize with one pane
@@ -591,13 +597,19 @@ onMounted(() => {
           parseTabCbor(pane.id, tab.id)
         }
       }
+      // Check for pending example after state is loaded
+      processSelectedExample()
     })
   } else {
     // No saved state, create initial pane
     const initialPane = createPane()
     panes.value.push(initialPane)
     activePaneId.value = initialPane.id
-    nextTick(() => parseTabCbor(initialPane.id, initialPane.activeTabId))
+    nextTick(() => {
+      parseTabCbor(initialPane.id, initialPane.activeTabId)
+      // Check for pending example after pane is created
+      processSelectedExample()
+    })
   }
 })
 
@@ -819,11 +831,6 @@ watch(activePaneId, () => {
 
               <!-- Status Bar -->
               <div class="flex items-center justify-between px-2 py-0.5 border-t border-gray-200 dark:border-gray-800/50 bg-gray-100 dark:bg-gray-900/50 text-xs text-gray-500 dark:text-gray-500">
-                <div class="flex items-center gap-3">
-                  <span>{{ getByteCount(tab) }} bytes</span>
-                  <span v-if="tab.parsedCbor">CBOR</span>
-                  <span v-if="tab.isEnvelopeInput" class="text-blue-600 dark:text-blue-400">Envelope</span>
-                </div>
                 <UTabs
                   v-model="tab.viewMode"
                   :items="[
@@ -838,6 +845,11 @@ watch(activePaneId, () => {
                   class="w-auto"
                   :ui="{ root: 'gap-0', list: 'p-0' }"
                 />
+                <div class="flex items-center gap-3">
+                  <span v-if="tab.isEnvelopeInput" class="text-blue-600 dark:text-blue-400">Envelope</span>
+                  <span v-if="tab.parsedCbor">CBOR</span>
+                  <span>{{ getByteCount(tab) }} bytes</span>
+                </div>
               </div>
             </div>
           </template>

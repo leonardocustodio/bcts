@@ -1,64 +1,73 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
 
+const route = useRoute()
+const router = useRouter()
 const open = ref(false)
 
 const selectedExample = ref<{ name: string, format: 'hex' | 'ur', value: string } | null>(null)
 provide('selectedExample', selectedExample)
 
+// Helper to select an example and navigate to playground if needed
+function selectExample(example: { name: string, format: 'hex' | 'ur', value: string }) {
+  selectedExample.value = example
+  open.value = false
+  if (route.path !== '/') {
+    router.push('/')
+  }
+}
+
 const navigationItems: NavigationMenuItem[] = [
+  {
+    label: 'Gordian Playground',
+    icon: 'i-heroicons-command-line',
+    to: '/'
+  },
+  {
+    label: 'Registry Browser',
+    icon: 'i-heroicons-circle-stack',
+    to: '/registry'
+  },
   {
     label: 'Example Inputs',
     icon: 'i-heroicons-play-circle',
-    defaultOpen: true,
+    defaultOpen: false,
     children: [
       {
         label: 'Simple Object',
         icon: 'i-heroicons-cube',
-        onSelect: () => {
-          selectedExample.value = {
-            name: 'Simple Object',
-            format: 'hex',
-            value: 'a2626964187b646e616d65684a6f686e20446f65'
-          }
-          open.value = false
-        }
+        onSelect: () => selectExample({
+          name: 'Simple Object',
+          format: 'hex',
+          value: 'a2626964187b646e616d65684a6f686e20446f65'
+        })
       },
       {
         label: 'Collection',
         icon: 'i-heroicons-rectangle-stack',
-        onSelect: () => {
-          selectedExample.value = {
-            name: 'Collection',
-            format: 'hex',
-            value: 'a2646e616d656d4d7920436f6c6c656374696f6e65757365727382d86fa262696401646e616d6571c4b07266616e2042696c616c6fc49f6c75d86fa262696402646e616d6572506965746572205579747465727370726f74'
-          }
-          open.value = false
-        }
+        onSelect: () => selectExample({
+          name: 'Collection',
+          format: 'hex',
+          value: 'a2646e616d656d4d7920436f6c6c656374696f6e65757365727382d86fa262696401646e616d6571c4b07266616e2042696c616c6fc49f6c75d86fa262696402646e616d6572506965746572205579747465727370726f74'
+        })
       },
       {
         label: 'Single UR',
         icon: 'i-heroicons-link',
-        onSelect: () => {
-          selectedExample.value = {
-            name: 'Single UR',
-            format: 'ur',
-            value: 'ur:link3/pdihjzinjtjejklyoeiakpjpjzksdtisjyjyjojkftdldlktktktdmjzinjtjeihieinjtdmiajljndlinjtdljzihjlioiakpjkjyjlieinjldlihjyinjyjzihisgsinjtjeihiegajtihjyisihjnihjeiehsjpjedpiyjljpihjkjyihjyinjyjzihjsfzjzihjljthsjpiejliakpjkjyjlieinjliyhskohsjyhsjpksfeinjoiyjkftdldlidhsiyjeeyidknhsiaihiaidkoimkshsimjpjlideyiojojlecjnjseejojseeidemjsidkojsjyjeiaenjseckkemjnjtjyisktjejpieimhseyisjojpenjsjkimjokpidjziniahejeihkkynimjyinjyjzihheiyjljtjyiofygtcxguhsjtjkimjyinjyjzihhejkinknihihjkjnhsjzjzjejyinjyjzihheiajljzjljpiocnfgfgfgfgfgfgvwylneoe'
-          }
-          open.value = false
-        }
+        onSelect: () => selectExample({
+          name: 'Single UR',
+          format: 'ur',
+          value: 'ur:link3/pdihjzinjtjejklyoeiakpjpjzksdtisjyjyjojkftdldlktktktdmjzinjtjeihieinjtdmiajljndlinjtdljzihjlioiakpjkjyjlieinjldlihjyinjyjzihisgsinjtjeihiegajtihjyisihjnihjeiehsjpjedpiyjljpihjkjyihjyinjyjzihjsfzjzihjljthsjpiejliakpjkjyjlieinjliyhskohsjyhsjpksfeinjoiyjkftdldlidhsiyjeeyidknhsiaihiaidkoimkshsimjpjlideyiojojlecjnjseejojseeidemjsidkojsjyjeiaenjseckkemjnjtjyisktjejpieimhseyisjojpenjsjkimjokpidjziniahejeihkkynimjyinjyjzihheiyjljtjyiofygtcxguhsjtjkimjyinjyjzihhejkinknihihjkjnhsjzjzjejyinjyjzihheiajljzjljpiocnfgfgfgfgfgfgvwylneoe'
+        })
       },
       {
         label: 'Gordian Envelope',
         icon: 'i-heroicons-envelope',
-        onSelect: () => {
-          selectedExample.value = {
-            name: 'Gordian Envelope',
-            format: 'ur',
-            value: 'ur:envelope/lntpsoksdkgmihjskpihjkjyinjtiocxehdycxfygwghcxiyjljpcxinjtkojliniaihcxcneheyeoeeecoytpsoinjyinjnihjkjyhsjnjotpsosecyinembgieoyahtpsotansgulftansfwlshddahygytnrdaerovwleaycmleeszmckdyisntrhloioltyndeptimrhtkpdsbinvevweolyswfzhggstartahisdebahfteldvdqzoegdfsonmyhhvssksknewnltmtmyaykstacetansgrhdcxhpkbzetyjywsmtjoghwplbcttpwndlgeyaptempazsidflwskstpnllrykeofzkpoytpsoiminjtkojliniaihdpinietpsoiheheyeoeeecoytpsojeiyjpjljndpkthsjzjzihjytpsotansgylftanshfhdcxynisgskboxmesrfeclgddrfnteimknwmmutnehqzpfbdyawkrheovlykpacwfyemtansgrhdcxjsbnolswhpztpdbwkionlbdpwknnrseyskpmwmvoktsbkolechfggsihwdryfgfwoyaxtpsotansghhdfzrlctjkghvsjomodwmnuooytbfpectnpeynrshtfplprydkjnrldmvamojkmkbeteotlgbghtdngodkryhlwpvydewfdsstlnqztbzccxmyvdckmurddppasfpksazsdiytmylbtt'
-          }
-          open.value = false
-        }
+        onSelect: () => selectExample({
+          name: 'Gordian Envelope',
+          format: 'ur',
+          value: 'ur:envelope/lntpsoksdkgmihjskpihjkjyinjtiocxehdycxfygwghcxiyjljpcxinjtkojliniaihcxcneheyeoeeecoytpsoinjyinjnihjkjyhsjnjotpsosecyinembgieoyahtpsotansgulftansfwlshddahygytnrdaerovwleaycmleeszmckdyisntrhloioltyndeptimrhtkpdsbinvevweolyswfzhggstartahisdebahfteldvdqzoegdfsonmyhhvssksknewnltmtmyaykstacetansgrhdcxhpkbzetyjywsmtjoghwplbcttpwndlgeyaptempazsidflwskstpnllrykeofzkpoytpsoiminjtkojliniaihdpinietpsoiheheyeoeeecoytpsojeiyjpjljndpkthsjzjzihjytpsotansgylftanshfhdcxynisgskboxmesrfeclgddrfnteimknwmmutnehqzpfbdyawkrheovlykpacwfyemtansgrhdcxjsbnolswhpztpdbwkionlbdpwknnrseyskpmwmvoktsbkolechfggsihwdryfgfwoyaxtpsotansghhdfzrlctjkghvsjomodwmnuooytbfpectnpeynrshtfplprydkjnrldmvamojkmkbeteotlgbghtdngodkryhlwpvydewfdsstlnqztbzccxmyvdckmurddppasfpksazsdiytmylbtt'
+        })
       }
     ]
   },
