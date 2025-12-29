@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Envelope, SigningPrivateKey, SymmetricKey, PrivateKeyBase } from '@bcts/envelope'
+import encodeQR from '@paulmillr/qr'
 
 useHead({
   title: 'Envelope Builder | BCTS',
@@ -549,7 +550,7 @@ defineShortcuts({
 // Phase 4: QR Code Generation
 // ============================================
 
-async function generateQRCode() {
+function generateQRCode() {
   if (!hexOutput.value) {
     qrCodeError.value = 'No envelope data to encode'
     return
@@ -558,22 +559,31 @@ async function generateQRCode() {
   qrCodeError.value = null
 
   try {
-    // Create UR-encoded data for QR code
-    const urData = `ur:envelope/${hexOutput.value.toLowerCase()}`
+    // Create UR-encoded data for QR code (uppercase for alphanumeric mode efficiency)
+    const urData = `ur:envelope/${hexOutput.value.toLowerCase()}`.toUpperCase()
 
-    // Use dynamic import for QR code generation
-    const QRCode = await import('qrcode')
-
-    // Generate QR code as data URL
-    qrCodeDataUrl.value = await QRCode.toDataURL(urData, {
-      errorCorrectionLevel: 'M',
-      margin: 2,
-      width: 300,
-      color: {
-        dark: '#000000',
-        light: '#FFFFFF'
-      }
+    // Generate QR code using @paulmillr/qr
+    const qrData = encodeQR(urData, 'raw', {
+      ecc: 'low',
+      border: 2
     })
+
+    // Convert QR matrix to SVG
+    const size = qrData.length
+    const scale = 4
+    const svgSize = size * scale
+
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${svgSize} ${svgSize}" width="300" height="300">
+      <rect width="${svgSize}" height="${svgSize}" fill="#ffffff"/>
+      ${qrData.map((row, y) =>
+        row.map((cell, x) =>
+          cell ? `<rect x="${x * scale}" y="${y * scale}" width="${scale}" height="${scale}" fill="#000000"/>` : ''
+        ).join('')
+      ).join('')}
+    </svg>`
+
+    // Convert SVG to data URL
+    qrCodeDataUrl.value = `data:image/svg+xml;base64,${btoa(svg)}`
   } catch (e) {
     console.error('QR code generation error:', e)
     qrCodeError.value = e instanceof Error ? e.message : 'Failed to generate QR code'
