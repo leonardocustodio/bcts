@@ -1149,7 +1149,7 @@ watch(activePaneId, () => {
                 accept="image/*"
                 class="hidden"
                 @change="handleQRUpload(pane.id, $event)"
-              />
+              >
               <div class="h-4 w-px bg-gray-300 dark:bg-gray-700/50 mx-1" />
               <UButton
                 icon="i-heroicons-bars-3-bottom-left"
@@ -1279,19 +1279,19 @@ watch(activePaneId, () => {
                     <textarea
                       v-else-if="tab.viewMode === 'ur'"
                       v-model="tab.urOutput"
-                      @input="tab.hexInput = tab.urOutput"
                       placeholder="UR string"
                       class="w-full h-full resize-none font-mono text-xs bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 p-3 focus:outline-none overflow-auto"
                       style="word-break: break-all;"
+                      @input="tab.hexInput = tab.urOutput"
                     />
 
                     <!-- Bytewords View - Edit bytewords -->
                     <textarea
                       v-else-if="tab.viewMode === 'bytewords'"
                       v-model="tab.bytewordsOutput"
-                      @input="tab.hexInput = tab.bytewordsOutput"
                       placeholder="Bytewords"
                       class="w-full h-full resize-none font-mono text-xs bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 p-3 focus:outline-none overflow-auto"
+                      @input="tab.hexInput = tab.bytewordsOutput"
                     />
 
                     <!-- Envelope View - Edit envelope format -->
@@ -1363,19 +1363,19 @@ watch(activePaneId, () => {
                     <textarea
                       v-else-if="tab.viewMode === 'ur'"
                       v-model="tab.urOutput"
-                      @input="tab.hexInput = tab.urOutput"
                       placeholder="UR string"
                       class="w-full h-full resize-none font-mono text-xs bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 p-3 focus:outline-none overflow-auto"
                       style="word-break: break-all;"
+                      @input="tab.hexInput = tab.urOutput"
                     />
 
                     <!-- Bytewords View - Edit bytewords -->
                     <textarea
                       v-else-if="tab.viewMode === 'bytewords'"
                       v-model="tab.bytewordsOutput"
-                      @input="tab.hexInput = tab.bytewordsOutput"
                       placeholder="Bytewords"
                       class="w-full h-full resize-none font-mono text-xs bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 p-3 focus:outline-none overflow-auto"
+                      @input="tab.hexInput = tab.bytewordsOutput"
                     />
 
                     <!-- Envelope View - Edit envelope format -->

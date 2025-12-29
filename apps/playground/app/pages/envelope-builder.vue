@@ -2522,7 +2522,7 @@ async function copyProof() {
               <UButton color="neutral" variant="ghost" @click="showAssertionModal = false">
                 Cancel
               </UButton>
-              <UButton color="primary" @click="addAssertion" :disabled="!assertionPredicate">
+              <UButton color="primary" :disabled="!assertionPredicate" @click="addAssertion">
                 Add
               </UButton>
             </div>
@@ -2544,7 +2544,7 @@ async function copyProof() {
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Salt Mode</label>
                 <div class="space-y-2">
                   <label class="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50" :class="{ 'border-primary-500 bg-primary-50 dark:bg-primary-900/20': saltMode === 'auto' }">
-                    <input v-model="saltMode" type="radio" value="auto" class="sr-only" />
+                    <input v-model="saltMode" type="radio" value="auto" class="sr-only" >
                     <div class="flex-1">
                       <div class="font-medium text-gray-900 dark:text-white">Auto</div>
                       <div class="text-xs text-gray-500">Let the library choose salt length automatically</div>
@@ -2553,7 +2553,7 @@ async function copyProof() {
                   </label>
 
                   <label class="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50" :class="{ 'border-primary-500 bg-primary-50 dark:bg-primary-900/20': saltMode === 'fixed' }">
-                    <input v-model="saltMode" type="radio" value="fixed" class="sr-only" />
+                    <input v-model="saltMode" type="radio" value="fixed" class="sr-only" >
                     <div class="flex-1">
                       <div class="font-medium text-gray-900 dark:text-white">Fixed Length</div>
                       <div class="text-xs text-gray-500">Specify exact salt length in bytes</div>
@@ -2562,7 +2562,7 @@ async function copyProof() {
                   </label>
 
                   <label class="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50" :class="{ 'border-primary-500 bg-primary-50 dark:bg-primary-900/20': saltMode === 'range' }">
-                    <input v-model="saltMode" type="radio" value="range" class="sr-only" />
+                    <input v-model="saltMode" type="radio" value="range" class="sr-only" >
                     <div class="flex-1">
                       <div class="font-medium text-gray-900 dark:text-white">Range</div>
                       <div class="text-xs text-gray-500">Random length within min/max bounds</div>
@@ -2801,11 +2801,11 @@ async function copyProof() {
                   class="flex items-center gap-3 p-3"
                 >
                   <input
+                    v-model="activeSigningKeyId"
                     type="radio"
                     :value="key.id"
-                    v-model="activeSigningKeyId"
                     class="text-primary-500"
-                  />
+                  >
                   <div class="flex-1 min-w-0">
                     <div class="font-medium text-sm text-gray-900 dark:text-white">{{ key.name }}</div>
                     <div class="text-xs font-mono text-gray-500 truncate">
@@ -2840,11 +2840,11 @@ async function copyProof() {
                   class="flex items-center gap-3 p-3"
                 >
                   <input
+                    v-model="activeEncryptionKeyId"
                     type="radio"
                     :value="key.id"
-                    v-model="activeEncryptionKeyId"
                     class="text-primary-500"
-                  />
+                  >
                   <div class="flex-1 min-w-0">
                     <div class="font-medium text-sm text-gray-900 dark:text-white">{{ key.name }}</div>
                     <div class="text-xs font-mono text-gray-500 truncate">
@@ -2949,11 +2949,11 @@ async function copyProof() {
               <UButton color="neutral" variant="ghost" @click="showExportModal = false">
                 Close
               </UButton>
-              <UButton color="neutral" variant="soft" @click="downloadExport" :disabled="!hexOutput">
+              <UButton color="neutral" variant="soft" :disabled="!hexOutput" @click="downloadExport">
                 <UIcon name="i-heroicons-arrow-down-tray" class="w-4 h-4 mr-1" />
                 Download
               </UButton>
-              <UButton color="primary" @click="copyExport" :disabled="!hexOutput">
+              <UButton color="primary" :disabled="!hexOutput" @click="copyExport">
                 <UIcon name="i-heroicons-clipboard-document" class="w-4 h-4 mr-1" />
                 Copy
               </UButton>
@@ -3010,7 +3010,7 @@ async function copyProof() {
               <UButton color="neutral" variant="ghost" @click="showImportModal = false">
                 Cancel
               </UButton>
-              <UButton color="primary" @click="importEnvelope" :disabled="!importInput.trim()">
+              <UButton color="primary" :disabled="!importInput.trim()" @click="importEnvelope">
                 <UIcon name="i-heroicons-arrow-up-tray" class="w-4 h-4 mr-1" />
                 Import
               </UButton>
@@ -3071,7 +3071,7 @@ async function copyProof() {
               <UButton color="neutral" variant="ghost" @click="showTypeModal = false">
                 Cancel
               </UButton>
-              <UButton color="primary" @click="addTypeToNode" :disabled="!typeValue.trim()">
+              <UButton color="primary" :disabled="!typeValue.trim()" @click="addTypeToNode">
                 <UIcon name="i-heroicons-tag" class="w-4 h-4 mr-1" />
                 Add Type
               </UButton>
@@ -3122,7 +3122,7 @@ async function copyProof() {
               <UButton color="neutral" variant="ghost" @click="showAttachmentModal = false">
                 Cancel
               </UButton>
-              <UButton color="primary" @click="addAttachmentToNode" :disabled="!attachmentPayload.trim() || !attachmentVendor.trim()">
+              <UButton color="primary" :disabled="!attachmentPayload.trim() || !attachmentVendor.trim()" @click="addAttachmentToNode">
                 <UIcon name="i-heroicons-paper-clip" class="w-4 h-4 mr-1" />
                 Add Attachment
               </UButton>
@@ -3232,7 +3232,7 @@ async function copyProof() {
               <UButton color="neutral" variant="ghost" @click="showProofModal = false">
                 Close
               </UButton>
-              <UButton color="primary" @click="copyProof" :disabled="!proofOutput">
+              <UButton color="primary" :disabled="!proofOutput" @click="copyProof">
                 <UIcon name="i-heroicons-clipboard-document" class="w-4 h-4 mr-1" />
                 Copy All
               </UButton>
@@ -3261,7 +3261,7 @@ async function copyProof() {
 
             <div v-if="qrCodeDataUrl" class="flex flex-col items-center">
               <div class="bg-white p-4 rounded-lg mb-4">
-                <img :src="qrCodeDataUrl" alt="Envelope QR Code" class="w-64 h-64" />
+                <img :src="qrCodeDataUrl" alt="Envelope QR Code" class="w-64 h-64" >
               </div>
 
               <p class="text-xs text-gray-500 text-center mb-4">
