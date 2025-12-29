@@ -41,5 +41,16 @@ export default defineAppConfig({
         body: "flex flex-col flex-1 overflow-y-auto !p-0 !gap-0",
       },
     },
+    navigationMenu: {
+      compoundVariants: [
+        {
+          orientation: "vertical",
+          active: true,
+          class: {
+            link: "bg-primary-100 dark:bg-primary-800/40 text-primary-600 dark:text-primary-300",
+          },
+        },
+      ],
+    },
   },
 });

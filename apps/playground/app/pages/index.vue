@@ -87,7 +87,7 @@ function cborToJson(cborVal: Cbor): unknown {
 }
 
 useHead({
-  title: 'dCBOR Playground | Polkadot Developer Toolbox',
+  title: 'Data Playground | BCTS',
   meta: [{ name: 'description', content: 'Parse and visualize dCBOR data with annotated hex and diagnostic notation' }],
 })
 
@@ -1029,7 +1029,7 @@ watch(activePaneId, () => {
 <template>
   <UDashboardPanel id="playground">
     <template #header>
-      <UDashboardNavbar title="dCBOR Playground">
+      <UDashboardNavbar title="Data Playground">
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>

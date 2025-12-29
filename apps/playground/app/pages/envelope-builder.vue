@@ -2,7 +2,7 @@
 import { Envelope, SigningPrivateKey, SymmetricKey, PrivateKeyBase } from '@bcts/envelope'
 
 useHead({
-  title: 'Envelope Builder - Polkadot Developer Toolbox',
+  title: 'Envelope Builder | BCTS',
   meta: [
     { name: 'description', content: 'Build Gordian Envelopes layer by layer with a visual tree builder' }
   ]

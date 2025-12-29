@@ -23,7 +23,7 @@ const navigationItems: NavigationMenuItem[] = [
     label: 'Tools'
   },
   {
-    label: 'dCBOR Playground',
+    label: 'Data Playground',
     icon: 'i-heroicons-command-line',
     to: '/'
   },
