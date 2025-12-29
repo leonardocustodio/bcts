@@ -107,7 +107,7 @@ const extractDigestBytes = (haystack: Cbor): Uint8Array | undefined => {
     return undefined;
   }
   const bytes = asBytes(content);
-  if (bytes === undefined || bytes.length !== DIGEST_SIZE) {
+  if (bytes?.length !== DIGEST_SIZE) {
     return undefined;
   }
   return bytes;

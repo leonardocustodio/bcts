@@ -24,7 +24,7 @@ export const parseAnd = (lexer: Lexer): Result<Pattern> => {
 
   while (true) {
     const peeked = lexer.peekToken();
-    if (peeked === undefined || !peeked.ok) {
+    if (!peeked?.ok) {
       break;
     }
     if (peeked.value.type !== "And") {

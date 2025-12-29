@@ -8,15 +8,16 @@
 import type { Cbor } from "@bcts/dcbor";
 import type { Path } from "../../format";
 import type { Pattern } from "../index";
+import { matchPattern } from "../match-registry";
 
 /**
  * A pattern that matches a sequence of patterns in order.
  * Used primarily for matching array elements.
  */
-export type SequencePattern = {
+export interface SequencePattern {
   readonly variant: "Sequence";
   readonly patterns: Pattern[];
-};
+}
 
 /**
  * Creates a SequencePattern with the given patterns.
@@ -25,9 +26,6 @@ export const sequencePattern = (patterns: Pattern[]): SequencePattern => ({
   variant: "Sequence",
   patterns,
 });
-
-// Forward declaration
-declare function patternMatches(pattern: Pattern, haystack: Cbor): boolean;
 
 /**
  * Tests if a CBOR value matches this sequence pattern.
@@ -41,7 +39,7 @@ export const sequencePatternMatches = (
   // For single CBOR values, all patterns must match
   // This is a simplified implementation - full sequence matching
   // for arrays is done in ArrayPattern
-  return pattern.patterns.every((p) => patternMatches(p, haystack));
+  return pattern.patterns.every((p: Pattern) => matchPattern(p, haystack));
 };
 
 /**

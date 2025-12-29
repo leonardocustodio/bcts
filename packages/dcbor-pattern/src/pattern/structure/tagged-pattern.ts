@@ -8,6 +8,7 @@ import type { Cbor, Tag } from "@bcts/dcbor";
 import { isTagged, tagValue, tagContent } from "@bcts/dcbor";
 import type { Path } from "../../format";
 import type { Pattern } from "../index";
+import { matchPattern } from "../match-registry";
 
 /**
  * Pattern for matching CBOR tagged value structures.
@@ -71,9 +72,6 @@ export const taggedPatternWithRegex = (
   pattern,
 });
 
-// Forward declaration - will be implemented in pattern/index.ts
-declare function patternMatches(pattern: Pattern, haystack: Cbor): boolean;
-
 /**
  * Tests if a CBOR value matches this tagged pattern.
  */
@@ -96,16 +94,16 @@ export const taggedPatternMatches = (
     case "Any":
       return true;
     case "Tag":
-      return tag === pattern.tag.value && patternMatches(pattern.pattern, content);
+      return tag === pattern.tag.value && matchPattern(pattern.pattern, content);
     case "Name": {
       // Get tag name from global tags store
       // For now, compare the tag value as string
       const tagName = String(tag);
-      return tagName === pattern.name && patternMatches(pattern.pattern, content);
+      return tagName === pattern.name && matchPattern(pattern.pattern, content);
     }
     case "Regex": {
       const tagName = String(tag);
-      return pattern.regex.test(tagName) && patternMatches(pattern.pattern, content);
+      return pattern.regex.test(tagName) && matchPattern(pattern.pattern, content);
     }
   }
 };

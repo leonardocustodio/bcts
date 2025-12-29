@@ -14,6 +14,7 @@ import {
   arrayPatternWithElements,
 } from "../../pattern/structure/array-pattern";
 import { Interval } from "../../interval";
+import { parseOrFromRegistry } from "../parse-registry";
 
 /**
  * Parse a bracket array pattern: [pattern] or [{n}] etc.
@@ -180,11 +181,8 @@ const parseArrayNot = (lexer: Lexer): Result<Pattern> => {
  * Parse sequence patterns within array context (comma-separated).
  */
 const parseArraySequence = (lexer: Lexer): Result<Pattern> => {
-  // Import parseOr dynamically to avoid circular dependency
-  const { parseOr } = require("../meta/or-parser");
-
   const patterns: Pattern[] = [];
-  const first = parseOr(lexer);
+  const first = parseOrFromRegistry(lexer);
   if (!first.ok) {
     return first;
   }
@@ -197,7 +195,7 @@ const parseArraySequence = (lexer: Lexer): Result<Pattern> => {
     }
     lexer.next(); // consume the comma
 
-    const next = parseOr(lexer);
+    const next = parseOrFromRegistry(lexer);
     if (!next.ok) {
       return next;
     }

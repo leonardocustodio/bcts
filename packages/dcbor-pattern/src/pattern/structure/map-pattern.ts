@@ -4,11 +4,12 @@
  * @module pattern/structure/map-pattern
  */
 
-import type { Cbor } from "@bcts/dcbor";
-import { isMap, mapSize, mapKeys, mapValue } from "@bcts/dcbor";
+import type { Cbor, CborInput } from "@bcts/dcbor";
+import { isMap, mapSize, mapKeys, mapValue, cbor } from "@bcts/dcbor";
 import type { Path } from "../../format";
 import type { Pattern } from "../index";
 import { Interval } from "../../interval";
+import { matchPattern } from "../match-registry";
 
 /**
  * Pattern for matching CBOR map structures.
@@ -17,7 +18,7 @@ export type MapPattern =
   | { readonly variant: "Any" }
   | {
       readonly variant: "Constraints";
-      readonly constraints: Array<[Pattern, Pattern]>;
+      readonly constraints: [Pattern, Pattern][];
     }
   | { readonly variant: "Length"; readonly length: Interval };
 
@@ -30,7 +31,7 @@ export const mapPatternAny = (): MapPattern => ({ variant: "Any" });
  * Creates a MapPattern that matches maps with key-value constraints.
  */
 export const mapPatternWithConstraints = (
-  constraints: Array<[Pattern, Pattern]>,
+  constraints: [Pattern, Pattern][],
 ): MapPattern => ({
   variant: "Constraints",
   constraints,
@@ -65,9 +66,6 @@ export const mapPatternWithLengthInterval = (
   length: interval,
 });
 
-// Forward declaration - will be implemented in pattern/index.ts
-declare function patternMatches(pattern: Pattern, haystack: Cbor): boolean;
-
 /**
  * Tests if a CBOR value matches this map pattern.
  */
@@ -91,11 +89,15 @@ export const mapPatternMatches = (
       for (const [keyPattern, valuePattern] of pattern.constraints) {
         let foundMatch = false;
         for (const key of keys) {
-          if (patternMatches(keyPattern, key)) {
-            const value = mapValue(haystack, key);
-            if (value !== undefined && value !== null && patternMatches(valuePattern, value as Cbor)) {
-              foundMatch = true;
-              break;
+          if (matchPattern(keyPattern, key)) {
+            const rawValue = mapValue(haystack, key);
+            if (rawValue !== undefined && rawValue !== null) {
+              // Wrap raw JavaScript value in CBOR if needed
+              const value = (rawValue as Cbor)?.isCbor ? rawValue as Cbor : cbor(rawValue as CborInput);
+              if (matchPattern(valuePattern, value)) {
+                foundMatch = true;
+                break;
+              }
             }
           }
         }

@@ -12,7 +12,7 @@ import type { Path } from "../../format";
  * Pattern for matching null values in dCBOR.
  * This is a unit type - there's only one way to match null.
  */
-export type NullPattern = { readonly variant: "Null" };
+export interface NullPattern { readonly variant: "Null" }
 
 /**
  * Creates a NullPattern.

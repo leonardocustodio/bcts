@@ -2,7 +2,7 @@
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": ["src/index.ts"],
   "out": "docs",
-  "name": "BC-DCBOR-Pattern TypeScript Library",
+  "name": "dCBOR Pattern TypeScript",
   "includeVersion": true,
   "readme": "README.md",
   "exclude": [

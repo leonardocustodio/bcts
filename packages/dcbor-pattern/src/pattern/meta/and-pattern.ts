@@ -8,14 +8,15 @@
 import type { Cbor } from "@bcts/dcbor";
 import type { Path } from "../../format";
 import type { Pattern } from "../index";
+import { matchPattern } from "../match-registry";
 
 /**
  * A pattern that matches if all contained patterns match.
  */
-export type AndPattern = {
+export interface AndPattern {
   readonly variant: "And";
   readonly patterns: Pattern[];
-};
+}
 
 /**
  * Creates an AndPattern with the given patterns.
@@ -25,9 +26,6 @@ export const andPattern = (patterns: Pattern[]): AndPattern => ({
   patterns,
 });
 
-// Forward declaration
-declare function patternMatches(pattern: Pattern, haystack: Cbor): boolean;
-
 /**
  * Tests if a CBOR value matches this and pattern.
  * All patterns must match.
@@ -36,7 +34,7 @@ export const andPatternMatches = (
   pattern: AndPattern,
   haystack: Cbor,
 ): boolean => {
-  return pattern.patterns.every((p) => patternMatches(p, haystack));
+  return pattern.patterns.every((p: Pattern) => matchPattern(p, haystack));
 };
 
 /**

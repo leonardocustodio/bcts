@@ -8,15 +8,16 @@
 import type { Cbor } from "@bcts/dcbor";
 import type { Path } from "../../format";
 import type { Pattern } from "../index";
+import { matchPattern } from "../match-registry";
 
 /**
  * A pattern that captures matched values with a name.
  */
-export type CapturePattern = {
+export interface CapturePattern {
   readonly variant: "Capture";
   readonly name: string;
   readonly pattern: Pattern;
-};
+}
 
 /**
  * Creates a CapturePattern with the given name and inner pattern.
@@ -30,9 +31,6 @@ export const capturePattern = (
   pattern,
 });
 
-// Forward declaration
-declare function patternMatches(pattern: Pattern, haystack: Cbor): boolean;
-
 /**
  * Tests if a CBOR value matches this capture pattern.
  * Capture itself doesn't affect matching - it delegates to inner pattern.
@@ -41,7 +39,7 @@ export const capturePatternMatches = (
   pattern: CapturePattern,
   haystack: Cbor,
 ): boolean => {
-  return patternMatches(pattern.pattern, haystack);
+  return matchPattern(pattern.pattern, haystack);
 };
 
 /**

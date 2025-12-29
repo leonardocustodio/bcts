@@ -11,10 +11,14 @@ import type { Path } from "../../format";
 /**
  * Pattern for matching byte string values in dCBOR.
  *
- * Note: The BinaryRegex variant uses a RegExp that matches against the
- * hex-encoded string representation of the bytes. This is a known difference
- * from the Rust implementation which uses regex::bytes::Regex for direct
- * binary matching.
+ * The BinaryRegex variant matches against raw bytes by converting them to
+ * a Latin-1 string (where each byte 0-255 maps to exactly one character).
+ * This mimics Rust's regex::bytes::Regex behavior.
+ *
+ * For example:
+ * - To match bytes starting with 0x00: `/^\x00/`
+ * - To match ASCII digits: `/^\d+$/`
+ * - To match specific hex pattern: `/\x48\x65\x6c\x6c\x6f/` (matches "Hello")
  */
 export type ByteStringPattern =
   | { readonly variant: "Any" }
@@ -41,8 +45,20 @@ export const byteStringPatternValue = (
 /**
  * Creates a ByteStringPattern that matches byte strings by binary regex.
  *
- * Note: In TypeScript, this matches against the hex-encoded representation
- * of the bytes. For example, to match bytes starting with 0x00, use /^00/.
+ * The regex matches against raw bytes converted to a Latin-1 string.
+ * Use escape sequences like `\x00` to match specific byte values.
+ *
+ * @example
+ * ```typescript
+ * // Match bytes starting with 0x00
+ * byteStringPatternBinaryRegex(/^\x00/)
+ *
+ * // Match ASCII "Hello"
+ * byteStringPatternBinaryRegex(/Hello/)
+ *
+ * // Match any digits
+ * byteStringPatternBinaryRegex(/^\d+$/)
+ * ```
  */
 export const byteStringPatternBinaryRegex = (
   pattern: RegExp,
@@ -67,6 +83,21 @@ const bytesEqual = (a: Uint8Array, b: Uint8Array): boolean => {
 };
 
 /**
+ * Converts a Uint8Array to a Latin-1 string for regex matching.
+ * Each byte value (0-255) maps directly to a character code.
+ * This mimics Rust's regex::bytes::Regex behavior.
+ */
+const bytesToLatin1 = (bytes: Uint8Array): string => {
+  // Use String.fromCharCode for direct byte-to-char mapping
+  // This preserves all byte values including 0x00-0xFF
+  let result = "";
+  for (const byte of bytes) {
+    result += String.fromCharCode(byte);
+  }
+  return result;
+};
+
+/**
  * Tests if a CBOR value matches this byte string pattern.
  */
 export const byteStringPatternMatches = (
@@ -83,10 +114,10 @@ export const byteStringPatternMatches = (
     case "Value":
       return bytesEqual(value, pattern.value);
     case "BinaryRegex": {
-      // Convert bytes to hex string for regex matching
-      // This is a known difference from Rust's regex::bytes::Regex
-      const hexString = bytesToHex(value);
-      return pattern.pattern.test(hexString);
+      // Convert bytes to Latin-1 string for regex matching
+      // This mimics Rust's regex::bytes::Regex behavior
+      const latin1String = bytesToLatin1(value);
+      return pattern.pattern.test(latin1String);
     }
   }
 };

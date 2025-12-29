@@ -294,6 +294,12 @@ export class Lexer {
       return Ok({ token: { type: "Ellipsis" }, span: this.spanFrom(start) });
     }
 
+    // Two-dot ellipsis for ranges (check after three-dot)
+    if (this.startsWith("..") && !this.startsWith("...")) {
+      this.bump(2);
+      return Ok({ token: { type: "Ellipsis" }, span: this.spanFrom(start) });
+    }
+
     if (this.startsWith(">=")) {
       this.bump(2);
       return Ok({ token: { type: "GreaterThanOrEqual" }, span: this.spanFrom(start) });
@@ -808,8 +814,8 @@ export class Lexer {
       return Err({ type: "InvalidNumberFormat", span: this.spanFrom(start) });
     }
 
-    // Fractional part
-    if (this.peek() === ".") {
+    // Fractional part (but not if it's the start of a range like 1..10)
+    if (this.peek() === "." && this.peekAt(1) !== ".") {
       this.advance();
       if (!isDigit(this.peek() ?? "")) {
         return Err({ type: "InvalidNumberFormat", span: this.spanFrom(start) });

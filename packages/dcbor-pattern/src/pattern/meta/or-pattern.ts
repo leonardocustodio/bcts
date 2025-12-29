@@ -8,14 +8,15 @@
 import type { Cbor } from "@bcts/dcbor";
 import type { Path } from "../../format";
 import type { Pattern } from "../index";
+import { matchPattern } from "../match-registry";
 
 /**
  * A pattern that matches if any contained pattern matches.
  */
-export type OrPattern = {
+export interface OrPattern {
   readonly variant: "Or";
   readonly patterns: Pattern[];
-};
+}
 
 /**
  * Creates an OrPattern with the given patterns.
@@ -25,9 +26,6 @@ export const orPattern = (patterns: Pattern[]): OrPattern => ({
   patterns,
 });
 
-// Forward declaration
-declare function patternMatches(pattern: Pattern, haystack: Cbor): boolean;
-
 /**
  * Tests if a CBOR value matches this or pattern.
  * At least one pattern must match.
@@ -36,7 +34,7 @@ export const orPatternMatches = (
   pattern: OrPattern,
   haystack: Cbor,
 ): boolean => {
-  return pattern.patterns.some((p) => patternMatches(p, haystack));
+  return pattern.patterns.some((p: Pattern) => matchPattern(p, haystack));
 };
 
 /**

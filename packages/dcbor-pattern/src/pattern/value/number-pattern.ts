@@ -175,7 +175,7 @@ export const numberPatternDisplay = (pattern: NumberPattern): string => {
     case "Value":
       return String(pattern.value);
     case "Range":
-      return `${pattern.min}...${pattern.max}`;
+      return `${pattern.min}..${pattern.max}`;
     case "GreaterThan":
       return `>${pattern.value}`;
     case "GreaterThanOrEqual":

@@ -8,7 +8,7 @@
  */
 
 import { Interval } from "./interval";
-import { Reluctance, DEFAULT_RELUCTANCE, reluctanceSuffix } from "./reluctance";
+import { type Reluctance, DEFAULT_RELUCTANCE, reluctanceSuffix } from "./reluctance";
 
 /**
  * Defines how many times a pattern may or must match, with an interval and a

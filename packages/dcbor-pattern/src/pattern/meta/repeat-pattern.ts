@@ -13,11 +13,11 @@ import { Quantifier } from "../../quantifier";
 /**
  * A pattern that matches with repetition.
  */
-export type RepeatPattern = {
+export interface RepeatPattern {
   readonly variant: "Repeat";
   readonly pattern: Pattern;
   readonly quantifier: Quantifier;
-};
+}
 
 /**
  * Creates a RepeatPattern with the given pattern and quantifier.
@@ -80,8 +80,7 @@ export const repeatRange = (
   quantifier: max !== undefined ? Quantifier.between(min, max) : Quantifier.atLeast(min),
 });
 
-// Forward declaration
-declare function patternMatches(pattern: Pattern, haystack: Cbor): boolean;
+import { matchPattern } from "../match-registry";
 
 /**
  * Tests if a CBOR value matches this repeat pattern.
@@ -94,7 +93,7 @@ export const repeatPatternMatches = (
 ): boolean => {
   // Simple case: check if the inner pattern matches at least once
   // and the quantifier allows it
-  const innerMatches = patternMatches(pattern.pattern, haystack);
+  const innerMatches = matchPattern(pattern.pattern, haystack);
   const min = pattern.quantifier.min();
   const max = pattern.quantifier.max();
 

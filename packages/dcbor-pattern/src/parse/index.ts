@@ -11,12 +11,18 @@ export * from "./token";
 export * from "./value";
 export * from "./structure";
 export * from "./meta";
+export * from "./parse-registry";
 
 import type { Pattern } from "../pattern";
 import type { Result } from "../error";
 import { Ok, Err } from "../error";
 import { Lexer } from "./token";
 import { parseOr } from "./meta/or-parser";
+import { setParseOrFn } from "./parse-registry";
+
+// Register the parseOr function with the parse registry
+// This breaks the circular dependency between meta and structure parsers
+setParseOrFn(parseOr);
 
 /**
  * Parses a complete dCBOR pattern expression.

@@ -10,14 +10,12 @@ import type { Result } from "../../error";
 import { Ok, Err } from "../../error";
 import { anyMap } from "../../pattern";
 import { mapPatternWithLengthInterval, mapPatternWithConstraints } from "../../pattern/structure/map-pattern";
+import { parseOrFromRegistry } from "../parse-registry";
 
 /**
  * Parse a bracket map pattern: {pattern: pattern} or {{n}} etc.
  */
 export const parseBracketMap = (lexer: Lexer): Result<Pattern> => {
-  // Import parseOr dynamically to avoid circular dependency
-  const { parseOr } = require("../meta/or-parser");
-
   // Opening brace was already consumed
   const peeked = lexer.peekToken();
 
@@ -64,11 +62,11 @@ export const parseBracketMap = (lexer: Lexer): Result<Pattern> => {
   }
 
   // Parse as map with key-value constraints
-  const constraints: Array<[Pattern, Pattern]> = [];
+  const constraints: [Pattern, Pattern][] = [];
 
   while (true) {
     // Parse key pattern
-    const keyResult = parseOr(lexer);
+    const keyResult = parseOrFromRegistry(lexer);
     if (!keyResult.ok) {
       return keyResult;
     }
@@ -89,7 +87,7 @@ export const parseBracketMap = (lexer: Lexer): Result<Pattern> => {
     }
 
     // Parse value pattern
-    const valueResult = parseOr(lexer);
+    const valueResult = parseOrFromRegistry(lexer);
     if (!valueResult.ok) {
       return valueResult;
     }
@@ -98,7 +96,7 @@ export const parseBracketMap = (lexer: Lexer): Result<Pattern> => {
 
     // Check for comma or closing brace
     const nextToken = lexer.peekToken();
-    if (nextToken === undefined || !nextToken.ok) {
+    if (!nextToken?.ok) {
       return Err({ type: "UnexpectedEndOfInput" });
     }
 

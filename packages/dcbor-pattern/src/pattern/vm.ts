@@ -53,14 +53,14 @@ export const axisChildren = (axis: Axis, cbor: Cbor): Cbor[] => {
       if (!isMap(cbor)) return [];
       const keys = mapKeys(cbor);
       if (keys === undefined || keys === null) return [];
-      return keys as Cbor[];
+      return keys;
     }
     case "MapValue": {
       if (!isMap(cbor)) return [];
       const keys = mapKeys(cbor);
       if (keys === undefined || keys === null) return [];
       const values: Cbor[] = [];
-      for (const key of keys as Cbor[]) {
+      for (const key of keys) {
         const value = mapValue(cbor, key);
         if (value !== undefined && value !== null) {
           values.push(value as Cbor);
@@ -92,7 +92,7 @@ export type Instr =
   | {
       type: "Search";
       patternIndex: number;
-      captureMap: Array<[string, number]>;
+      captureMap: [string, number][];
     }
   | { type: "ExtendSequence" }
   | { type: "CombineSequence" }
@@ -152,6 +152,7 @@ const pathHash = (path: Path): string => {
  */
 export const atomicPaths = (pattern: Pattern, cbor: Cbor): Path[] => {
   // Import path functions dynamically to avoid circular deps
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/consistent-type-imports
   const { patternPaths } = require("./index") as typeof import("./index");
 
   switch (pattern.kind) {
@@ -176,18 +177,19 @@ const repeatPaths = (
   cbor: Cbor,
   path: Path,
   quantifier: Quantifier,
-): Array<{ cbor: Cbor; path: Path }> => {
+): { cbor: Cbor; path: Path }[] => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/consistent-type-imports
   const { patternPaths } = require("./index") as typeof import("./index");
 
   // Build states for all possible repetition counts
-  const states: Array<Array<{ cbor: Cbor; path: Path }>> = [
+  const states: { cbor: Cbor; path: Path }[][] = [
     [{ cbor, path: [...path] }],
   ];
   const bound = quantifier.max() ?? Number.MAX_SAFE_INTEGER;
 
   // Try matching the pattern repeatedly
   for (let rep = 0; rep < bound; rep++) {
-    const next: Array<{ cbor: Cbor; path: Path }> = [];
+    const next: { cbor: Cbor; path: Path }[] = [];
     const lastState = states[states.length - 1];
 
     for (const state of lastState) {
@@ -255,7 +257,7 @@ const repeatPaths = (
   }
 
   // Collect results
-  const out: Array<{ cbor: Cbor; path: Path }> = [];
+  const out: { cbor: Cbor; path: Path }[] = [];
 
   if (reluctance === Reluctance.Greedy) {
     for (const c of counts) {
@@ -288,8 +290,9 @@ const repeatPaths = (
 const runThread = (
   prog: Program,
   start: Thread,
-  out: Array<{ path: Path; captures: Path[][] }>,
+  out: { path: Path; captures: Path[][] }[],
 ): boolean => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/consistent-type-imports
   const { patternPaths, patternPathsWithCaptures } =
     require("./index") as typeof import("./index");
 
@@ -559,7 +562,7 @@ export const run = (
     captureStack: [],
   };
 
-  const results: Array<{ path: Path; captures: Path[][] }> = [];
+  const results: { path: Path; captures: Path[][] }[] = [];
   runThread(prog, start, results);
 
   // Deduplicate paths while preserving original order

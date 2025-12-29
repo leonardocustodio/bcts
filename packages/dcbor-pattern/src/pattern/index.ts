@@ -9,6 +9,7 @@
 
 import type { Cbor } from "@bcts/dcbor";
 import type { Path } from "../format";
+import { setMatchFn } from "./match-registry";
 
 // Re-export sub-modules
 export * from "./value";
@@ -16,6 +17,7 @@ export * from "./structure";
 export * from "./meta";
 export * from "./vm";
 export * from "./matcher";
+export * from "./match-registry";
 
 import {
   type ValuePattern,
@@ -342,3 +344,11 @@ export const sequence = (...patterns: Pattern[]): Pattern => ({
   kind: "Meta",
   pattern: { type: "Sequence", pattern: sequencePatternCreate(patterns) },
 });
+
+// ============================================================================
+// Initialize Match Registry
+// ============================================================================
+
+// Register the patternMatches function with the match registry
+// This breaks the circular dependency between pattern files
+setMatchFn(patternMatches);

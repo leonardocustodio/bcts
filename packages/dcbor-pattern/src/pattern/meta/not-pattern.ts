@@ -8,14 +8,15 @@
 import type { Cbor } from "@bcts/dcbor";
 import type { Path } from "../../format";
 import type { Pattern } from "../index";
+import { matchPattern } from "../match-registry";
 
 /**
  * A pattern that matches if the inner pattern does NOT match.
  */
-export type NotPattern = {
+export interface NotPattern {
   readonly variant: "Not";
   readonly pattern: Pattern;
-};
+}
 
 /**
  * Creates a NotPattern with the given inner pattern.
@@ -25,9 +26,6 @@ export const notPattern = (pattern: Pattern): NotPattern => ({
   pattern,
 });
 
-// Forward declaration
-declare function patternMatches(pattern: Pattern, haystack: Cbor): boolean;
-
 /**
  * Tests if a CBOR value matches this not pattern.
  * Returns true if the inner pattern does NOT match.
@@ -36,7 +34,7 @@ export const notPatternMatches = (
   pattern: NotPattern,
   haystack: Cbor,
 ): boolean => {
-  return !patternMatches(pattern.pattern, haystack);
+  return !matchPattern(pattern.pattern, haystack);
 };
 
 /**

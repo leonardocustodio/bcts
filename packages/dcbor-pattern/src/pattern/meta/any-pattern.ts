@@ -11,7 +11,7 @@ import type { Path } from "../../format";
 /**
  * A pattern that always matches any CBOR value.
  */
-export type AnyPattern = { readonly variant: "Any" };
+export interface AnyPattern { readonly variant: "Any" }
 
 /**
  * Creates an AnyPattern.

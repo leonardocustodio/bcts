@@ -9,14 +9,15 @@ import type { Cbor } from "@bcts/dcbor";
 import { isArray, isMap, isTagged, arrayLength, arrayItem, mapKeys, mapValue, tagContent } from "@bcts/dcbor";
 import type { Path } from "../../format";
 import type { Pattern } from "../index";
+import { matchPattern } from "../match-registry";
 
 /**
  * A pattern that searches the entire CBOR tree for matches.
  */
-export type SearchPattern = {
+export interface SearchPattern {
   readonly variant: "Search";
   readonly pattern: Pattern;
-};
+}
 
 /**
  * Creates a SearchPattern with the given inner pattern.
@@ -25,10 +26,6 @@ export const searchPattern = (pattern: Pattern): SearchPattern => ({
   variant: "Search",
   pattern,
 });
-
-// Forward declaration
-declare function patternMatches(pattern: Pattern, haystack: Cbor): boolean;
-declare function patternPaths(pattern: Pattern, haystack: Cbor): Path[];
 
 /**
  * Recursively searches the CBOR tree and collects all matching paths.
@@ -40,7 +37,7 @@ const searchRecursive = (
   results: Path[],
 ): void => {
   // Check if current node matches
-  if (patternMatches(pattern, haystack)) {
+  if (matchPattern(pattern, haystack)) {
     results.push([...currentPath, haystack]);
   }
 

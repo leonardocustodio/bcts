@@ -340,7 +340,7 @@ const compileMetaPattern = (
 
     case "Search": {
       // Build capture map for the search pattern
-      const captureMap: Array<[string, number]> = [];
+      const captureMap: [string, number][] = [];
       const innerNames: string[] = [];
       collectPatternCaptureNames(pattern.pattern.pattern, innerNames);
       for (const name of innerNames) {

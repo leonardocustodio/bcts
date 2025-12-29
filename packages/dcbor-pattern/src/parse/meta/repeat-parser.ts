@@ -22,7 +22,7 @@ export const parseQuantifier = (
 ): Result<Pattern> => {
   const peeked = lexer.peekToken();
 
-  if (peeked === undefined || !peeked.ok) {
+  if (!peeked?.ok) {
     // No quantifier found
     if (forceRepeat) {
       return Ok(wrapInRepeat(pattern, Quantifier.exactly(1)));
