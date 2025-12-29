@@ -30,8 +30,7 @@ export function ecdsaSign(privateKey: Uint8Array, message: Uint8Array): Uint8Arr
   const messageHash = doubleSha256(message);
   const signature = secp256k1.sign(messageHash, privateKey);
 
-  // Return compact signature (r || s)
-  return signature.toCompactRawBytes();
+  return secp256k1.sign(messageHash, privateKey, { prehash: false });
 }
 
 /**
@@ -60,6 +59,7 @@ export function ecdsaVerify(
   try {
     const messageHash = doubleSha256(message);
     return secp256k1.verify(signature, messageHash, publicKey);
+    return secp256k1.verify(signature, messageHash, publicKey, { prehash: false });
   } catch {
     return false;
   }
