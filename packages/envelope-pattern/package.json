@@ -1,0 +1,82 @@
+{
+  "name": "@bcts/envelope-pattern",
+  "version": "1.0.0-alpha.11",
+  "type": "module",
+  "description": "Pattern matching for Gordian Envelope structures - 1:1 TypeScript port of bc-envelope-pattern-rust",
+  "license": "BSD-2-Clause-Patent",
+  "contributors": [
+    {
+      "name": "Wolf McNally",
+      "email": "wolf@wolfmcnally.com",
+      "url": "https://wolfmcnally.com"
+    },
+    {
+      "name": "Christopher Allen",
+      "email": "christophera@lifewithalacrity.com",
+      "url": "https://www.blockchaincommons.com"
+    },
+    {
+      "name": "Leonardo Custodio",
+      "email": "leonardo@parity.io",
+      "url": "https://bcts.dev"
+    }
+  ],
+  "homepage": "https://bcts.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/parity-stack/bcts",
+    "directory": "packages/envelope-pattern"
+  },
+  "bugs": {
+    "url": "https://github.com/parity-stack/bcts/issues"
+  },
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.mts",
+  "browser": "dist/index.iife.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts'",
+    "lint:fix": "eslint 'src/**/*.ts' 'tests/**/*.ts' --fix",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "docs": "typedoc",
+    "prepublishOnly": "npm run clean && npm run build && npm test"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@bcts/eslint": "workspace:*",
+    "@bcts/tsconfig": "workspace:*",
+    "eslint": "^9.39.2",
+    "tsdown": "^0.18.3",
+    "typedoc": "^0.28.15",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.16"
+  },
+  "dependencies": {
+    "@bcts/dcbor": "workspace:*",
+    "@bcts/dcbor-pattern": "workspace:*",
+    "@bcts/envelope": "workspace:*",
+    "@bcts/components": "workspace:*",
+    "@bcts/tags": "workspace:*",
+    "@bcts/known-values": "workspace:*"
+  }
+}
