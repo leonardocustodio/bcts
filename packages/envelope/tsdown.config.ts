@@ -17,7 +17,7 @@ export default defineConfig({
       "@bcts/known-values": "bctsKnownValues",
       "@bcts/rand": "bctsRand",
       "@bcts/uniform-resources": "bctsUniformResources",
-      "pako": "pako",
+      pako: "pako",
     },
   },
 });
