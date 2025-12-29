@@ -1,8 +1,33 @@
 export default defineAppConfig({
   ui: {
     colors: {
-      primary: "green",
-      neutral: "zinc",
+      primary: "pink", // Main brand color (Polkadot pink)
+      secondary: "violet", // Secondary actions
+      success: "green", // Success states
+      info: "sky", // Info messages
+      warning: "amber", // Warning states
+      error: "red", // Error states
+      neutral: "slate", // Text, borders, backgrounds
+    },
+    button: {
+      compoundVariants: [
+        {
+          color: "primary",
+          variant: "solid",
+          class: "text-white",
+        },
+      ],
+    },
+    tabs: {
+      compoundVariants: [
+        {
+          color: "primary",
+          variant: "pill",
+          class: {
+            trigger: "data-[state=active]:text-white",
+          },
+        },
+      ],
     },
     dashboardToolbar: {
       slots: {

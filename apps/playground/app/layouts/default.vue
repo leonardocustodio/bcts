@@ -19,17 +19,32 @@ function selectExample(example: { name: string, format: 'hex' | 'ur', value: str
 
 const navigationItems: NavigationMenuItem[] = [
   {
-    label: 'Gordian Playground',
+    type: 'label',
+    label: 'Tools'
+  },
+  {
+    label: 'dCBOR Playground',
     icon: 'i-heroicons-command-line',
     to: '/'
   },
   {
     label: 'Registry Browser',
     icon: 'i-heroicons-circle-stack',
-    to: '/registry'
+    to: '/registry',
+    badge: 'WIP'
   },
   {
-    label: 'Example Inputs',
+    label: 'Envelope Builder',
+    icon: 'i-heroicons-cube-transparent',
+    to: '/envelope-builder',
+    badge: 'WIP'
+  },
+  {
+    type: 'label',
+    label: 'Examples'
+  },
+  {
+    label: 'Data Structures',
     icon: 'i-heroicons-play-circle',
     defaultOpen: false,
     children: [
@@ -72,7 +87,7 @@ const navigationItems: NavigationMenuItem[] = [
     ]
   },
   {
-    label: 'Example Codes',
+    label: 'TypeScript Code',
     icon: 'i-heroicons-code-bracket-square',
     defaultOpen: false,
     children: [
@@ -97,7 +112,11 @@ const navigationItems: NavigationMenuItem[] = [
     ]
   },
   {
-    label: 'APIs References',
+    type: 'label',
+    label: 'Resources'
+  },
+  {
+    label: 'API References',
     icon: 'i-heroicons-book-open',
     defaultOpen: false,
     children: [
@@ -199,7 +218,7 @@ const bottomNavigationItems: NavigationMenuItem[] = [
     >
       <template #header="{ collapsed }">
         <div :class="['flex items-center', collapsed ? 'justify-center w-full' : 'gap-2']">
-          <BctsLogo class="w-6 h-6 text-[#FF2670]" />
+          <BctsLogo width="24" height="24" />
           <h2 v-if="!collapsed" class="font-semibold text-gray-900 dark:text-white">BCTS UI</h2>
         </div>
       </template>
@@ -223,13 +242,6 @@ const bottomNavigationItems: NavigationMenuItem[] = [
             popover
             class="mt-auto"
           />
-      </template>
-
-      <template #footer="{ collapsed }">
-        <div v-if="!collapsed" class="px-4 py-3 text-[10px] text-gray-500 dark:text-gray-400 space-y-0.5 text-center">
-          <div class="whitespace-nowrap">Specs by <a href="https://blockchaincommons.com" target="_blank" class="text-gray-700 dark:text-gray-300 hover:underline">Blockchain Commons</a></div>
-          <div class="whitespace-nowrap">Powered by <a href="https://www.npmjs.com/org/bcts" target="_blank" class="text-gray-700 dark:text-gray-300 hover:underline">@bcts</a> · Developed at <a href="https://parity.io" target="_blank" class="text-gray-700 dark:text-gray-300 hover:underline">Parity</a></div>
-        </div>
       </template>
 
     </UDashboardSidebar>

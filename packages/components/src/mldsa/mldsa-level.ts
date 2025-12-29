@@ -12,7 +12,7 @@
  * Ported from bc-components-rust/src/mldsa/mldsa_level.rs
  */
 
-import { ml_dsa44, ml_dsa65, ml_dsa87 } from "@noble/post-quantum/ml-dsa";
+import { ml_dsa44, ml_dsa65, ml_dsa87 } from "@noble/post-quantum/ml-dsa.js";
 import type { RandomNumberGenerator } from "@bcts/rand";
 import { SecureRandomNumberGenerator } from "@bcts/rand";
 
