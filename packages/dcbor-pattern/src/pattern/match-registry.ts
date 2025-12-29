@@ -6,7 +6,20 @@
  */
 
 import type { Cbor } from "@bcts/dcbor";
-import type { Pattern } from "./index";
+import type { Path } from "../format";
+
+// Forward declare Pattern type to avoid circular import
+// The actual Pattern type is defined in ./index.ts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Pattern = any;
+
+/**
+ * Match result with paths and captures.
+ */
+export interface MatchResultInternal {
+  readonly paths: Path[];
+  readonly captures: Map<string, Path[]>;
+}
 
 /**
  * Registry for the pattern matching function.
@@ -15,11 +28,43 @@ import type { Pattern } from "./index";
 export let matchFn: ((pattern: Pattern, haystack: Cbor) => boolean) | undefined;
 
 /**
+ * Registry for the pattern paths function.
+ * This gets set by pattern/index.ts after all modules are loaded.
+ */
+export let pathsFn: ((pattern: Pattern, haystack: Cbor) => Path[]) | undefined;
+
+/**
+ * Registry for the pattern paths with captures function.
+ * This gets set by pattern/index.ts after all modules are loaded.
+ */
+export let pathsWithCapturesFn:
+  | ((pattern: Pattern, haystack: Cbor) => MatchResultInternal)
+  | undefined;
+
+/**
  * Sets the pattern matching function.
  * Called by pattern/index.ts during module initialization.
  */
 export const setMatchFn = (fn: (pattern: Pattern, haystack: Cbor) => boolean): void => {
   matchFn = fn;
+};
+
+/**
+ * Sets the pattern paths function.
+ * Called by pattern/index.ts during module initialization.
+ */
+export const setPathsFn = (fn: (pattern: Pattern, haystack: Cbor) => Path[]): void => {
+  pathsFn = fn;
+};
+
+/**
+ * Sets the pattern paths with captures function.
+ * Called by pattern/index.ts during module initialization.
+ */
+export const setPathsWithCapturesFn = (
+  fn: (pattern: Pattern, haystack: Cbor) => MatchResultInternal,
+): void => {
+  pathsWithCapturesFn = fn;
 };
 
 /**
@@ -31,4 +76,29 @@ export const matchPattern = (pattern: Pattern, haystack: Cbor): boolean => {
     throw new Error("Pattern match function not initialized");
   }
   return matchFn(pattern, haystack);
+};
+
+/**
+ * Gets paths for a pattern against a CBOR value using the registered function.
+ * @throws Error if the paths function hasn't been registered yet.
+ */
+export const getPatternPaths = (pattern: Pattern, haystack: Cbor): Path[] => {
+  if (!pathsFn) {
+    throw new Error("Pattern paths function not initialized");
+  }
+  return pathsFn(pattern, haystack);
+};
+
+/**
+ * Gets paths with captures for a pattern against a CBOR value.
+ * @throws Error if the function hasn't been registered yet.
+ */
+export const getPatternPathsWithCaptures = (
+  pattern: Pattern,
+  haystack: Cbor,
+): MatchResultInternal => {
+  if (!pathsWithCapturesFn) {
+    throw new Error("Pattern paths with captures function not initialized");
+  }
+  return pathsWithCapturesFn(pattern, haystack);
 };

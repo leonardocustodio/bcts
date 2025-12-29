@@ -21,6 +21,10 @@ import type { Path } from "../format";
 import type { Pattern } from "./index";
 import type { Quantifier } from "../quantifier";
 import { Reluctance } from "../reluctance";
+import {
+  getPatternPaths,
+  getPatternPathsWithCaptures,
+} from "./match-registry";
 
 /**
  * Navigation axis for traversing dCBOR tree structures.
@@ -151,14 +155,10 @@ const pathHash = (path: Path): string => {
  * MatchPredicate instructions.
  */
 export const atomicPaths = (pattern: Pattern, cbor: Cbor): Path[] => {
-  // Import path functions dynamically to avoid circular deps
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/consistent-type-imports
-  const { patternPaths } = require("./index") as typeof import("./index");
-
   switch (pattern.kind) {
     case "Value":
     case "Structure":
-      return patternPaths(pattern, cbor);
+      return getPatternPaths(pattern, cbor);
     case "Meta":
       if (pattern.pattern.type === "Any") {
         return [[cbor]];
@@ -178,9 +178,6 @@ const repeatPaths = (
   path: Path,
   quantifier: Quantifier,
 ): { cbor: Cbor; path: Path }[] => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/consistent-type-imports
-  const { patternPaths } = require("./index") as typeof import("./index");
-
   // Build states for all possible repetition counts
   const states: { cbor: Cbor; path: Path }[][] = [
     [{ cbor, path: [...path] }],
@@ -193,7 +190,7 @@ const repeatPaths = (
     const lastState = states[states.length - 1];
 
     for (const state of lastState) {
-      const subPaths = patternPaths(pattern, state.cbor);
+      const subPaths = getPatternPaths(pattern, state.cbor);
 
       for (const subPath of subPaths) {
         const last = subPath[subPath.length - 1];
@@ -292,10 +289,6 @@ const runThread = (
   start: Thread,
   out: { path: Path; captures: Path[][] }[],
 ): boolean => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/consistent-type-imports
-  const { patternPaths, patternPathsWithCaptures } =
-    require("./index") as typeof import("./index");
-
   let produced = false;
   const stack: Thread[] = [start];
 
@@ -321,7 +314,7 @@ const runThread = (
             throw new Error("MatchStructure used with non-structure pattern");
           }
 
-          const result = patternPathsWithCaptures(pattern, th.cbor);
+          const result = getPatternPathsWithCaptures(pattern, th.cbor);
           if (result.paths.length === 0) {
             break threadLoop;
           }
@@ -426,7 +419,7 @@ const runThread = (
         }
 
         case "Search": {
-          const result = patternPathsWithCaptures(
+          const result = getPatternPathsWithCaptures(
             prog.literals[instr.patternIndex],
             th.cbor,
           );
@@ -483,7 +476,7 @@ const runThread = (
         }
 
         case "NotMatch": {
-          const paths = patternPaths(prog.literals[instr.patternIndex], th.cbor);
+          const paths = getPatternPaths(prog.literals[instr.patternIndex], th.cbor);
           if (paths.length > 0) {
             break threadLoop; // Pattern matched, so NOT fails
           }

@@ -6,9 +6,9 @@
 [![Package Manager](https://img.shields.io/badge/Package%20Manager-Bun-FFD700)](https://bun.sh/)
 [![Status](https://img.shields.io/badge/Status-Early%20Development-orange)](#-disclaimer)
 
-🔷 **Community Implementation:** This is an independent TypeScript monorepo implementing [Blockchain Commons](https://www.blockchaincommons.com/) open specifications. It is **not an official** Blockchain Commons repository.
+🔷 **Community Implementation:** This is an independent TypeScript monorepo implementing Blockchain Commons' open specifications and implementations. It is **not an official** Blockchain Commons repository.
 
-> 🚧 **Disclaimer:** This repository is in early development stages. APIs and interfaces are subject to change and are not yet stable.
+> 🚧 **Disclaimer:** This repository is in early development stages. APIs and interfaces are subject to change.
 
 ## Overview
 
@@ -36,6 +36,10 @@ This monorepo provides TypeScript implementations of Blockchain Commons specific
 
 ## 🎮 Applications
 
+### [Examples](apps/examples)
+
+A collection of runnable TypeScript examples demonstrating the capabilities of this library.
+
 ### [Playground](apps/playground)
 An interactive web application for experimenting with dCBOR encoding, Uniform Resources decoding, and Gordian Envelope visualization.
 
@@ -52,9 +56,6 @@ bun playground
 ```
 
 **Live Demo:** https://bcts.dev
-
-### [Examples](apps/examples)
-A collection of runnable TypeScript examples demonstrating the capabilities of this library.
 
 ## 🛠️ Development
 
