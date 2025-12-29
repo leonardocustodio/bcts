@@ -236,13 +236,54 @@ export const patternPathsWithCaptures = pathsWithCaptures;
 
 import { boolPatternAny, boolPatternValue } from "./value/bool-pattern";
 import { nullPattern as nullPatternCreate } from "./value/null-pattern";
-import { numberPatternAny, numberPatternValue, numberPatternRange } from "./value/number-pattern";
+import {
+  numberPatternAny,
+  numberPatternValue,
+  numberPatternRange,
+  numberPatternGreaterThan,
+  numberPatternGreaterThanOrEqual,
+  numberPatternLessThan,
+  numberPatternLessThanOrEqual,
+  numberPatternNaN,
+  numberPatternInfinity,
+  numberPatternNegInfinity,
+} from "./value/number-pattern";
 import { textPatternAny, textPatternValue, textPatternRegex } from "./value/text-pattern";
-import { byteStringPatternAny, byteStringPatternValue } from "./value/bytestring-pattern";
+import {
+  byteStringPatternAny,
+  byteStringPatternValue,
+  byteStringPatternBinaryRegex,
+} from "./value/bytestring-pattern";
+import {
+  datePatternAny,
+  datePatternValue,
+  datePatternRange,
+  datePatternEarliest,
+  datePatternLatest,
+  datePatternStringValue,
+  datePatternRegex,
+} from "./value/date-pattern";
+import {
+  digestPatternAny,
+  digestPatternValue,
+  digestPatternPrefix,
+  digestPatternBinaryRegex,
+} from "./value/digest-pattern";
+import {
+  knownValuePatternAny,
+  knownValuePatternValue,
+  knownValuePatternNamed,
+  knownValuePatternRegex,
+} from "./value/known-value-pattern";
 
 import { arrayPatternAny } from "./structure/array-pattern";
 import { mapPatternAny } from "./structure/map-pattern";
-import { taggedPatternAny } from "./structure/tagged-pattern";
+import {
+  taggedPatternAny,
+  taggedPatternWithTag,
+  taggedPatternWithName,
+  taggedPatternWithRegex,
+} from "./structure/tagged-pattern";
 
 import { anyPattern as anyPatternCreate } from "./meta/any-pattern";
 import { andPattern as andPatternCreate } from "./meta/and-pattern";
@@ -251,6 +292,12 @@ import { notPattern as notPatternCreate } from "./meta/not-pattern";
 import { capturePattern as capturePatternCreate } from "./meta/capture-pattern";
 import { searchPattern as searchPatternCreate } from "./meta/search-pattern";
 import { sequencePattern as sequencePatternCreate } from "./meta/sequence-pattern";
+import { repeatPattern as repeatPatternCreate } from "./meta/repeat-pattern";
+import { Quantifier } from "../quantifier";
+import type { Tag } from "@bcts/tags";
+import type { CborDate } from "@bcts/dcbor";
+import type { Digest } from "@bcts/components";
+import { KnownValue } from "@bcts/known-values";
 
 /**
  * Creates a pattern that matches any value.
@@ -349,6 +396,26 @@ export const byteString = (value: Uint8Array): Pattern => ({
 });
 
 /**
+ * Creates a pattern that matches byte strings using a binary regex.
+ *
+ * The regex matches against raw bytes converted to a Latin-1 string.
+ * Use escape sequences like `\x00` to match specific byte values.
+ *
+ * @example
+ * ```typescript
+ * // Match bytes starting with 0x00
+ * byteStringRegex(/^\x00/)
+ *
+ * // Match ASCII "Hello"
+ * byteStringRegex(/Hello/)
+ * ```
+ */
+export const byteStringRegex = (pattern: RegExp): Pattern => ({
+  kind: "Value",
+  pattern: { type: "ByteString", pattern: byteStringPatternBinaryRegex(pattern) },
+});
+
+/**
  * Creates a pattern that matches any array.
  */
 export const anyArray = (): Pattern => ({
@@ -418,6 +485,247 @@ export const search = (pattern: Pattern): Pattern => ({
 export const sequence = (...patterns: Pattern[]): Pattern => ({
   kind: "Meta",
   pattern: { type: "Sequence", pattern: sequencePatternCreate(patterns) },
+});
+
+// ============================================================================
+// Number Pattern Constructors (additional)
+// ============================================================================
+
+/**
+ * Creates a pattern that matches numbers greater than a value.
+ */
+export const numberGreaterThan = (value: number): Pattern => ({
+  kind: "Value",
+  pattern: { type: "Number", pattern: numberPatternGreaterThan(value) },
+});
+
+/**
+ * Creates a pattern that matches numbers greater than or equal to a value.
+ */
+export const numberGreaterThanOrEqual = (value: number): Pattern => ({
+  kind: "Value",
+  pattern: { type: "Number", pattern: numberPatternGreaterThanOrEqual(value) },
+});
+
+/**
+ * Creates a pattern that matches numbers less than a value.
+ */
+export const numberLessThan = (value: number): Pattern => ({
+  kind: "Value",
+  pattern: { type: "Number", pattern: numberPatternLessThan(value) },
+});
+
+/**
+ * Creates a pattern that matches numbers less than or equal to a value.
+ */
+export const numberLessThanOrEqual = (value: number): Pattern => ({
+  kind: "Value",
+  pattern: { type: "Number", pattern: numberPatternLessThanOrEqual(value) },
+});
+
+/**
+ * Creates a pattern that matches NaN.
+ */
+export const numberNaN = (): Pattern => ({
+  kind: "Value",
+  pattern: { type: "Number", pattern: numberPatternNaN() },
+});
+
+/**
+ * Creates a pattern that matches positive infinity.
+ */
+export const numberInfinity = (): Pattern => ({
+  kind: "Value",
+  pattern: { type: "Number", pattern: numberPatternInfinity() },
+});
+
+/**
+ * Creates a pattern that matches negative infinity.
+ */
+export const numberNegInfinity = (): Pattern => ({
+  kind: "Value",
+  pattern: { type: "Number", pattern: numberPatternNegInfinity() },
+});
+
+// ============================================================================
+// Date Pattern Constructors
+// ============================================================================
+
+/**
+ * Creates a pattern that matches any date.
+ */
+export const anyDate = (): Pattern => ({
+  kind: "Value",
+  pattern: { type: "Date", pattern: datePatternAny() },
+});
+
+/**
+ * Creates a pattern that matches a specific date.
+ */
+export const date = (value: CborDate): Pattern => ({
+  kind: "Value",
+  pattern: { type: "Date", pattern: datePatternValue(value) },
+});
+
+/**
+ * Creates a pattern that matches dates within a range (inclusive).
+ */
+export const dateRange = (min: CborDate, max: CborDate): Pattern => ({
+  kind: "Value",
+  pattern: { type: "Date", pattern: datePatternRange(min, max) },
+});
+
+/**
+ * Creates a pattern that matches dates on or after the specified date.
+ */
+export const dateEarliest = (value: CborDate): Pattern => ({
+  kind: "Value",
+  pattern: { type: "Date", pattern: datePatternEarliest(value) },
+});
+
+/**
+ * Creates a pattern that matches dates on or before the specified date.
+ */
+export const dateLatest = (value: CborDate): Pattern => ({
+  kind: "Value",
+  pattern: { type: "Date", pattern: datePatternLatest(value) },
+});
+
+/**
+ * Creates a pattern that matches dates by their ISO-8601 string representation.
+ */
+export const dateIso8601 = (value: string): Pattern => ({
+  kind: "Value",
+  pattern: { type: "Date", pattern: datePatternStringValue(value) },
+});
+
+/**
+ * Creates a pattern that matches dates by regex on their ISO-8601 string.
+ */
+export const dateRegex = (pattern: RegExp): Pattern => ({
+  kind: "Value",
+  pattern: { type: "Date", pattern: datePatternRegex(pattern) },
+});
+
+// ============================================================================
+// Digest Pattern Constructors
+// ============================================================================
+
+/**
+ * Creates a pattern that matches any digest.
+ */
+export const anyDigest = (): Pattern => ({
+  kind: "Value",
+  pattern: { type: "Digest", pattern: digestPatternAny() },
+});
+
+/**
+ * Creates a pattern that matches a specific digest.
+ */
+export const digest = (value: Digest): Pattern => ({
+  kind: "Value",
+  pattern: { type: "Digest", pattern: digestPatternValue(value) },
+});
+
+/**
+ * Creates a pattern that matches digests with a prefix.
+ */
+export const digestPrefix = (prefix: Uint8Array): Pattern => ({
+  kind: "Value",
+  pattern: { type: "Digest", pattern: digestPatternPrefix(prefix) },
+});
+
+/**
+ * Creates a pattern that matches digests by binary regex.
+ */
+export const digestBinaryRegex = (pattern: RegExp): Pattern => ({
+  kind: "Value",
+  pattern: { type: "Digest", pattern: digestPatternBinaryRegex(pattern) },
+});
+
+// ============================================================================
+// KnownValue Pattern Constructors
+// ============================================================================
+
+/**
+ * Creates a pattern that matches any known value.
+ */
+export const anyKnownValue = (): Pattern => ({
+  kind: "Value",
+  pattern: { type: "KnownValue", pattern: knownValuePatternAny() },
+});
+
+/**
+ * Creates a pattern that matches a specific known value.
+ */
+export const knownValue = (value: KnownValue): Pattern => ({
+  kind: "Value",
+  pattern: { type: "KnownValue", pattern: knownValuePatternValue(value) },
+});
+
+/**
+ * Creates a pattern that matches a known value by name.
+ */
+export const knownValueNamed = (name: string): Pattern => ({
+  kind: "Value",
+  pattern: { type: "KnownValue", pattern: knownValuePatternNamed(name) },
+});
+
+/**
+ * Creates a pattern that matches known values by regex on their name.
+ */
+export const knownValueRegex = (pattern: RegExp): Pattern => ({
+  kind: "Value",
+  pattern: { type: "KnownValue", pattern: knownValuePatternRegex(pattern) },
+});
+
+// ============================================================================
+// Tagged Pattern Constructors
+// ============================================================================
+
+/**
+ * Creates a pattern that matches tagged values with a specific tag.
+ */
+export const tagged = (tag: Tag, pattern: Pattern): Pattern => ({
+  kind: "Structure",
+  pattern: { type: "Tagged", pattern: taggedPatternWithTag(tag, pattern) },
+});
+
+/**
+ * Creates a pattern that matches tagged values by tag name.
+ */
+export const taggedName = (name: string, pattern: Pattern): Pattern => ({
+  kind: "Structure",
+  pattern: { type: "Tagged", pattern: taggedPatternWithName(name, pattern) },
+});
+
+/**
+ * Creates a pattern that matches tagged values by tag name regex.
+ */
+export const taggedRegex = (regex: RegExp, pattern: Pattern): Pattern => ({
+  kind: "Structure",
+  pattern: { type: "Tagged", pattern: taggedPatternWithRegex(regex, pattern) },
+});
+
+// ============================================================================
+// Meta Pattern Constructors (additional)
+// ============================================================================
+
+/**
+ * Creates a repeat pattern with the given pattern and quantifier.
+ */
+export const repeat = (pattern: Pattern, quantifier: Quantifier): Pattern => ({
+  kind: "Meta",
+  pattern: { type: "Repeat", pattern: repeatPatternCreate(pattern, quantifier) },
+});
+
+/**
+ * Creates a grouped pattern (equivalent to repeat with exactly 1).
+ * This is useful for precedence grouping in pattern expressions.
+ */
+export const group = (pattern: Pattern): Pattern => ({
+  kind: "Meta",
+  pattern: { type: "Repeat", pattern: repeatPatternCreate(pattern, Quantifier.exactly(1)) },
 });
 
 // ============================================================================

@@ -15,7 +15,7 @@ import { parseBool, parseBoolTrue, parseBoolFalse } from "../value/bool-parser";
 import { parseNull } from "../value/null-parser";
 import { parseNumber } from "../value/number-parser";
 import { parseText } from "../value/text-parser";
-import { parseByteString, parseHexStringToken } from "../value/bytestring-parser";
+import { parseByteString, parseHexStringToken, parseHexRegexToken } from "../value/bytestring-parser";
 import { parseDate } from "../value/date-parser";
 import { parseDigest } from "../value/digest-parser";
 import { parseKnownValue } from "../value/known-value-parser";
@@ -36,9 +36,11 @@ import {
   numberPatternGreaterThan,
   numberPatternLessThan,
 } from "../../pattern/value/number-pattern";
+import { KnownValue } from "@bcts/known-values";
 import {
-  knownValuePatternAny,
+  knownValuePatternValue,
   knownValuePatternNamed,
+  knownValuePatternRegex,
 } from "../../pattern/value/known-value-pattern";
 
 /**
@@ -167,6 +169,18 @@ export const parsePrimary = (lexer: Lexer): Result<Pattern> => {
     // Direct hex string literal
     case "HexString":
       return parseHexStringToken(Ok(token.value));
+
+    // Direct hex regex literal
+    case "HexRegex":
+      try {
+        const regex = new RegExp(token.pattern);
+        return parseHexRegexToken(Ok(regex));
+      } catch {
+        return Err({
+          type: "InvalidRegex",
+          span: spanned.span,
+        });
+      }
 
     // Structure patterns
     case "Tagged":
@@ -347,23 +361,34 @@ export const parsePrimary = (lexer: Lexer): Result<Pattern> => {
 
 /**
  * Parse a single-quoted pattern as a known value.
+ *
+ * This handles the non-prefixed single-quoted syntax:
+ * - 'value' -> known value by numeric ID
+ * - 'name' -> known value by name
+ * - '/regex/' -> known value by regex
  */
 const parseSingleQuotedAsKnownValue = (value: string): Result<Pattern> => {
   // Check if it's a regex pattern (starts and ends with /)
   if (value.startsWith("/") && value.endsWith("/") && value.length > 2) {
-    // TODO: Implement known_value_regex pattern
-    return Ok({
-      kind: "Value",
-      pattern: { type: "KnownValue", pattern: knownValuePatternAny() },
-    });
+    const regexStr = value.slice(1, -1);
+    try {
+      const regex = new RegExp(regexStr);
+      return Ok({
+        kind: "Value",
+        pattern: { type: "KnownValue", pattern: knownValuePatternRegex(regex) },
+      });
+    } catch {
+      return Err({ type: "InvalidRegex", span: { start: 0, end: value.length } });
+    }
   }
 
   // Try to parse as numeric ID
   const numericValue = parseInt(value, 10);
-  if (!isNaN(numericValue) && numericValue.toString() === value) {
+  if (!isNaN(numericValue) && numericValue.toString() === value && numericValue >= 0) {
+    const knownValue = new KnownValue(BigInt(numericValue));
     return Ok({
       kind: "Value",
-      pattern: { type: "KnownValue", pattern: knownValuePatternAny() },
+      pattern: { type: "KnownValue", pattern: knownValuePatternValue(knownValue) },
     });
   }
 
