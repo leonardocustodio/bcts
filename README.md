@@ -78,3 +78,11 @@ bun run test --filter=@bcts/dcbor
 This TypeScript implementation is a direct port from the work of [@ChristopherA](https://github.com/ChristopherA) and [@WolfMcNally](https://github.com/wolfmcnally).
 
 Consider visiting [Blockchain Commons](https://www.blockchaincommons.com/) to learn more about the organization and their mission.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+
+This project is licensed under the BSD-2-Clause-Patent License – see the [LICENSE](./LICENSE) file for details.
