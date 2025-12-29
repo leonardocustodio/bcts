@@ -4,7 +4,7 @@
  * @module parse/meta/repeat-parser
  */
 
-import type { Lexer, Token } from "../token";
+import type { Lexer } from "../token";
 import type { Pattern } from "../../pattern";
 import type { Result } from "../../error";
 import { Ok } from "../../error";
@@ -39,11 +39,11 @@ export const parseQuantifier = (
 
     case "RepeatZeroOrMoreLazy":
       lexer.next();
-      return Ok(wrapInRepeat(pattern, new Quantifier(0, undefined, Reluctance.Lazy)));
+      return Ok(wrapInRepeat(pattern, Quantifier.zeroOrMore(Reluctance.Lazy)));
 
     case "RepeatZeroOrMorePossessive":
       lexer.next();
-      return Ok(wrapInRepeat(pattern, new Quantifier(0, undefined, Reluctance.Possessive)));
+      return Ok(wrapInRepeat(pattern, Quantifier.zeroOrMore(Reluctance.Possessive)));
 
     case "RepeatOneOrMore":
       lexer.next();
@@ -51,11 +51,11 @@ export const parseQuantifier = (
 
     case "RepeatOneOrMoreLazy":
       lexer.next();
-      return Ok(wrapInRepeat(pattern, new Quantifier(1, undefined, Reluctance.Lazy)));
+      return Ok(wrapInRepeat(pattern, Quantifier.oneOrMore(Reluctance.Lazy)));
 
     case "RepeatOneOrMorePossessive":
       lexer.next();
-      return Ok(wrapInRepeat(pattern, new Quantifier(1, undefined, Reluctance.Possessive)));
+      return Ok(wrapInRepeat(pattern, Quantifier.oneOrMore(Reluctance.Possessive)));
 
     case "RepeatZeroOrOne":
       lexer.next();
@@ -63,11 +63,11 @@ export const parseQuantifier = (
 
     case "RepeatZeroOrOneLazy":
       lexer.next();
-      return Ok(wrapInRepeat(pattern, new Quantifier(0, 1, Reluctance.Lazy)));
+      return Ok(wrapInRepeat(pattern, Quantifier.zeroOrOne(Reluctance.Lazy)));
 
     case "RepeatZeroOrOnePossessive":
       lexer.next();
-      return Ok(wrapInRepeat(pattern, new Quantifier(0, 1, Reluctance.Possessive)));
+      return Ok(wrapInRepeat(pattern, Quantifier.zeroOrOne(Reluctance.Possessive)));
 
     case "Range":
       lexer.next();

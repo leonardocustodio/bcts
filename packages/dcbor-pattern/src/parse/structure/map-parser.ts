@@ -4,46 +4,56 @@
  * @module parse/structure/map-parser
  */
 
-import type { Lexer, Token, TokenResult } from "../token";
+import type { Lexer } from "../token";
 import type { Pattern } from "../../pattern";
 import type { Result } from "../../error";
 import { Ok, Err } from "../../error";
 import { anyMap } from "../../pattern";
-import { mapPatternWithLengthInterval } from "../../pattern/structure/map-pattern";
-import { parseOr } from "../meta/or-parser";
+import { mapPatternWithLengthInterval, mapPatternWithConstraints } from "../../pattern/structure/map-pattern";
 
 /**
  * Parse a bracket map pattern: {pattern: pattern} or {{n}} etc.
  */
 export const parseBracketMap = (lexer: Lexer): Result<Pattern> => {
+  // Import parseOr dynamically to avoid circular dependency
+  const { parseOr } = require("../meta/or-parser");
+
   // Opening brace was already consumed
-  // Peek at the next token to determine what we're parsing
-  const peeked = lexer.peek();
+  const peeked = lexer.peekToken();
+
+  if (peeked === undefined) {
+    return Err({ type: "UnexpectedEndOfInput" });
+  }
 
   if (!peeked.ok) {
-    return Err({ type: "UnexpectedEndOfInput" });
+    return peeked;
   }
 
   const token = peeked.value;
 
   // Check for closing brace (empty map - which means "any map")
-  if (token?.type === "BraceClose") {
+  if (token.type === "BraceClose") {
     lexer.next(); // consume the closing brace
     return Ok(anyMap());
   }
 
   // Check for Range token (map length constraint)
-  if (token?.type === "Range" && token.value.ok) {
+  if (token.type === "Range") {
     lexer.next(); // consume the Range token
-    const quantifier = token.value.value;
-    const pattern = mapPatternWithLengthInterval(quantifier.interval());
+    const pattern = mapPatternWithLengthInterval(token.quantifier.interval());
 
     // Expect closing brace
-    const next = lexer.next();
-    if (!next.ok || next.value?.type !== "BraceClose") {
+    const closeResult = lexer.next();
+    if (closeResult === undefined) {
+      return Err({ type: "ExpectedCloseBrace", span: lexer.span() });
+    }
+    if (!closeResult.ok) {
+      return closeResult;
+    }
+    if (closeResult.value.token.type !== "BraceClose") {
       return Err({
         type: "ExpectedCloseBrace",
-        span: lexer.span(),
+        span: closeResult.value.span,
       });
     }
 
@@ -65,10 +75,16 @@ export const parseBracketMap = (lexer: Lexer): Result<Pattern> => {
 
     // Expect colon
     const colonResult = lexer.next();
-    if (!colonResult.ok || colonResult.value?.type !== "Colon") {
+    if (colonResult === undefined) {
+      return Err({ type: "ExpectedColon", span: lexer.span() });
+    }
+    if (!colonResult.ok) {
+      return colonResult;
+    }
+    if (colonResult.value.token.type !== "Colon") {
       return Err({
         type: "ExpectedColon",
-        span: lexer.span(),
+        span: colonResult.value.span,
       });
     }
 
@@ -81,8 +97,8 @@ export const parseBracketMap = (lexer: Lexer): Result<Pattern> => {
     constraints.push([keyResult.value, valueResult.value]);
 
     // Check for comma or closing brace
-    const nextToken = lexer.peek();
-    if (!nextToken.ok || !nextToken.value) {
+    const nextToken = lexer.peekToken();
+    if (nextToken === undefined || !nextToken.ok) {
       return Err({ type: "UnexpectedEndOfInput" });
     }
 
@@ -104,7 +120,6 @@ export const parseBracketMap = (lexer: Lexer): Result<Pattern> => {
   }
 
   // Create map pattern with constraints
-  const { mapPatternWithConstraints } = require("../../pattern/structure/map-pattern");
   return Ok({
     kind: "Structure",
     pattern: { type: "Map", pattern: mapPatternWithConstraints(constraints) },

@@ -4,7 +4,9 @@
  * @module parse/meta/primary-parser
  */
 
-import type { Lexer, Token, SpannedToken } from "../token";
+import { CborDate } from "@bcts/dcbor";
+import { Digest } from "@bcts/components";
+import type { Lexer } from "../token";
 import type { Pattern } from "../../pattern";
 import type { Result } from "../../error";
 import { Ok, Err } from "../../error";
@@ -117,15 +119,31 @@ export const parsePrimary = (lexer: Lexer): Result<Pattern> => {
     case "Digest":
       return parseDigest(lexer);
     case "DigestQuoted":
-      return Ok({
-        kind: "Value",
-        pattern: { type: "Digest", pattern: { variant: "Value", value: token.value } },
-      });
+      try {
+        const digest = Digest.fromHex(token.value);
+        return Ok({
+          kind: "Value",
+          pattern: { type: "Digest", pattern: { variant: "Value", value: digest } },
+        });
+      } catch {
+        return Err({
+          type: "InvalidDigest",
+          span: spanned.span,
+        });
+      }
     case "DateQuoted":
-      return Ok({
-        kind: "Value",
-        pattern: { type: "Date", pattern: { variant: "Value", value: token.value } },
-      });
+      try {
+        const date = CborDate.fromString(token.value);
+        return Ok({
+          kind: "Value",
+          pattern: { type: "Date", pattern: { variant: "Value", value: date } },
+        });
+      } catch {
+        return Err({
+          type: "InvalidDate",
+          span: spanned.span,
+        });
+      }
     case "Known":
       return parseKnownValue(lexer);
     case "Null":

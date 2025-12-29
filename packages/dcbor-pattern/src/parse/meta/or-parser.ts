@@ -4,7 +4,7 @@
  * @module parse/meta/or-parser
  */
 
-import type { Lexer, Token } from "../token";
+import type { Lexer } from "../token";
 import type { Pattern } from "../../pattern";
 import type { Result } from "../../error";
 import { Ok } from "../../error";

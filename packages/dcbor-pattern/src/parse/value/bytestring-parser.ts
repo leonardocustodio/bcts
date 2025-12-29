@@ -8,7 +8,7 @@ import type { Lexer } from "../token";
 import type { Pattern } from "../../pattern";
 import type { Result } from "../../error";
 import { Ok, Err } from "../../error";
-import { anyByteString, byteString, text } from "../../pattern";
+import { anyByteString, byteString } from "../../pattern";
 
 /**
  * Parse a bytestring pattern from the `bytes` keyword.
