@@ -10,11 +10,7 @@
 import type { Cbor } from "@bcts/dcbor";
 import type { Pattern } from "../../index";
 import type { RepeatPattern } from "../../meta/repeat-pattern";
-import {
-  extractCaptureWithRepeat,
-  calculateRepeatBounds,
-  canRepeatMatch,
-} from "./helpers";
+import { extractCaptureWithRepeat, calculateRepeatBounds, canRepeatMatch } from "./helpers";
 
 /**
  * Generic backtracking state interface.
@@ -76,9 +72,7 @@ export class BooleanBacktrackState implements BacktrackState<boolean> {
 /**
  * Assignment tracking backtracking state - collects pattern-element pairs.
  */
-export class AssignmentBacktrackState
-  implements BacktrackState<Array<[number, number]>>
-{
+export class AssignmentBacktrackState implements BacktrackState<Array<[number, number]>> {
   readonly assignments: Array<[number, number]> = [];
 
   tryAdvance(patternIdx: number, elementIdx: number): boolean {
@@ -133,20 +127,9 @@ export class GenericBacktracker {
   /**
    * Generic backtracking algorithm that works with any state type.
    */
-  backtrack<T>(
-    state: BacktrackState<T>,
-    patternIdx: number,
-    elementIdx: number,
-  ): boolean {
+  backtrack<T>(state: BacktrackState<T>, patternIdx: number, elementIdx: number): boolean {
     // Base case: if we've matched all patterns
-    if (
-      state.isSuccess(
-        patternIdx,
-        elementIdx,
-        this.#patterns.length,
-        this.#arr.length,
-      )
-    ) {
+    if (state.isSuccess(patternIdx, elementIdx, this.#patterns.length, this.#arr.length)) {
       return true;
     }
 
@@ -157,34 +140,18 @@ export class GenericBacktracker {
     const currentPattern = this.#patterns[patternIdx];
 
     // Check if this is a repeat pattern
-    if (
-      currentPattern.kind === "Meta" &&
-      currentPattern.pattern.type === "Repeat"
-    ) {
+    if (currentPattern.kind === "Meta" && currentPattern.pattern.type === "Repeat") {
       const repeatPattern = currentPattern.pattern.pattern;
-      return this.tryRepeatBacktrack(
-        repeatPattern,
-        state,
-        patternIdx,
-        elementIdx,
-      );
+      return this.tryRepeatBacktrack(repeatPattern, state, patternIdx, elementIdx);
     }
 
     // Check if this is a capture pattern
-    if (
-      currentPattern.kind === "Meta" &&
-      currentPattern.pattern.type === "Capture"
-    ) {
+    if (currentPattern.kind === "Meta" && currentPattern.pattern.type === "Capture") {
       // Check if the capture pattern contains a repeat pattern
       const repeatPattern = extractCaptureWithRepeat(currentPattern);
       if (repeatPattern !== undefined) {
         // Handle this like a repeat pattern
-        return this.tryRepeatBacktrack(
-          repeatPattern,
-          state,
-          patternIdx,
-          elementIdx,
-        );
+        return this.tryRepeatBacktrack(repeatPattern, state, patternIdx, elementIdx);
       }
 
       // Handle as a normal single-element capture
@@ -229,23 +196,13 @@ export class GenericBacktracker {
     elementIdx: number,
   ): boolean {
     const quantifier = repeatPattern.quantifier;
-    const [minCount, maxCount] = calculateRepeatBounds(
-      quantifier,
-      elementIdx,
-      this.#arr.length,
-    );
+    const [minCount, maxCount] = calculateRepeatBounds(quantifier, elementIdx, this.#arr.length);
 
     // Try different numbers of repetitions (greedy: start with max)
     for (let repCount = maxCount; repCount >= minCount; repCount--) {
       if (
         elementIdx + repCount <= this.#arr.length &&
-        canRepeatMatch(
-          repeatPattern,
-          this.#arr,
-          elementIdx,
-          repCount,
-          this.#matchFn,
-        )
+        canRepeatMatch(repeatPattern, this.#arr, elementIdx, repCount, this.#matchFn)
       ) {
         // Record state for all consumed elements
         let advancedCount = 0;

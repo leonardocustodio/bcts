@@ -182,55 +182,134 @@ export const adjustSpan = (error: Error, offset: number): Error => {
     case "ExtraData":
       return { type: "ExtraData", span: span(offset + error.span.start, offset + error.span.end) };
     case "UnexpectedToken":
-      return { type: "UnexpectedToken", token: error.token, span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "UnexpectedToken",
+        token: error.token,
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "UnrecognizedToken":
-      return { type: "UnrecognizedToken", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "UnrecognizedToken",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "InvalidRegex":
-      return { type: "InvalidRegex", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "InvalidRegex",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "UnterminatedRegex":
-      return { type: "UnterminatedRegex", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "UnterminatedRegex",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "UnterminatedString":
-      return { type: "UnterminatedString", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "UnterminatedString",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "InvalidRange":
-      return { type: "InvalidRange", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "InvalidRange",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "InvalidHexString":
-      return { type: "InvalidHexString", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "InvalidHexString",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "UnterminatedHexString":
-      return { type: "UnterminatedHexString", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "UnterminatedHexString",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "InvalidDateFormat":
-      return { type: "InvalidDateFormat", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "InvalidDateFormat",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "InvalidNumberFormat":
-      return { type: "InvalidNumberFormat", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "InvalidNumberFormat",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "InvalidUr":
-      return { type: "InvalidUr", message: error.message, span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "InvalidUr",
+        message: error.message,
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "ExpectedOpenParen":
-      return { type: "ExpectedOpenParen", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "ExpectedOpenParen",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "ExpectedCloseParen":
-      return { type: "ExpectedCloseParen", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "ExpectedCloseParen",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "ExpectedCloseBracket":
-      return { type: "ExpectedCloseBracket", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "ExpectedCloseBracket",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "ExpectedCloseBrace":
-      return { type: "ExpectedCloseBrace", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "ExpectedCloseBrace",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "ExpectedColon":
-      return { type: "ExpectedColon", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "ExpectedColon",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "ExpectedPattern":
-      return { type: "ExpectedPattern", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "ExpectedPattern",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "UnmatchedParentheses":
-      return { type: "UnmatchedParentheses", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "UnmatchedParentheses",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "UnmatchedBraces":
-      return { type: "UnmatchedBraces", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "UnmatchedBraces",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "InvalidCaptureGroupName":
-      return { type: "InvalidCaptureGroupName", name: error.name, span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "InvalidCaptureGroupName",
+        name: error.name,
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "InvalidDigestPattern":
-      return { type: "InvalidDigestPattern", message: error.message, span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "InvalidDigestPattern",
+        message: error.message,
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "UnterminatedDigestQuoted":
-      return { type: "UnterminatedDigestQuoted", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "UnterminatedDigestQuoted",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "UnterminatedDateQuoted":
-      return { type: "UnterminatedDateQuoted", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "UnterminatedDateQuoted",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "InvalidDigest":
-      return { type: "InvalidDigest", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "InvalidDigest",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     case "InvalidDate":
-      return { type: "InvalidDate", span: span(offset + error.span.start, offset + error.span.end) };
+      return {
+        type: "InvalidDate",
+        span: span(offset + error.span.start, offset + error.span.end),
+      };
     // For errors without spans, return them as-is
     default:
       return error;

@@ -24,7 +24,11 @@ import { type NotPattern, notPatternPaths, notPatternDisplay } from "./not-patte
 import { type RepeatPattern, repeatPatternPaths, repeatPatternDisplay } from "./repeat-pattern";
 import { type CapturePattern, capturePatternPaths, capturePatternDisplay } from "./capture-pattern";
 import { type SearchPattern, searchPatternPaths, searchPatternDisplay } from "./search-pattern";
-import { type SequencePattern, sequencePatternPaths, sequencePatternDisplay } from "./sequence-pattern";
+import {
+  type SequencePattern,
+  sequencePatternPaths,
+  sequencePatternDisplay,
+} from "./sequence-pattern";
 
 /**
  * Union of all meta pattern types.
@@ -42,10 +46,7 @@ export type MetaPattern =
 /**
  * Returns paths to matching values for a MetaPattern.
  */
-export const metaPatternPaths = (
-  pattern: MetaPattern,
-  haystack: Cbor,
-): Path[] => {
+export const metaPatternPaths = (pattern: MetaPattern, haystack: Cbor): Path[] => {
   switch (pattern.type) {
     case "Any":
       return anyPatternPaths(pattern.pattern, haystack);
@@ -69,10 +70,7 @@ export const metaPatternPaths = (
 /**
  * Tests if a CBOR value matches a MetaPattern.
  */
-export const metaPatternMatches = (
-  pattern: MetaPattern,
-  haystack: Cbor,
-): boolean => {
+export const metaPatternMatches = (pattern: MetaPattern, haystack: Cbor): boolean => {
   return metaPatternPaths(pattern, haystack).length > 0;
 };
 

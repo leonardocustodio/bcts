@@ -98,28 +98,28 @@ export interface SpannedToken {
  */
 const KEYWORDS: Record<string, Token> = {
   // Structure keywords
-  "tagged": { type: "Tagged" },
-  "array": { type: "Array" },
-  "map": { type: "Map" },
+  tagged: { type: "Tagged" },
+  array: { type: "Array" },
+  map: { type: "Map" },
 
   // Value keywords
-  "bool": { type: "Bool" },
-  "bstr": { type: "ByteString" },
-  "date": { type: "Date" },
-  "known": { type: "Known" },
-  "null": { type: "Null" },
-  "number": { type: "Number" },
-  "text": { type: "Text" },
-  "digest": { type: "Digest" },
-  "search": { type: "Search" },
+  bool: { type: "Bool" },
+  bstr: { type: "ByteString" },
+  date: { type: "Date" },
+  known: { type: "Known" },
+  null: { type: "Null" },
+  number: { type: "Number" },
+  text: { type: "Text" },
+  digest: { type: "Digest" },
+  search: { type: "Search" },
 
   // Boolean literals
-  "true": { type: "BoolTrue" },
-  "false": { type: "BoolFalse" },
+  true: { type: "BoolTrue" },
+  false: { type: "BoolFalse" },
 
   // Special values
-  "NaN": { type: "NaN" },
-  "Infinity": { type: "Infinity" },
+  NaN: { type: "NaN" },
+  Infinity: { type: "Infinity" },
 };
 
 /**
@@ -600,9 +600,10 @@ export class Lexer {
       return Err({ type: "InvalidRange", span: this.spanFrom(start) });
     }
 
-    const quantifier = max !== undefined
-      ? Quantifier.between(min, max, reluctance)
-      : Quantifier.atLeast(min, reluctance);
+    const quantifier =
+      max !== undefined
+        ? Quantifier.between(min, max, reluctance)
+        : Quantifier.atLeast(min, reluctance);
 
     return Ok({ token: { type: "Range", quantifier }, span: this.spanFrom(start) });
   }
@@ -619,11 +620,21 @@ export class Lexer {
 
       if (escape) {
         switch (ch) {
-          case '"': result += '"'; break;
-          case "\\": result += "\\"; break;
-          case "n": result += "\n"; break;
-          case "r": result += "\r"; break;
-          case "t": result += "\t"; break;
+          case '"':
+            result += '"';
+            break;
+          case "\\":
+            result += "\\";
+            break;
+          case "n":
+            result += "\n";
+            break;
+          case "r":
+            result += "\r";
+            break;
+          case "t":
+            result += "\t";
+            break;
           default:
             result += "\\";
             result += ch;
@@ -654,11 +665,21 @@ export class Lexer {
 
       if (escape) {
         switch (ch) {
-          case "'": result += "'"; break;
-          case "\\": result += "\\"; break;
-          case "n": result += "\n"; break;
-          case "r": result += "\r"; break;
-          case "t": result += "\t"; break;
+          case "'":
+            result += "'";
+            break;
+          case "\\":
+            result += "\\";
+            break;
+          case "n":
+            result += "\n";
+            break;
+          case "r":
+            result += "\r";
+            break;
+          case "t":
+            result += "\t";
+            break;
           default:
             result += "\\";
             result += ch;
@@ -914,7 +935,11 @@ export class Lexer {
 
       if (ch === "'") {
         if (content.length === 0) {
-          return Err({ type: "InvalidDigestPattern", message: "empty content", span: this.spanFrom(start) });
+          return Err({
+            type: "InvalidDigestPattern",
+            message: "empty content",
+            span: this.spanFrom(start),
+          });
         }
         return Ok({ token: { type: "DigestQuoted", value: content }, span: this.spanFrom(start) });
       }

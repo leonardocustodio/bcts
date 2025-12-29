@@ -10,20 +10,8 @@ import type { Lexer } from "../token";
 import type { Pattern } from "../../pattern";
 import type { Result } from "../../error";
 import { Ok, Err } from "../../error";
-import {
-  any,
-  anyArray,
-  anyMap,
-  text,
-  textRegex,
-  number,
-  numberRange,
-} from "../../pattern";
-import {
-  parseBool,
-  parseBoolTrue,
-  parseBoolFalse,
-} from "../value/bool-parser";
+import { any, anyArray, anyMap, text, textRegex, number, numberRange } from "../../pattern";
+import { parseBool, parseBoolTrue, parseBoolFalse } from "../value/bool-parser";
 import { parseNull } from "../value/null-parser";
 import { parseNumber } from "../value/number-parser";
 import { parseText } from "../value/text-parser";
@@ -48,7 +36,10 @@ import {
   numberPatternGreaterThan,
   numberPatternLessThan,
 } from "../../pattern/value/number-pattern";
-import { knownValuePatternAny, knownValuePatternNamed } from "../../pattern/value/known-value-pattern";
+import {
+  knownValuePatternAny,
+  knownValuePatternNamed,
+} from "../../pattern/value/known-value-pattern";
 
 /**
  * Parse a primary pattern - the most basic unit of pattern matching.

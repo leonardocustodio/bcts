@@ -9,7 +9,12 @@
 
 import type { Cbor } from "@bcts/dcbor";
 import type { Path } from "../format";
-import { setMatchFn, setPathsFn, setPathsWithCapturesFn, setPathsWithCapturesDirectFn } from "./match-registry";
+import {
+  setMatchFn,
+  setPathsFn,
+  setPathsWithCapturesFn,
+  setPathsWithCapturesDirectFn,
+} from "./match-registry";
 
 // Re-export sub-modules
 export * from "./value";
@@ -19,22 +24,14 @@ export * from "./vm";
 export * from "./matcher";
 export * from "./match-registry";
 
-import {
-  type ValuePattern,
-  valuePatternPaths,
-  valuePatternDisplay,
-} from "./value";
+import { type ValuePattern, valuePatternPaths, valuePatternDisplay } from "./value";
 import {
   type StructurePattern,
   structurePatternPaths,
   structurePatternDisplay,
   structurePatternPathsWithCaptures,
 } from "./structure";
-import {
-  type MetaPattern,
-  metaPatternPaths,
-  metaPatternDisplay,
-} from "./meta";
+import { type MetaPattern, metaPatternPaths, metaPatternDisplay } from "./meta";
 import { compilePattern } from "./matcher";
 import { Vm } from "./vm";
 
@@ -139,10 +136,7 @@ export const matches = patternMatches;
  * @param haystack - The CBOR value to search
  * @returns Match result with paths and captures
  */
-export const pathsWithCapturesDirect = (
-  pattern: Pattern,
-  haystack: Cbor,
-): MatchResult => {
+export const pathsWithCapturesDirect = (pattern: Pattern, haystack: Cbor): MatchResult => {
   // For structure patterns, use the specialized function that properly handles captures
   if (pattern.kind === "Structure") {
     const [paths, captures] = structurePatternPathsWithCaptures(pattern.pattern, haystack);
@@ -225,10 +219,7 @@ export const pathsWithCapturesDirect = (
  * @param haystack - The CBOR value to search
  * @returns Match result with paths and captures
  */
-export const pathsWithCaptures = (
-  pattern: Pattern,
-  haystack: Cbor,
-): MatchResult => {
+export const pathsWithCaptures = (pattern: Pattern, haystack: Cbor): MatchResult => {
   const program = compilePattern(pattern);
   const result = Vm.run(program, haystack);
   return result;
@@ -245,16 +236,8 @@ export const patternPathsWithCaptures = pathsWithCaptures;
 
 import { boolPatternAny, boolPatternValue } from "./value/bool-pattern";
 import { nullPattern as nullPatternCreate } from "./value/null-pattern";
-import {
-  numberPatternAny,
-  numberPatternValue,
-  numberPatternRange,
-} from "./value/number-pattern";
-import {
-  textPatternAny,
-  textPatternValue,
-  textPatternRegex,
-} from "./value/text-pattern";
+import { numberPatternAny, numberPatternValue, numberPatternRange } from "./value/number-pattern";
+import { textPatternAny, textPatternValue, textPatternRegex } from "./value/text-pattern";
 import { byteStringPatternAny, byteStringPatternValue } from "./value/bytestring-pattern";
 
 import { arrayPatternAny } from "./structure/array-pattern";

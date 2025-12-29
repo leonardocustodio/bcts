@@ -194,10 +194,7 @@ export const formatCborElement = (
  * @param opts - Formatting options
  * @returns The formatted path string
  */
-export const formatPathOpt = (
-  path: Path,
-  opts: FormatPathsOpts = DEFAULT_FORMAT_OPTS,
-): string => {
+export const formatPathOpt = (path: Path, opts: FormatPathsOpts = DEFAULT_FORMAT_OPTS): string => {
   if (opts.lastElementOnly) {
     // Only format the last element, no indentation.
     const lastElement = path[path.length - 1];

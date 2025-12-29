@@ -22,10 +22,7 @@ export interface CapturePattern {
 /**
  * Creates a CapturePattern with the given name and inner pattern.
  */
-export const capturePattern = (
-  name: string,
-  pattern: Pattern,
-): CapturePattern => ({
+export const capturePattern = (name: string, pattern: Pattern): CapturePattern => ({
   variant: "Capture",
   name,
   pattern,
@@ -35,20 +32,14 @@ export const capturePattern = (
  * Tests if a CBOR value matches this capture pattern.
  * Capture itself doesn't affect matching - it delegates to inner pattern.
  */
-export const capturePatternMatches = (
-  pattern: CapturePattern,
-  haystack: Cbor,
-): boolean => {
+export const capturePatternMatches = (pattern: CapturePattern, haystack: Cbor): boolean => {
   return matchPattern(pattern.pattern, haystack);
 };
 
 /**
  * Returns paths to matching values.
  */
-export const capturePatternPaths = (
-  pattern: CapturePattern,
-  haystack: Cbor,
-): Path[] => {
+export const capturePatternPaths = (pattern: CapturePattern, haystack: Cbor): Path[] => {
   if (capturePatternMatches(pattern, haystack)) {
     return [[haystack]];
   }
@@ -68,10 +59,7 @@ export const capturePatternDisplay = (
 /**
  * Collects capture names from this pattern.
  */
-export const capturePatternCollectNames = (
-  pattern: CapturePattern,
-  names: string[],
-): void => {
+export const capturePatternCollectNames = (pattern: CapturePattern, names: string[]): void => {
   names.push(pattern.name);
   // Note: Nested captures in pattern.pattern should also be collected
   // This will be done when implementing the full Pattern type

@@ -6,7 +6,16 @@
  */
 
 import type { Cbor } from "@bcts/dcbor";
-import { isArray, isMap, isTagged, arrayLength, arrayItem, mapKeys, mapValue, tagContent } from "@bcts/dcbor";
+import {
+  isArray,
+  isMap,
+  isTagged,
+  arrayLength,
+  arrayItem,
+  mapKeys,
+  mapValue,
+  tagContent,
+} from "@bcts/dcbor";
 import type { Path } from "../../format";
 import type { Pattern } from "../index";
 import { matchPattern } from "../match-registry";
@@ -77,10 +86,7 @@ const searchRecursive = (
  * Tests if a CBOR value matches this search pattern.
  * Returns true if any node in the tree matches.
  */
-export const searchPatternMatches = (
-  pattern: SearchPattern,
-  haystack: Cbor,
-): boolean => {
+export const searchPatternMatches = (pattern: SearchPattern, haystack: Cbor): boolean => {
   const paths = searchPatternPaths(pattern, haystack);
   return paths.length > 0;
 };
@@ -88,10 +94,7 @@ export const searchPatternMatches = (
 /**
  * Returns paths to all matching values in the tree.
  */
-export const searchPatternPaths = (
-  pattern: SearchPattern,
-  haystack: Cbor,
-): Path[] => {
+export const searchPatternPaths = (pattern: SearchPattern, haystack: Cbor): Path[] => {
   const results: Path[] = [];
   searchRecursive(pattern.pattern, haystack, [], results);
   return results;

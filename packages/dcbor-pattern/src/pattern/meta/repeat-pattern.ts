@@ -22,10 +22,7 @@ export interface RepeatPattern {
 /**
  * Creates a RepeatPattern with the given pattern and quantifier.
  */
-export const repeatPattern = (
-  pattern: Pattern,
-  quantifier: Quantifier,
-): RepeatPattern => ({
+export const repeatPattern = (pattern: Pattern, quantifier: Quantifier): RepeatPattern => ({
   variant: "Repeat",
   pattern,
   quantifier,
@@ -70,11 +67,7 @@ export const repeatExact = (pattern: Pattern, n: number): RepeatPattern => ({
 /**
  * Creates a RepeatPattern that matches between min and max times.
  */
-export const repeatRange = (
-  pattern: Pattern,
-  min: number,
-  max?: number,
-): RepeatPattern => ({
+export const repeatRange = (pattern: Pattern, min: number, max?: number): RepeatPattern => ({
   variant: "Repeat",
   pattern,
   quantifier: max !== undefined ? Quantifier.between(min, max) : Quantifier.atLeast(min),
@@ -87,10 +80,7 @@ import { matchPattern } from "../match-registry";
  * Note: This is a simplified implementation. Complex matching
  * will be implemented with the VM.
  */
-export const repeatPatternMatches = (
-  pattern: RepeatPattern,
-  haystack: Cbor,
-): boolean => {
+export const repeatPatternMatches = (pattern: RepeatPattern, haystack: Cbor): boolean => {
   // Simple case: check if the inner pattern matches at least once
   // and the quantifier allows it
   const innerMatches = matchPattern(pattern.pattern, haystack);
@@ -108,10 +98,7 @@ export const repeatPatternMatches = (
 /**
  * Returns paths to matching values.
  */
-export const repeatPatternPaths = (
-  pattern: RepeatPattern,
-  haystack: Cbor,
-): Path[] => {
+export const repeatPatternPaths = (pattern: RepeatPattern, haystack: Cbor): Path[] => {
   if (repeatPatternMatches(pattern, haystack)) {
     return [[haystack]];
   }

@@ -32,10 +32,7 @@ export const sequencePattern = (patterns: Pattern[]): SequencePattern => ({
  * Note: Sequences are meant for array element matching.
  * Simple case: check if haystack matches all patterns (for single values).
  */
-export const sequencePatternMatches = (
-  pattern: SequencePattern,
-  haystack: Cbor,
-): boolean => {
+export const sequencePatternMatches = (pattern: SequencePattern, haystack: Cbor): boolean => {
   // For single CBOR values, all patterns must match
   // This is a simplified implementation - full sequence matching
   // for arrays is done in ArrayPattern
@@ -45,10 +42,7 @@ export const sequencePatternMatches = (
 /**
  * Returns paths to matching values.
  */
-export const sequencePatternPaths = (
-  pattern: SequencePattern,
-  haystack: Cbor,
-): Path[] => {
+export const sequencePatternPaths = (pattern: SequencePattern, haystack: Cbor): Path[] => {
   if (sequencePatternMatches(pattern, haystack)) {
     return [[haystack]];
   }
@@ -69,8 +63,6 @@ export const sequencePatternDisplay = (
 /**
  * Gets the patterns in this sequence.
  */
-export const sequencePatternPatterns = (
-  pattern: SequencePattern,
-): Pattern[] => {
+export const sequencePatternPatterns = (pattern: SequencePattern): Pattern[] => {
   return pattern.patterns;
 };

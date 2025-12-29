@@ -20,9 +20,7 @@ export const isRepeatPattern = (pattern: Pattern): boolean => {
  * Check if a pattern is a capture pattern containing a repeat pattern.
  * Returns the inner repeat pattern if found.
  */
-export const extractCaptureWithRepeat = (
-  pattern: Pattern,
-): RepeatPattern | undefined => {
+export const extractCaptureWithRepeat = (pattern: Pattern): RepeatPattern | undefined => {
   if (pattern.kind === "Meta" && pattern.pattern.type === "Capture") {
     const capturePattern = pattern.pattern.pattern;
     const innerPattern = capturePattern.pattern;
@@ -36,9 +34,7 @@ export const extractCaptureWithRepeat = (
 /**
  * Extract any repeat pattern from a pattern, whether direct or within a capture.
  */
-export const extractRepeatPattern = (
-  pattern: Pattern,
-): RepeatPattern | undefined => {
+export const extractRepeatPattern = (pattern: Pattern): RepeatPattern | undefined => {
   if (pattern.kind === "Meta") {
     if (pattern.pattern.type === "Repeat") {
       return pattern.pattern.pattern;
@@ -72,10 +68,7 @@ export const calculateRepeatBounds = (
 ): [number, number] => {
   const minCount = quantifier.min();
   const remainingElements = Math.max(0, arrLen - elementIdx);
-  const maxCount = Math.min(
-    quantifier.max() ?? remainingElements,
-    remainingElements,
-  );
+  const maxCount = Math.min(quantifier.max() ?? remainingElements, remainingElements);
   return [minCount, maxCount];
 };
 
@@ -105,10 +98,7 @@ export const canRepeatMatch = (
 /**
  * Build a simple array context path: [arrayCbor, element]
  */
-export const buildSimpleArrayContextPath = (
-  arrayCbor: Cbor,
-  element: Cbor,
-): Cbor[] => {
+export const buildSimpleArrayContextPath = (arrayCbor: Cbor, element: Cbor): Cbor[] => {
   return [arrayCbor, element];
 };
 
@@ -140,11 +130,7 @@ export const transformCapturesWithArrayContext = (
   for (const [captureName, capturedPaths] of nestedCaptures) {
     const arrayContextPaths: Cbor[][] = [];
     for (const capturedPath of capturedPaths) {
-      const arrayPath = buildExtendedArrayContextPath(
-        arrayCbor,
-        element,
-        capturedPath,
-      );
+      const arrayPath = buildExtendedArrayContextPath(arrayCbor, element, capturedPath);
       arrayContextPaths.push(arrayPath);
     }
     const existing = allCaptures.get(captureName) ?? [];

@@ -39,10 +39,7 @@ export const taggedPatternAny = (): TaggedPattern => ({ variant: "Any" });
 /**
  * Creates a TaggedPattern that matches tagged values with specific tag and content.
  */
-export const taggedPatternWithTag = (
-  tag: Tag,
-  pattern: Pattern,
-): TaggedPattern => ({
+export const taggedPatternWithTag = (tag: Tag, pattern: Pattern): TaggedPattern => ({
   variant: "Tag",
   tag,
   pattern,
@@ -51,10 +48,7 @@ export const taggedPatternWithTag = (
 /**
  * Creates a TaggedPattern that matches tagged values with a tag having the given name.
  */
-export const taggedPatternWithName = (
-  name: string,
-  pattern: Pattern,
-): TaggedPattern => ({
+export const taggedPatternWithName = (name: string, pattern: Pattern): TaggedPattern => ({
   variant: "Name",
   name,
   pattern,
@@ -63,10 +57,7 @@ export const taggedPatternWithName = (
 /**
  * Creates a TaggedPattern that matches tagged values with a tag name matching the regex.
  */
-export const taggedPatternWithRegex = (
-  regex: RegExp,
-  pattern: Pattern,
-): TaggedPattern => ({
+export const taggedPatternWithRegex = (regex: RegExp, pattern: Pattern): TaggedPattern => ({
   variant: "Regex",
   regex,
   pattern,
@@ -75,10 +66,7 @@ export const taggedPatternWithRegex = (
 /**
  * Tests if a CBOR value matches this tagged pattern.
  */
-export const taggedPatternMatches = (
-  pattern: TaggedPattern,
-  haystack: Cbor,
-): boolean => {
+export const taggedPatternMatches = (pattern: TaggedPattern, haystack: Cbor): boolean => {
   if (!isTagged(haystack)) {
     return false;
   }
@@ -111,10 +99,7 @@ export const taggedPatternMatches = (
 /**
  * Returns paths to matching tagged values.
  */
-export const taggedPatternPaths = (
-  pattern: TaggedPattern,
-  haystack: Cbor,
-): Path[] => {
+export const taggedPatternPaths = (pattern: TaggedPattern, haystack: Cbor): Path[] => {
   if (taggedPatternMatches(pattern, haystack)) {
     return [[haystack]];
   }
@@ -160,10 +145,7 @@ export const taggedPatternEquals = (
         patternEquals(a.pattern, (b as typeof a).pattern)
       );
     case "Name":
-      return (
-        a.name === (b as typeof a).name &&
-        patternEquals(a.pattern, (b as typeof a).pattern)
-      );
+      return a.name === (b as typeof a).name && patternEquals(a.pattern, (b as typeof a).pattern);
     case "Regex":
       return (
         a.regex.source === (b as typeof a).regex.source &&

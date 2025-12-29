@@ -116,7 +116,7 @@ describe("parse", () => {
     });
 
     it("should parse regex pattern", () => {
-      const result = parse('text\'/^hello/\'');
+      const result = parse("text'/^hello/'");
       expect(result.ok).toBe(true);
       // Regex display format may vary
     });

@@ -39,10 +39,7 @@ export const numberPatternValue = (value: number): NumberPattern => ({
 /**
  * Creates a NumberPattern that matches numbers within a range (inclusive).
  */
-export const numberPatternRange = (
-  min: number,
-  max: number,
-): NumberPattern => ({
+export const numberPatternRange = (min: number, max: number): NumberPattern => ({
   variant: "Range",
   min,
   max,
@@ -59,9 +56,7 @@ export const numberPatternGreaterThan = (value: number): NumberPattern => ({
 /**
  * Creates a NumberPattern that matches numbers greater than or equal to a value.
  */
-export const numberPatternGreaterThanOrEqual = (
-  value: number,
-): NumberPattern => ({
+export const numberPatternGreaterThanOrEqual = (value: number): NumberPattern => ({
   variant: "GreaterThanOrEqual",
   value,
 });
@@ -104,10 +99,7 @@ export const numberPatternNegInfinity = (): NumberPattern => ({
 /**
  * Tests if a CBOR value matches this number pattern.
  */
-export const numberPatternMatches = (
-  pattern: NumberPattern,
-  haystack: Cbor,
-): boolean => {
+export const numberPatternMatches = (pattern: NumberPattern, haystack: Cbor): boolean => {
   switch (pattern.variant) {
     case "Any":
       return isNumber(haystack);
@@ -117,9 +109,7 @@ export const numberPatternMatches = (
     }
     case "Range": {
       const value = asNumber(haystack);
-      return (
-        value !== undefined && value >= pattern.min && value <= pattern.max
-      );
+      return value !== undefined && value >= pattern.min && value <= pattern.max;
     }
     case "GreaterThan": {
       const value = asNumber(haystack);
@@ -155,10 +145,7 @@ export const numberPatternMatches = (
 /**
  * Returns paths to matching number values.
  */
-export const numberPatternPaths = (
-  pattern: NumberPattern,
-  haystack: Cbor,
-): Path[] => {
+export const numberPatternPaths = (pattern: NumberPattern, haystack: Cbor): Path[] => {
   if (numberPatternMatches(pattern, haystack)) {
     return [[haystack]];
   }
@@ -196,10 +183,7 @@ export const numberPatternDisplay = (pattern: NumberPattern): string => {
 /**
  * Compares two NumberPatterns for equality.
  */
-export const numberPatternEquals = (
-  a: NumberPattern,
-  b: NumberPattern,
-): boolean => {
+export const numberPatternEquals = (a: NumberPattern, b: NumberPattern): boolean => {
   if (a.variant !== b.variant) {
     return false;
   }
@@ -216,8 +200,6 @@ export const numberPatternEquals = (
     case "LessThanOrEqual":
       return a.value === (b as typeof a).value;
     case "Range":
-      return (
-        a.min === (b as typeof a).min && a.max === (b as typeof a).max
-      );
+      return a.min === (b as typeof a).min && a.max === (b as typeof a).max;
   }
 };

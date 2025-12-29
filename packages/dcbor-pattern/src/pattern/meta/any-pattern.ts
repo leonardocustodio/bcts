@@ -11,7 +11,9 @@ import type { Path } from "../../format";
 /**
  * A pattern that always matches any CBOR value.
  */
-export interface AnyPattern { readonly variant: "Any" }
+export interface AnyPattern {
+  readonly variant: "Any";
+}
 
 /**
  * Creates an AnyPattern.
@@ -22,20 +24,14 @@ export const anyPattern = (): AnyPattern => ({ variant: "Any" });
  * Tests if a CBOR value matches this any pattern.
  * Always returns true.
  */
-export const anyPatternMatches = (
-  _pattern: AnyPattern,
-  _haystack: Cbor,
-): boolean => {
+export const anyPatternMatches = (_pattern: AnyPattern, _haystack: Cbor): boolean => {
   return true;
 };
 
 /**
  * Returns paths to matching values.
  */
-export const anyPatternPaths = (
-  _pattern: AnyPattern,
-  haystack: Cbor,
-): Path[] => {
+export const anyPatternPaths = (_pattern: AnyPattern, haystack: Cbor): Path[] => {
   return [[haystack]];
 };
 

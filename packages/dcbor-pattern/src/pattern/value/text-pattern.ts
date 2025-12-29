@@ -40,10 +40,7 @@ export const textPatternRegex = (pattern: RegExp): TextPattern => ({
 /**
  * Tests if a CBOR value matches this text pattern.
  */
-export const textPatternMatches = (
-  pattern: TextPattern,
-  haystack: Cbor,
-): boolean => {
+export const textPatternMatches = (pattern: TextPattern, haystack: Cbor): boolean => {
   const value = asText(haystack);
   if (value === undefined) {
     return false;
@@ -61,10 +58,7 @@ export const textPatternMatches = (
 /**
  * Returns paths to matching text values.
  */
-export const textPatternPaths = (
-  pattern: TextPattern,
-  haystack: Cbor,
-): Path[] => {
+export const textPatternPaths = (pattern: TextPattern, haystack: Cbor): Path[] => {
   if (textPatternMatches(pattern, haystack)) {
     return [[haystack]];
   }

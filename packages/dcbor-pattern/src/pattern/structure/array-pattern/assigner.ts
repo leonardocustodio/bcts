@@ -10,11 +10,7 @@
 import type { Cbor } from "@bcts/dcbor";
 import type { Pattern } from "../../index";
 import { hasRepeatPatternsInSlice } from "./helpers";
-import {
-  GenericBacktracker,
-  BooleanBacktrackState,
-  AssignmentBacktrackState,
-} from "./backtrack";
+import { GenericBacktracker, BooleanBacktrackState, AssignmentBacktrackState } from "./backtrack";
 
 /**
  * Helper class for handling element-to-pattern assignment logic.
@@ -52,17 +48,11 @@ export class SequenceAssigner {
     // Simple case: if pattern count equals element count AND no repeat patterns
     if (this.#patterns.length === this.#arr.length && !hasRepeatPatterns) {
       // Try one-to-one matching
-      return this.#patterns.every((pattern, i) =>
-        this.#matchFn(pattern, this.#arr[i]),
-      );
+      return this.#patterns.every((pattern, i) => this.#matchFn(pattern, this.#arr[i]));
     }
 
     // Complex case: use generic backtracking framework
-    const backtracker = new GenericBacktracker(
-      this.#patterns,
-      this.#arr,
-      this.#matchFn,
-    );
+    const backtracker = new GenericBacktracker(this.#patterns, this.#arr, this.#matchFn);
     const state = new BooleanBacktrackState();
     return backtracker.backtrack(state, 0, 0);
   }
@@ -95,11 +85,7 @@ export class SequenceAssigner {
     }
 
     // Complex case: use generic backtracking framework
-    const backtracker = new GenericBacktracker(
-      this.#patterns,
-      this.#arr,
-      this.#matchFn,
-    );
+    const backtracker = new GenericBacktracker(this.#patterns, this.#arr, this.#matchFn);
     const state = new AssignmentBacktrackState();
     if (backtracker.backtrack(state, 0, 0)) {
       return state.assignments;

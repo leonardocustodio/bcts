@@ -30,9 +30,7 @@ export const mapPatternAny = (): MapPattern => ({ variant: "Any" });
 /**
  * Creates a MapPattern that matches maps with key-value constraints.
  */
-export const mapPatternWithConstraints = (
-  constraints: [Pattern, Pattern][],
-): MapPattern => ({
+export const mapPatternWithConstraints = (constraints: [Pattern, Pattern][]): MapPattern => ({
   variant: "Constraints",
   constraints,
 });
@@ -48,10 +46,7 @@ export const mapPatternWithLength = (length: number): MapPattern => ({
 /**
  * Creates a MapPattern that matches maps with length in a range.
  */
-export const mapPatternWithLengthRange = (
-  min: number,
-  max?: number,
-): MapPattern => ({
+export const mapPatternWithLengthRange = (min: number, max?: number): MapPattern => ({
   variant: "Length",
   length: max !== undefined ? Interval.from(min, max) : Interval.atLeast(min),
 });
@@ -59,9 +54,7 @@ export const mapPatternWithLengthRange = (
 /**
  * Creates a MapPattern that matches maps with length in an interval.
  */
-export const mapPatternWithLengthInterval = (
-  interval: Interval,
-): MapPattern => ({
+export const mapPatternWithLengthInterval = (interval: Interval): MapPattern => ({
   variant: "Length",
   length: interval,
 });
@@ -69,10 +62,7 @@ export const mapPatternWithLengthInterval = (
 /**
  * Tests if a CBOR value matches this map pattern.
  */
-export const mapPatternMatches = (
-  pattern: MapPattern,
-  haystack: Cbor,
-): boolean => {
+export const mapPatternMatches = (pattern: MapPattern, haystack: Cbor): boolean => {
   if (!isMap(haystack)) {
     return false;
   }
@@ -93,7 +83,9 @@ export const mapPatternMatches = (
             const rawValue = mapValue(haystack, key);
             if (rawValue !== undefined && rawValue !== null) {
               // Wrap raw JavaScript value in CBOR if needed
-              const value = (rawValue as Cbor)?.isCbor ? rawValue as Cbor : cbor(rawValue as CborInput);
+              const value = (rawValue as Cbor)?.isCbor
+                ? (rawValue as Cbor)
+                : cbor(rawValue as CborInput);
               if (matchPattern(valuePattern, value)) {
                 foundMatch = true;
                 break;
@@ -117,10 +109,7 @@ export const mapPatternMatches = (
 /**
  * Returns paths to matching map values.
  */
-export const mapPatternPaths = (
-  pattern: MapPattern,
-  haystack: Cbor,
-): Path[] => {
+export const mapPatternPaths = (pattern: MapPattern, haystack: Cbor): Path[] => {
   if (mapPatternMatches(pattern, haystack)) {
     return [[haystack]];
   }

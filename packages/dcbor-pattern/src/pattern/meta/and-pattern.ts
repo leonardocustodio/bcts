@@ -30,20 +30,14 @@ export const andPattern = (patterns: Pattern[]): AndPattern => ({
  * Tests if a CBOR value matches this and pattern.
  * All patterns must match.
  */
-export const andPatternMatches = (
-  pattern: AndPattern,
-  haystack: Cbor,
-): boolean => {
+export const andPatternMatches = (pattern: AndPattern, haystack: Cbor): boolean => {
   return pattern.patterns.every((p: Pattern) => matchPattern(p, haystack));
 };
 
 /**
  * Returns paths to matching values.
  */
-export const andPatternPaths = (
-  pattern: AndPattern,
-  haystack: Cbor,
-): Path[] => {
+export const andPatternPaths = (pattern: AndPattern, haystack: Cbor): Path[] => {
   if (andPatternMatches(pattern, haystack)) {
     return [[haystack]];
   }

@@ -16,41 +16,17 @@ export * from "./known-value-pattern";
 import type { Cbor } from "@bcts/dcbor";
 import type { Path } from "../../format";
 
-import {
-  type BoolPattern,
-  boolPatternPaths,
-  boolPatternDisplay,
-} from "./bool-pattern";
-import {
-  type NullPattern,
-  nullPatternPaths,
-  nullPatternDisplay,
-} from "./null-pattern";
-import {
-  type NumberPattern,
-  numberPatternPaths,
-  numberPatternDisplay,
-} from "./number-pattern";
-import {
-  type TextPattern,
-  textPatternPaths,
-  textPatternDisplay,
-} from "./text-pattern";
+import { type BoolPattern, boolPatternPaths, boolPatternDisplay } from "./bool-pattern";
+import { type NullPattern, nullPatternPaths, nullPatternDisplay } from "./null-pattern";
+import { type NumberPattern, numberPatternPaths, numberPatternDisplay } from "./number-pattern";
+import { type TextPattern, textPatternPaths, textPatternDisplay } from "./text-pattern";
 import {
   type ByteStringPattern,
   byteStringPatternPaths,
   byteStringPatternDisplay,
 } from "./bytestring-pattern";
-import {
-  type DatePattern,
-  datePatternPaths,
-  datePatternDisplay,
-} from "./date-pattern";
-import {
-  type DigestPattern,
-  digestPatternPaths,
-  digestPatternDisplay,
-} from "./digest-pattern";
+import { type DatePattern, datePatternPaths, datePatternDisplay } from "./date-pattern";
+import { type DigestPattern, digestPatternPaths, digestPatternDisplay } from "./digest-pattern";
 import {
   type KnownValuePattern,
   knownValuePatternPaths,
@@ -73,10 +49,7 @@ export type ValuePattern =
 /**
  * Returns paths to matching values for a ValuePattern.
  */
-export const valuePatternPaths = (
-  pattern: ValuePattern,
-  haystack: Cbor,
-): Path[] => {
+export const valuePatternPaths = (pattern: ValuePattern, haystack: Cbor): Path[] => {
   switch (pattern.type) {
     case "Bool":
       return boolPatternPaths(pattern.pattern, haystack);
@@ -100,10 +73,7 @@ export const valuePatternPaths = (
 /**
  * Tests if a CBOR value matches a ValuePattern.
  */
-export const valuePatternMatches = (
-  pattern: ValuePattern,
-  haystack: Cbor,
-): boolean => {
+export const valuePatternMatches = (pattern: ValuePattern, haystack: Cbor): boolean => {
   return valuePatternPaths(pattern, haystack).length > 0;
 };
 

@@ -79,7 +79,11 @@ export class Quantifier {
   /**
    * Creates a quantifier for between min and max occurrences.
    */
-  static between(min: number, max: number, reluctance: Reluctance = DEFAULT_RELUCTANCE): Quantifier {
+  static between(
+    min: number,
+    max: number,
+    reluctance: Reluctance = DEFAULT_RELUCTANCE,
+  ): Quantifier {
     return new Quantifier(new Interval(min, max), reluctance);
   }
 

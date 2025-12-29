@@ -57,10 +57,7 @@ export const arrayPatternWithLength = (length: number): ArrayPattern => ({
 /**
  * Creates an ArrayPattern that matches arrays with length in a range.
  */
-export const arrayPatternWithLengthRange = (
-  min: number,
-  max?: number,
-): ArrayPattern => ({
+export const arrayPatternWithLengthRange = (min: number, max?: number): ArrayPattern => ({
   variant: "Length",
   length: max !== undefined ? Interval.from(min, max) : Interval.atLeast(min),
 });
@@ -68,9 +65,7 @@ export const arrayPatternWithLengthRange = (
 /**
  * Creates an ArrayPattern that matches arrays with length in an interval.
  */
-export const arrayPatternWithLengthInterval = (
-  interval: Interval,
-): ArrayPattern => ({
+export const arrayPatternWithLengthInterval = (interval: Interval): ArrayPattern => ({
   variant: "Length",
   length: interval,
 });
@@ -100,10 +95,7 @@ const getArrayElements = (haystack: Cbor): Cbor[] | undefined => {
 /**
  * Match a single repeat pattern against array elements.
  */
-const matchRepeatPatternAgainstArray = (
-  repeatPattern: RepeatPattern,
-  arr: Cbor[],
-): boolean => {
+const matchRepeatPatternAgainstArray = (repeatPattern: RepeatPattern, arr: Cbor[]): boolean => {
   const quantifier = repeatPattern.quantifier;
   const minCount = quantifier.min();
   const maxCount = quantifier.max() ?? arr.length;
@@ -120,10 +112,7 @@ const matchRepeatPatternAgainstArray = (
 /**
  * Match a sequence of patterns against array elements using backtracking.
  */
-const matchSequencePatternsAgainstArray = (
-  seqPattern: SequencePattern,
-  arr: Cbor[],
-): boolean => {
+const matchSequencePatternsAgainstArray = (seqPattern: SequencePattern, arr: Cbor[]): boolean => {
   const patterns = seqPattern.patterns;
   const assigner = new SequenceAssigner(patterns, arr, matchPattern);
   return assigner.canMatch();
@@ -132,10 +121,7 @@ const matchSequencePatternsAgainstArray = (
 /**
  * Check if a sequence pattern can match against array elements.
  */
-const canMatchSequenceAgainstArray = (
-  pattern: Pattern,
-  arr: Cbor[],
-): boolean => {
+const canMatchSequenceAgainstArray = (pattern: Pattern, arr: Cbor[]): boolean => {
   if (pattern.kind === "Meta") {
     if (pattern.pattern.type === "Sequence") {
       return matchSequencePatternsAgainstArray(pattern.pattern.pattern, arr);
@@ -152,10 +138,7 @@ const canMatchSequenceAgainstArray = (
 /**
  * Match a complex sequence against array elements.
  */
-const matchComplexSequence = (
-  haystack: Cbor,
-  pattern: Pattern,
-): Path[] => {
+const matchComplexSequence = (haystack: Cbor, pattern: Pattern): Path[] => {
   const arr = getArrayElements(haystack);
   if (arr === undefined) {
     return [];
@@ -281,10 +264,7 @@ const handleSequenceCaptures = (
 /**
  * Tests if a CBOR value matches this array pattern.
  */
-export const arrayPatternMatches = (
-  pattern: ArrayPattern,
-  haystack: Cbor,
-): boolean => {
+export const arrayPatternMatches = (pattern: ArrayPattern, haystack: Cbor): boolean => {
   if (!isArray(haystack)) {
     return false;
   }
@@ -304,10 +284,7 @@ export const arrayPatternMatches = (
       if (elemPattern.kind === "Meta") {
         if (elemPattern.pattern.type === "Sequence") {
           // Use sequence matching with backtracking
-          return matchSequencePatternsAgainstArray(
-            elemPattern.pattern.pattern,
-            arr,
-          );
+          return matchSequencePatternsAgainstArray(elemPattern.pattern.pattern, arr);
         }
         if (elemPattern.pattern.type === "Repeat") {
           // Use repeat matching
@@ -344,10 +321,7 @@ export const arrayPatternMatches = (
 /**
  * Returns paths to matching array values.
  */
-export const arrayPatternPaths = (
-  pattern: ArrayPattern,
-  haystack: Cbor,
-): Path[] => {
+export const arrayPatternPaths = (pattern: ArrayPattern, haystack: Cbor): Path[] => {
   if (!isArray(haystack)) {
     return [];
   }
@@ -393,9 +367,7 @@ export const arrayPatternPaths = (
 
         if (elemPattern.pattern.type === "Capture") {
           // For capture patterns, check if any element matches
-          const hasMatch = arr.some((element) =>
-            matchPattern(elemPattern, element),
-          );
+          const hasMatch = arr.some((element) => matchPattern(elemPattern, element));
           return hasMatch ? [[haystack]] : [];
         }
       }
@@ -447,10 +419,7 @@ export const arrayPatternPathsWithCaptures = (
       const elemPattern = pattern.pattern;
 
       // Check for sequence patterns with captures
-      if (
-        elemPattern.kind === "Meta" &&
-        elemPattern.pattern.type === "Sequence"
-      ) {
+      if (elemPattern.kind === "Meta" && elemPattern.pattern.type === "Sequence") {
         const seqPattern = elemPattern.pattern.pattern;
 
         // First check if this pattern matches
@@ -462,14 +431,9 @@ export const arrayPatternPathsWithCaptures = (
       }
 
       // For capture patterns
-      if (
-        elemPattern.kind === "Meta" &&
-        elemPattern.pattern.type === "Capture"
-      ) {
+      if (elemPattern.kind === "Meta" && elemPattern.pattern.type === "Capture") {
         const capturePattern = elemPattern.pattern.pattern;
-        const matchingElements = arr.filter((element) =>
-          matchPattern(elemPattern, element),
-        );
+        const matchingElements = arr.filter((element) => matchPattern(elemPattern, element));
 
         if (matchingElements.length === 0) {
           return [[], new Map()];
@@ -505,10 +469,7 @@ export const arrayPatternDisplay = (
     case "Elements": {
       const elemPattern = pattern.pattern;
       // For sequence patterns within arrays, format elements with commas
-      if (
-        elemPattern.kind === "Meta" &&
-        elemPattern.pattern.type === "Sequence"
-      ) {
+      if (elemPattern.kind === "Meta" && elemPattern.pattern.type === "Sequence") {
         const parts = elemPattern.pattern.pattern.patterns.map(patternDisplay);
         return `[${parts.join(", ")}]`;
       }

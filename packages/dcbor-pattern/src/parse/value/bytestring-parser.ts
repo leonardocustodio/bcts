@@ -21,9 +21,7 @@ export const parseByteString = (_lexer: Lexer): Result<Pattern> => {
 /**
  * Parse a hex string token result into a pattern.
  */
-export const parseHexStringToken = (
-  hexResult: Result<Uint8Array>,
-): Result<Pattern> => {
+export const parseHexStringToken = (hexResult: Result<Uint8Array>): Result<Pattern> => {
   if (!hexResult.ok) {
     return hexResult;
   }
@@ -34,9 +32,7 @@ export const parseHexStringToken = (
  * Parse a hex regex token result into a pattern.
  * Note: In TypeScript, we convert bytes to hex string for regex matching.
  */
-export const parseHexRegexToken = (
-  regexResult: Result<RegExp>,
-): Result<Pattern> => {
+export const parseHexRegexToken = (regexResult: Result<RegExp>): Result<Pattern> => {
   if (!regexResult.ok) {
     return regexResult;
   }

@@ -154,10 +154,7 @@ export const compilePattern = (pattern: Pattern): Program => {
 /**
  * Recursively collects capture names from a pattern.
  */
-const collectPatternCaptureNames = (
-  pattern: Pattern,
-  names: string[],
-): void => {
+const collectPatternCaptureNames = (pattern: Pattern, names: string[]): void => {
   switch (pattern.kind) {
     case "Value":
       // Value patterns don't have captures
@@ -282,23 +279,16 @@ const compileMetaPattern = (
         code.push({ type: "Split", a: 0, b: 0 }); // Placeholder
 
         // First alternative starts right after split
-        (code[splitAddr] as { type: "Split"; a: number; b: number }).a =
-          code.length;
+        (code[splitAddr] as { type: "Split"; a: number; b: number }).a = code.length;
         compilePatternToCode(patterns[i], code, literals, captureNames);
         jumpAddrs.push(code.length);
         code.push({ type: "Jump", address: 0 }); // Jump to end, placeholder
 
         // Second alternative address
-        (code[splitAddr] as { type: "Split"; a: number; b: number }).b =
-          code.length;
+        (code[splitAddr] as { type: "Split"; a: number; b: number }).b = code.length;
       }
       // Last pattern
-      compilePatternToCode(
-        patterns[patterns.length - 1],
-        code,
-        literals,
-        captureNames,
-      );
+      compilePatternToCode(patterns[patterns.length - 1], code, literals, captureNames);
 
       // Fix up jump addresses
       const endAddr = code.length;
@@ -328,12 +318,7 @@ const compileMetaPattern = (
     case "Capture": {
       const captureIndex = captureNames.indexOf(pattern.pattern.name);
       code.push({ type: "CaptureStart", captureIndex });
-      compilePatternToCode(
-        pattern.pattern.pattern,
-        code,
-        literals,
-        captureNames,
-      );
+      compilePatternToCode(pattern.pattern.pattern, code, literals, captureNames);
       code.push({ type: "CaptureEnd", captureIndex });
       break;
     }

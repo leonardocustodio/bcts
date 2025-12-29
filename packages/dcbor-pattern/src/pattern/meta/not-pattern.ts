@@ -30,10 +30,7 @@ export const notPattern = (pattern: Pattern): NotPattern => ({
  * Tests if a CBOR value matches this not pattern.
  * Returns true if the inner pattern does NOT match.
  */
-export const notPatternMatches = (
-  pattern: NotPattern,
-  haystack: Cbor,
-): boolean => {
+export const notPatternMatches = (pattern: NotPattern, haystack: Cbor): boolean => {
   return !matchPattern(pattern.pattern, haystack);
 };
 

@@ -31,10 +31,7 @@ export const boolPatternValue = (value: boolean): BoolPattern => ({
 /**
  * Tests if a CBOR value matches this boolean pattern.
  */
-export const boolPatternMatches = (
-  pattern: BoolPattern,
-  haystack: Cbor,
-): boolean => {
+export const boolPatternMatches = (pattern: BoolPattern, haystack: Cbor): boolean => {
   const value = asBoolean(haystack);
   if (value === undefined) {
     return false;
@@ -50,10 +47,7 @@ export const boolPatternMatches = (
 /**
  * Returns paths to matching boolean values.
  */
-export const boolPatternPaths = (
-  pattern: BoolPattern,
-  haystack: Cbor,
-): Path[] => {
+export const boolPatternPaths = (pattern: BoolPattern, haystack: Cbor): Path[] => {
   if (boolPatternMatches(pattern, haystack)) {
     return [[haystack]];
   }

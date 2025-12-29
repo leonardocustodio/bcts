@@ -30,10 +30,7 @@ export const orPattern = (patterns: Pattern[]): OrPattern => ({
  * Tests if a CBOR value matches this or pattern.
  * At least one pattern must match.
  */
-export const orPatternMatches = (
-  pattern: OrPattern,
-  haystack: Cbor,
-): boolean => {
+export const orPatternMatches = (pattern: OrPattern, haystack: Cbor): boolean => {
   return pattern.patterns.some((p: Pattern) => matchPattern(p, haystack));
 };
 

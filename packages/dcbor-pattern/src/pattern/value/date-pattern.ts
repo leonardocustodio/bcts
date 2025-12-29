@@ -44,10 +44,7 @@ export const datePatternValue = (value: CborDate): DatePattern => ({
 /**
  * Creates a DatePattern that matches dates within a range (inclusive).
  */
-export const datePatternRange = (
-  min: CborDate,
-  max: CborDate,
-): DatePattern => ({
+export const datePatternRange = (min: CborDate, max: CborDate): DatePattern => ({
   variant: "Range",
   min,
   max,
@@ -106,10 +103,7 @@ const extractDate = (haystack: Cbor): CborDate | undefined => {
 /**
  * Tests if a CBOR value matches this date pattern.
  */
-export const datePatternMatches = (
-  pattern: DatePattern,
-  haystack: Cbor,
-): boolean => {
+export const datePatternMatches = (pattern: DatePattern, haystack: Cbor): boolean => {
   const date = extractDate(haystack);
   if (date === undefined) {
     return false;
@@ -122,8 +116,7 @@ export const datePatternMatches = (
       return date.timestamp() === pattern.value.timestamp();
     case "Range":
       return (
-        date.timestamp() >= pattern.min.timestamp() &&
-        date.timestamp() <= pattern.max.timestamp()
+        date.timestamp() >= pattern.min.timestamp() && date.timestamp() <= pattern.max.timestamp()
       );
     case "Earliest":
       return date.timestamp() >= pattern.value.timestamp();
@@ -139,10 +132,7 @@ export const datePatternMatches = (
 /**
  * Returns paths to matching date values.
  */
-export const datePatternPaths = (
-  pattern: DatePattern,
-  haystack: Cbor,
-): Path[] => {
+export const datePatternPaths = (pattern: DatePattern, haystack: Cbor): Path[] => {
   if (datePatternMatches(pattern, haystack)) {
     return [[haystack]];
   }

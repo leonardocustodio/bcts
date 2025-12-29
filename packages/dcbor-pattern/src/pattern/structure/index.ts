@@ -18,16 +18,8 @@ import {
   arrayPatternDisplay,
   arrayPatternPathsWithCaptures,
 } from "./array-pattern";
-import {
-  type MapPattern,
-  mapPatternPaths,
-  mapPatternDisplay,
-} from "./map-pattern";
-import {
-  type TaggedPattern,
-  taggedPatternPaths,
-  taggedPatternDisplay,
-} from "./tagged-pattern";
+import { type MapPattern, mapPatternPaths, mapPatternDisplay } from "./map-pattern";
+import { type TaggedPattern, taggedPatternPaths, taggedPatternDisplay } from "./tagged-pattern";
 
 /**
  * Union of all structure pattern types.
@@ -40,10 +32,7 @@ export type StructurePattern =
 /**
  * Returns paths to matching structures for a StructurePattern.
  */
-export const structurePatternPaths = (
-  pattern: StructurePattern,
-  haystack: Cbor,
-): Path[] => {
+export const structurePatternPaths = (pattern: StructurePattern, haystack: Cbor): Path[] => {
   switch (pattern.type) {
     case "Array":
       return arrayPatternPaths(pattern.pattern, haystack);
@@ -57,10 +46,7 @@ export const structurePatternPaths = (
 /**
  * Tests if a CBOR value matches a StructurePattern.
  */
-export const structurePatternMatches = (
-  pattern: StructurePattern,
-  haystack: Cbor,
-): boolean => {
+export const structurePatternMatches = (pattern: StructurePattern, haystack: Cbor): boolean => {
   return structurePatternPaths(pattern, haystack).length > 0;
 };
 

@@ -29,9 +29,7 @@ export const knownValuePatternAny = (): KnownValuePattern => ({
 /**
  * Creates a KnownValuePattern that matches a specific known value.
  */
-export const knownValuePatternValue = (
-  value: KnownValue,
-): KnownValuePattern => ({
+export const knownValuePatternValue = (value: KnownValue): KnownValuePattern => ({
   variant: "Value",
   value,
 });
@@ -77,10 +75,7 @@ const extractKnownValue = (haystack: Cbor): KnownValue | undefined => {
 /**
  * Tests if a CBOR value matches this known value pattern.
  */
-export const knownValuePatternMatches = (
-  pattern: KnownValuePattern,
-  haystack: Cbor,
-): boolean => {
+export const knownValuePatternMatches = (pattern: KnownValuePattern, haystack: Cbor): boolean => {
   const knownValue = extractKnownValue(haystack);
   if (knownValue === undefined) {
     return false;
@@ -104,10 +99,7 @@ export const knownValuePatternMatches = (
 /**
  * Returns paths to matching known values.
  */
-export const knownValuePatternPaths = (
-  pattern: KnownValuePattern,
-  haystack: Cbor,
-): Path[] => {
+export const knownValuePatternPaths = (pattern: KnownValuePattern, haystack: Cbor): Path[] => {
   if (knownValuePatternMatches(pattern, haystack)) {
     return [[haystack]];
   }
@@ -117,9 +109,7 @@ export const knownValuePatternPaths = (
 /**
  * Formats a KnownValuePattern as a string.
  */
-export const knownValuePatternDisplay = (
-  pattern: KnownValuePattern,
-): string => {
+export const knownValuePatternDisplay = (pattern: KnownValuePattern): string => {
   switch (pattern.variant) {
     case "Any":
       return "known";
@@ -135,10 +125,7 @@ export const knownValuePatternDisplay = (
 /**
  * Compares two KnownValuePatterns for equality.
  */
-export const knownValuePatternEquals = (
-  a: KnownValuePattern,
-  b: KnownValuePattern,
-): boolean => {
+export const knownValuePatternEquals = (a: KnownValuePattern, b: KnownValuePattern): boolean => {
   if (a.variant !== b.variant) {
     return false;
   }

@@ -21,19 +21,12 @@ import type { Path } from "../format";
 import type { Pattern } from "./index";
 import type { Quantifier } from "../quantifier";
 import { Reluctance } from "../reluctance";
-import {
-  getPatternPaths,
-  getPatternPathsWithCapturesDirect,
-} from "./match-registry";
+import { getPatternPaths, getPatternPathsWithCapturesDirect } from "./match-registry";
 
 /**
  * Navigation axis for traversing dCBOR tree structures.
  */
-export type Axis =
-  | "ArrayElement"
-  | "MapKey"
-  | "MapValue"
-  | "TaggedContent";
+export type Axis = "ArrayElement" | "MapKey" | "MapValue" | "TaggedContent";
 
 /**
  * Return child CBOR values reachable from `cbor` via the given axis.
@@ -163,9 +156,7 @@ export const atomicPaths = (pattern: Pattern, cbor: Cbor): Path[] => {
       if (pattern.pattern.type === "Any") {
         return [[cbor]];
       }
-      throw new Error(
-        `Non-atomic meta pattern used in MatchPredicate: ${pattern.pattern.type}`,
-      );
+      throw new Error(`Non-atomic meta pattern used in MatchPredicate: ${pattern.pattern.type}`);
   }
 };
 
@@ -179,9 +170,7 @@ const repeatPaths = (
   quantifier: Quantifier,
 ): { cbor: Cbor; path: Path }[] => {
   // Build states for all possible repetition counts
-  const states: { cbor: Cbor; path: Path }[][] = [
-    [{ cbor, path: [...path] }],
-  ];
+  const states: { cbor: Cbor; path: Path }[][] = [[{ cbor, path: [...path] }]];
   const bound = quantifier.max() ?? Number.MAX_SAFE_INTEGER;
 
   // Try matching the pattern repeatedly
@@ -332,10 +321,7 @@ const runThread = (
           }
 
           // Handle structure paths
-          if (
-            result.paths.length === 1 &&
-            result.paths[0].length === 1
-          ) {
+          if (result.paths.length === 1 && result.paths[0].length === 1) {
             th.pc += 1;
           } else {
             for (const structurePath of result.paths) {
@@ -611,10 +597,7 @@ export class Vm {
   /**
    * Execute a program against a dCBOR value.
    */
-  static run(
-    prog: Program,
-    root: Cbor,
-  ): { paths: Path[]; captures: Map<string, Path[]> } {
+  static run(prog: Program, root: Cbor): { paths: Path[]; captures: Map<string, Path[]> } {
     return run(prog, root);
   }
 }

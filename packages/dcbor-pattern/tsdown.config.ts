@@ -9,4 +9,12 @@ export default defineConfig({
   clean: true,
   target: "es2022",
   globalName: "bctsDcborPattern",
+  outputOptions: {
+    globals: {
+      "@bcts/dcbor": "bctsDcbor",
+      "@bcts/components": "bctsComponents",
+      "@bcts/known-values": "bctsKnownValues",
+      "@bcts/tags": "bctsTags",
+    },
+  },
 });

@@ -116,10 +116,7 @@ const extractDigestBytes = (haystack: Cbor): Uint8Array | undefined => {
 /**
  * Tests if a CBOR value matches this digest pattern.
  */
-export const digestPatternMatches = (
-  pattern: DigestPattern,
-  haystack: Cbor,
-): boolean => {
+export const digestPatternMatches = (pattern: DigestPattern, haystack: Cbor): boolean => {
   const digestBytes = extractDigestBytes(haystack);
   if (digestBytes === undefined) {
     return false;
@@ -143,10 +140,7 @@ export const digestPatternMatches = (
 /**
  * Returns paths to matching digest values.
  */
-export const digestPatternPaths = (
-  pattern: DigestPattern,
-  haystack: Cbor,
-): Path[] => {
+export const digestPatternPaths = (pattern: DigestPattern, haystack: Cbor): Path[] => {
   if (digestPatternMatches(pattern, haystack)) {
     return [[haystack]];
   }
@@ -173,10 +167,7 @@ export const digestPatternDisplay = (pattern: DigestPattern): string => {
 /**
  * Compares two DigestPatterns for equality.
  */
-export const digestPatternEquals = (
-  a: DigestPattern,
-  b: DigestPattern,
-): boolean => {
+export const digestPatternEquals = (a: DigestPattern, b: DigestPattern): boolean => {
   if (a.variant !== b.variant) {
     return false;
   }

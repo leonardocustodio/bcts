@@ -9,7 +9,10 @@ import type { Pattern } from "../../pattern";
 import type { Result } from "../../error";
 import { Ok, Err } from "../../error";
 import { anyMap } from "../../pattern";
-import { mapPatternWithLengthInterval, mapPatternWithConstraints } from "../../pattern/structure/map-pattern";
+import {
+  mapPatternWithLengthInterval,
+  mapPatternWithConstraints,
+} from "../../pattern/structure/map-pattern";
 import { parseOrFromRegistry } from "../parse-registry";
 
 /**

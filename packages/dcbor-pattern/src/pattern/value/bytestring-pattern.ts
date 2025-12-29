@@ -35,9 +35,7 @@ export const byteStringPatternAny = (): ByteStringPattern => ({
 /**
  * Creates a ByteStringPattern that matches a specific byte string value.
  */
-export const byteStringPatternValue = (
-  value: Uint8Array,
-): ByteStringPattern => ({
+export const byteStringPatternValue = (value: Uint8Array): ByteStringPattern => ({
   variant: "Value",
   value,
 });
@@ -60,9 +58,7 @@ export const byteStringPatternValue = (
  * byteStringPatternBinaryRegex(/^\d+$/)
  * ```
  */
-export const byteStringPatternBinaryRegex = (
-  pattern: RegExp,
-): ByteStringPattern => ({
+export const byteStringPatternBinaryRegex = (pattern: RegExp): ByteStringPattern => ({
   variant: "BinaryRegex",
   pattern,
 });
@@ -100,10 +96,7 @@ const bytesToLatin1 = (bytes: Uint8Array): string => {
 /**
  * Tests if a CBOR value matches this byte string pattern.
  */
-export const byteStringPatternMatches = (
-  pattern: ByteStringPattern,
-  haystack: Cbor,
-): boolean => {
+export const byteStringPatternMatches = (pattern: ByteStringPattern, haystack: Cbor): boolean => {
   const value = asBytes(haystack);
   if (value === undefined) {
     return false;
@@ -125,10 +118,7 @@ export const byteStringPatternMatches = (
 /**
  * Returns paths to matching byte string values.
  */
-export const byteStringPatternPaths = (
-  pattern: ByteStringPattern,
-  haystack: Cbor,
-): Path[] => {
+export const byteStringPatternPaths = (pattern: ByteStringPattern, haystack: Cbor): Path[] => {
   if (byteStringPatternMatches(pattern, haystack)) {
     return [[haystack]];
   }
@@ -138,9 +128,7 @@ export const byteStringPatternPaths = (
 /**
  * Formats a ByteStringPattern as a string.
  */
-export const byteStringPatternDisplay = (
-  pattern: ByteStringPattern,
-): string => {
+export const byteStringPatternDisplay = (pattern: ByteStringPattern): string => {
   switch (pattern.variant) {
     case "Any":
       return "bstr";
@@ -154,10 +142,7 @@ export const byteStringPatternDisplay = (
 /**
  * Compares two ByteStringPatterns for equality.
  */
-export const byteStringPatternEquals = (
-  a: ByteStringPattern,
-  b: ByteStringPattern,
-): boolean => {
+export const byteStringPatternEquals = (a: ByteStringPattern, b: ByteStringPattern): boolean => {
   if (a.variant !== b.variant) {
     return false;
   }
