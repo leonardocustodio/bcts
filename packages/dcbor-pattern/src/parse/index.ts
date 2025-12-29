@@ -8,19 +8,15 @@
  */
 
 export * from "./token";
-
-// Value parsers - to be implemented
-// export * from "./value";
-
-// Structure parsers - to be implemented
-// export * from "./structure";
-
-// Meta parsers - to be implemented
-// export * from "./meta";
+export * from "./value";
+export * from "./structure";
+export * from "./meta";
 
 import type { Pattern } from "../pattern";
 import type { Result } from "../error";
-import { Err } from "../error";
+import { Ok, Err } from "../error";
+import { Lexer } from "./token";
+import { parseOr } from "./meta/or-parser";
 
 /**
  * Parses a complete dCBOR pattern expression.
@@ -37,24 +33,57 @@ import { Err } from "../error";
  * ```
  */
 export const parse = (input: string): Result<Pattern> => {
-  // TODO: Implement full parser
-  if (input.trim().length === 0) {
-    return Err({ type: "EmptyInput" });
+  const result = parsePartial(input);
+  if (!result.ok) {
+    return result;
   }
-  return Err({ type: "Unknown" });
+
+  const [pattern, consumed] = result.value;
+  if (consumed < input.length) {
+    // There's extra data after the pattern
+    return Err({
+      type: "ExtraData",
+      span: { start: consumed, end: input.length },
+    });
+  }
+
+  return Ok(pattern);
 };
 
 /**
  * Parses a partial dCBOR pattern expression, returning the parsed pattern
  * and the number of characters consumed.
  *
+ * Unlike `parse()`, this function succeeds even if additional characters
+ * follow the first pattern. The returned index points to the first unparsed
+ * character after the pattern.
+ *
  * @param input - The pattern string to parse
  * @returns A Result containing a tuple of [Pattern, consumedLength] or an error
+ *
+ * @example
+ * ```typescript
+ * const result = parsePartial("true rest");
+ * if (result.ok) {
+ *   const [pattern, consumed] = result.value;
+ *   console.log(consumed); // 4 or 5 (includes whitespace)
+ * }
+ * ```
  */
 export const parsePartial = (input: string): Result<[Pattern, number]> => {
-  // TODO: Implement full parser
   if (input.trim().length === 0) {
     return Err({ type: "EmptyInput" });
   }
-  return Err({ type: "Unknown" });
+
+  const lexer = new Lexer(input);
+  const patternResult = parseOr(lexer);
+
+  if (!patternResult.ok) {
+    return patternResult;
+  }
+
+  // Calculate consumed bytes
+  const consumed = lexer.position();
+
+  return Ok([patternResult.value, consumed]);
 };

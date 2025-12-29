@@ -917,6 +917,41 @@ export class Lexer {
 
     return Err({ type: "UnterminatedDigestQuoted", span: this.spanFrom(start) });
   }
+
+  /**
+   * Peeks at the next token without consuming it.
+   * Returns a Result with the token or undefined if at end of input.
+   */
+  peekToken(): Result<Token> | undefined {
+    const savedPosition = this.#position;
+    const result = this.next();
+    this.#position = savedPosition;
+
+    if (result === undefined) {
+      return undefined;
+    }
+
+    if (!result.ok) {
+      return result;
+    }
+
+    return Ok(result.value.token);
+  }
+
+  /**
+   * Returns the current span (position to position).
+   */
+  span(): Span {
+    return span(this.#position, this.#position);
+  }
+
+  /**
+   * Returns the last token's span.
+   */
+  lastSpan(): Span {
+    // This is a simplification - in reality we'd track the last span
+    return span(this.#position, this.#position);
+  }
 }
 
 // Re-export Span

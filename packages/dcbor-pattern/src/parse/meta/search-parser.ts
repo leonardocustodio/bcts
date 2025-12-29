@@ -13,19 +13,21 @@ import { parseOr } from "./or-parser";
 
 /**
  * Parse a search pattern `...(pattern)`.
- *
- * This function is called when a Search token (`...`) is encountered.
- * It expects an opening parenthesis, followed by a pattern, followed by
- * a closing parenthesis.
  */
 export const parseSearch = (lexer: Lexer): Result<Pattern> => {
   // Expect opening parenthesis
   const openResult = lexer.next();
-  if (!openResult.ok || openResult.value?.type !== "ParenOpen") {
+  if (openResult === undefined) {
+    return Err({ type: "UnexpectedEndOfInput" });
+  }
+  if (!openResult.ok) {
+    return openResult;
+  }
+  if (openResult.value.token.type !== "ParenOpen") {
     return Err({
       type: "UnexpectedToken",
-      token: openResult.ok ? openResult.value : undefined,
-      span: lexer.span(),
+      token: openResult.value.token,
+      span: openResult.value.span,
     });
   }
 
@@ -37,10 +39,16 @@ export const parseSearch = (lexer: Lexer): Result<Pattern> => {
 
   // Expect closing parenthesis
   const closeResult = lexer.next();
-  if (!closeResult.ok || closeResult.value?.type !== "ParenClose") {
+  if (closeResult === undefined) {
+    return Err({ type: "ExpectedCloseParen", span: lexer.span() });
+  }
+  if (!closeResult.ok) {
+    return closeResult;
+  }
+  if (closeResult.value.token.type !== "ParenClose") {
     return Err({
       type: "ExpectedCloseParen",
-      span: lexer.span(),
+      span: closeResult.value.span,
     });
   }
 

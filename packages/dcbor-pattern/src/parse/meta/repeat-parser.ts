@@ -4,7 +4,7 @@
  * @module parse/meta/repeat-parser
  */
 
-import type { Lexer } from "../token";
+import type { Lexer, Token } from "../token";
 import type { Pattern } from "../../pattern";
 import type { Result } from "../../error";
 import { Ok } from "../../error";
@@ -14,23 +14,15 @@ import { repeatPattern } from "../../pattern/meta/repeat-pattern";
 
 /**
  * Parse quantifier tokens that follow a grouped pattern.
- *
- * This function assumes that a pattern has been parsed and we're now
- * looking for quantifier operators like *, +, ?, or {n,m}.
- *
- * @param pattern - The pattern to apply the quantifier to
- * @param lexer - The lexer positioned after the pattern
- * @param forceRepeat - If true, always wrap in RepeatPattern even without explicit quantifier
- * @returns The pattern wrapped with the appropriate quantifier
  */
 export const parseQuantifier = (
   pattern: Pattern,
   lexer: Lexer,
   forceRepeat: boolean,
 ): Result<Pattern> => {
-  const peeked = lexer.peek();
+  const peeked = lexer.peekToken();
 
-  if (!peeked.ok || !peeked.value) {
+  if (peeked === undefined || !peeked.ok) {
     // No quantifier found
     if (forceRepeat) {
       return Ok(wrapInRepeat(pattern, Quantifier.exactly(1)));
@@ -78,19 +70,16 @@ export const parseQuantifier = (
       return Ok(wrapInRepeat(pattern, new Quantifier(0, 1, Reluctance.Possessive)));
 
     case "Range":
-      if (token.value.ok) {
-        lexer.next();
-        return Ok(wrapInRepeat(pattern, token.value.value));
-      }
-      // Fall through if range parsing failed
-      break;
-  }
+      lexer.next();
+      return Ok(wrapInRepeat(pattern, token.quantifier));
 
-  // No quantifier found
-  if (forceRepeat) {
-    return Ok(wrapInRepeat(pattern, Quantifier.exactly(1)));
+    default:
+      // No quantifier found
+      if (forceRepeat) {
+        return Ok(wrapInRepeat(pattern, Quantifier.exactly(1)));
+      }
+      return Ok(pattern);
   }
-  return Ok(pattern);
 };
 
 /**
