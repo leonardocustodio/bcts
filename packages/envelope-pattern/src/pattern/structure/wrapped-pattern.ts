@@ -72,6 +72,13 @@ export class WrappedPattern implements Matcher {
     return this.#pattern;
   }
 
+  /**
+   * Gets the inner pattern if this is an Unwrap type, undefined otherwise.
+   */
+  innerPattern(): Pattern | undefined {
+    return this.#pattern.type === "Unwrap" ? this.#pattern.pattern : undefined;
+  }
+
   pathsWithCaptures(haystack: Envelope): [Path[], Map<string, Path[]>] {
     const subject = haystack.subject();
 
@@ -92,7 +99,7 @@ export class WrappedPattern implements Matcher {
         if (unwrapped !== undefined) {
           const innerMatcher = this.#pattern.pattern as unknown as Matcher;
           const innerPaths = innerMatcher.paths(unwrapped);
-          paths = innerPaths.map(path => {
+          paths = innerPaths.map((path) => {
             // Add the current envelope to the path
             return [haystack, ...path];
           });

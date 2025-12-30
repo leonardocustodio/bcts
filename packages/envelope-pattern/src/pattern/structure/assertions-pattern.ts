@@ -15,7 +15,9 @@ import type { Pattern } from "../index";
 // Forward declaration for Pattern factory
 let createStructureAssertionsPattern: ((pattern: AssertionsPattern) => Pattern) | undefined;
 
-export function registerAssertionsPatternFactory(factory: (pattern: AssertionsPattern) => Pattern): void {
+export function registerAssertionsPatternFactory(
+  factory: (pattern: AssertionsPattern) => Pattern,
+): void {
   createStructureAssertionsPattern = factory;
 }
 
@@ -27,7 +29,8 @@ export function registerAssertionsPatternFactory(factory: (pattern: AssertionsPa
 export type AssertionsPatternType =
   | { readonly type: "Any" }
   | { readonly type: "WithPredicate"; readonly pattern: Pattern }
-  | { readonly type: "WithObject"; readonly pattern: Pattern };
+  | { readonly type: "WithObject"; readonly pattern: Pattern }
+  | { readonly type: "WithBoth"; readonly predicatePattern: Pattern; readonly objectPattern: Pattern };
 
 /**
  * Pattern for matching assertions in envelopes.
@@ -65,10 +68,44 @@ export class AssertionsPattern implements Matcher {
   }
 
   /**
+   * Creates a new AssertionsPattern that matches assertions with both
+   * predicate and object patterns.
+   */
+  static withBoth(predicatePattern: Pattern, objectPattern: Pattern): AssertionsPattern {
+    return new AssertionsPattern({ type: "WithBoth", predicatePattern, objectPattern });
+  }
+
+  /**
    * Gets the pattern type.
    */
   get patternType(): AssertionsPatternType {
     return this.#pattern;
+  }
+
+  /**
+   * Gets the predicate pattern if this has one, undefined otherwise.
+   */
+  predicatePattern(): Pattern | undefined {
+    if (this.#pattern.type === "WithPredicate") {
+      return this.#pattern.pattern;
+    }
+    if (this.#pattern.type === "WithBoth") {
+      return this.#pattern.predicatePattern;
+    }
+    return undefined;
+  }
+
+  /**
+   * Gets the object pattern if this has one, undefined otherwise.
+   */
+  objectPattern(): Pattern | undefined {
+    if (this.#pattern.type === "WithObject") {
+      return this.#pattern.pattern;
+    }
+    if (this.#pattern.type === "WithBoth") {
+      return this.#pattern.objectPattern;
+    }
+    return undefined;
   }
 
   pathsWithCaptures(haystack: Envelope): [Path[], Map<string, Path[]>] {
@@ -94,6 +131,18 @@ export class AssertionsPattern implements Matcher {
           if (object !== undefined) {
             const innerMatcher = this.#pattern.pattern as unknown as Matcher;
             if (innerMatcher.matches(object)) {
+              paths.push([assertion]);
+            }
+          }
+          break;
+        }
+        case "WithBoth": {
+          const predicate = assertion.asPredicate?.();
+          const object = assertion.asObject?.();
+          if (predicate !== undefined && object !== undefined) {
+            const predMatcher = this.#pattern.predicatePattern as unknown as Matcher;
+            const objMatcher = this.#pattern.objectPattern as unknown as Matcher;
+            if (predMatcher.matches(predicate) && objMatcher.matches(object)) {
               paths.push([assertion]);
             }
           }
@@ -134,6 +183,8 @@ export class AssertionsPattern implements Matcher {
         return `assertpred(${this.#pattern.pattern})`;
       case "WithObject":
         return `assertobj(${this.#pattern.pattern})`;
+      case "WithBoth":
+        return `assert(${this.#pattern.predicatePattern}, ${this.#pattern.objectPattern})`;
     }
   }
 
@@ -144,12 +195,31 @@ export class AssertionsPattern implements Matcher {
     if (this.#pattern.type !== other.#pattern.type) {
       return false;
     }
-    if (this.#pattern.type === "Any") {
-      return true;
+    switch (this.#pattern.type) {
+      case "Any":
+        return true;
+      case "WithPredicate":
+      case "WithObject": {
+        const thisPattern = (
+          this.#pattern as { type: "WithPredicate" | "WithObject"; pattern: Pattern }
+        ).pattern;
+        const otherPattern = (
+          other.#pattern as { type: "WithPredicate" | "WithObject"; pattern: Pattern }
+        ).pattern;
+        return thisPattern === otherPattern;
+      }
+      case "WithBoth": {
+        const otherBoth = other.#pattern as {
+          type: "WithBoth";
+          predicatePattern: Pattern;
+          objectPattern: Pattern;
+        };
+        return (
+          this.#pattern.predicatePattern === otherBoth.predicatePattern &&
+          this.#pattern.objectPattern === otherBoth.objectPattern
+        );
+      }
     }
-    const thisPattern = (this.#pattern as { type: "WithPredicate" | "WithObject"; pattern: Pattern }).pattern;
-    const otherPattern = (other.#pattern as { type: "WithPredicate" | "WithObject"; pattern: Pattern }).pattern;
-    return thisPattern === otherPattern;
   }
 
   /**
@@ -163,6 +233,8 @@ export class AssertionsPattern implements Matcher {
         return 1;
       case "WithObject":
         return 2;
+      case "WithBoth":
+        return 3;
     }
   }
 }

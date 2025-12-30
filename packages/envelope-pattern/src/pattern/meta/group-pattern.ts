@@ -13,11 +13,11 @@ import type { Matcher } from "../matcher";
 import type { Instr } from "../vm";
 import type { Pattern } from "../index";
 
-// Forward declaration for Pattern factory
-let _createMetaGroupPattern: ((pattern: GroupPattern) => Pattern) | undefined;
+// Forward declaration for Pattern factory (used for late binding)
+export let createMetaGroupPattern: ((pattern: GroupPattern) => Pattern) | undefined;
 
 export function registerGroupPatternFactory(factory: (pattern: GroupPattern) => Pattern): void {
-  _createMetaGroupPattern = factory;
+  createMetaGroupPattern = factory;
 }
 
 /**
@@ -64,7 +64,7 @@ export class GroupPattern implements Matcher {
 
   pathsWithCaptures(_haystack: Envelope): [Path[], Map<string, Path[]>] {
     throw new Error(
-      "GroupPattern does not support pathsWithCaptures directly; use compile instead"
+      "GroupPattern does not support pathsWithCaptures directly; use compile instead",
     );
   }
 

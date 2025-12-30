@@ -80,7 +80,7 @@ export function compileAsAtomic(
   pat: Pattern,
   code: Instr[],
   literals: Pattern[],
-  _captures: string[]
+  _captures: string[],
 ): void {
   const idx = literals.length;
   literals.push(pat);

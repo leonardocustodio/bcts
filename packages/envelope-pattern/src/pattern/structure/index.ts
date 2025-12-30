@@ -6,10 +6,16 @@
  * @module envelope-pattern/pattern/structure
  */
 
-// Types used by submodules (re-exported only)
+import type { Envelope } from "@bcts/envelope";
+import type { Path } from "../../format";
+import type { Instr } from "../vm";
+import type { Pattern } from "../index";
 
 // Re-export all structure pattern types
-export { LeafStructurePattern, registerLeafStructurePatternFactory } from "./leaf-structure-pattern";
+export {
+  LeafStructurePattern,
+  registerLeafStructurePatternFactory,
+} from "./leaf-structure-pattern";
 export { SubjectPattern, registerSubjectPatternFactory } from "./subject-pattern";
 export { PredicatePattern, registerPredicatePatternFactory } from "./predicate-pattern";
 export { ObjectPattern, registerObjectPatternFactory } from "./object-pattern";
@@ -114,7 +120,7 @@ export function structureWrapped(pattern: WrappedPattern): StructurePattern {
  */
 export function structurePatternPathsWithCaptures(
   pattern: StructurePattern,
-  haystack: Envelope
+  haystack: Envelope,
 ): [Path[], Map<string, Path[]>] {
   switch (pattern.type) {
     case "Leaf":
@@ -139,13 +145,20 @@ export function structurePatternPathsWithCaptures(
 }
 
 /**
+ * Gets paths for a structure pattern.
+ */
+export function structurePatternPaths(pattern: StructurePattern, haystack: Envelope): Path[] {
+  return structurePatternPathsWithCaptures(pattern, haystack)[0];
+}
+
+/**
  * Compiles a structure pattern to bytecode.
  */
 export function structurePatternCompile(
   pattern: StructurePattern,
   code: Instr[],
   literals: Pattern[],
-  captures: string[]
+  captures: string[],
 ): void {
   switch (pattern.type) {
     case "Leaf":

@@ -176,11 +176,7 @@ function isDigit(ch: string): boolean {
  * Checks if a character is a hex digit.
  */
 function isHexDigit(ch: string): boolean {
-  return (
-    (ch >= "0" && ch <= "9") ||
-    (ch >= "a" && ch <= "f") ||
-    (ch >= "A" && ch <= "F")
-  );
+  return (ch >= "0" && ch <= "9") || (ch >= "a" && ch <= "f") || (ch >= "A" && ch <= "F");
 }
 
 /**
@@ -190,6 +186,7 @@ export class Lexer {
   readonly #source: string;
   #position: number = 0;
   #tokenStart: number = 0;
+  #peekedToken: { token: Token; span: Span } | undefined = undefined;
 
   constructor(source: string) {
     this.#source = source;
@@ -200,6 +197,18 @@ export class Lexer {
    */
   get position(): number {
     return this.#position;
+  }
+
+  /**
+   * Peeks at the next token without consuming it.
+   */
+  peekToken(): { token: Token; span: Span } | undefined {
+    if (this.#peekedToken !== undefined) {
+      return this.#peekedToken;
+    }
+    const result = this.next();
+    this.#peekedToken = result;
+    return result;
   }
 
   /**
@@ -671,6 +680,13 @@ export class Lexer {
    * Gets the next token from the input.
    */
   next(): { token: Token; span: Span } | undefined {
+    // Return peeked token if available
+    if (this.#peekedToken !== undefined) {
+      const peeked = this.#peekedToken;
+      this.#peekedToken = undefined;
+      return peeked;
+    }
+
     this.#skipWhitespace();
     this.#tokenStart = this.#position;
 
@@ -731,13 +747,19 @@ export class Lexer {
         // Check if followed by / for HexBinaryRegex
         if (this.peek() === "/") {
           this.bump(1);
-          return { token: { type: "HexBinaryRegex", value: this.#parseHexBinaryRegex() }, span: this.span() };
+          return {
+            token: { type: "HexBinaryRegex", value: this.#parseHexBinaryRegex() },
+            span: this.span(),
+          };
         }
         return { token: { type: "HexPattern", value: this.#parseHexPattern() }, span: this.span() };
       }
       case "'/":
         this.bump(2);
-        return { token: { type: "SingleQuotedRegex", value: this.#parseSingleQuotedRegex() }, span: this.span() };
+        return {
+          token: { type: "SingleQuotedRegex", value: this.#parseSingleQuotedRegex() },
+          span: this.span(),
+        };
     }
 
     // Check for single character operators
@@ -783,7 +805,10 @@ export class Lexer {
         return { token: { type: "LessThan" }, span: this.span() };
       case '"':
         this.bump(1);
-        return { token: { type: "StringLiteral", value: this.#parseStringLiteral() }, span: this.span() };
+        return {
+          token: { type: "StringLiteral", value: this.#parseStringLiteral() },
+          span: this.span(),
+        };
       case "/":
         this.bump(1);
         return { token: { type: "Regex", value: this.#parseRegex() }, span: this.span() };
@@ -792,7 +817,10 @@ export class Lexer {
         return { token: { type: "Range", value: this.#parseRange() }, span: this.span() };
       case "'":
         this.bump(1);
-        return { token: { type: "SingleQuotedPattern", value: this.#parseSingleQuotedPattern() }, span: this.span() };
+        return {
+          token: { type: "SingleQuotedPattern", value: this.#parseSingleQuotedPattern() },
+          span: this.span(),
+        };
       case "@": {
         // Group name
         this.bump(1);
@@ -846,7 +874,9 @@ export class Lexer {
   /**
    * Iterates over all tokens.
    */
-  *[Symbol.iterator](): Iterator<{ token: Token; span: Span } | { error: EnvelopePatternError; span: Span }> {
+  *[Symbol.iterator](): Iterator<
+    { token: Token; span: Span } | { error: EnvelopePatternError; span: Span }
+  > {
     let result = this.next();
     while (result !== undefined) {
       yield result;

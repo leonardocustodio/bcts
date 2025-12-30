@@ -10,7 +10,12 @@ import type { Envelope, Digest } from "@bcts/envelope";
 import type { CborInput, CborDate, Tag } from "@bcts/dcbor";
 import type { KnownValue } from "@bcts/known-values";
 import { UNIT as KNOWN_VALUE_UNIT } from "@bcts/known-values";
-import { type Pattern as DCBORPattern, Quantifier, Interval, Reluctance } from "@bcts/dcbor-pattern";
+import {
+  type Pattern as DCBORPattern,
+  Quantifier,
+  Interval,
+  Reluctance,
+} from "@bcts/dcbor-pattern";
 
 import type { Path } from "../format";
 import type { Instr } from "./vm";
@@ -25,39 +30,113 @@ export * from "./vm";
 // Import leaf patterns
 import {
   type LeafPattern,
-  leafCbor, leafNumber, leafText, leafByteString, leafTag,
-  leafArray, leafMap, leafBool, leafNull, leafDate, leafKnownValue,
-  leafPatternPathsWithCaptures, leafPatternCompile, leafPatternIsComplex, leafPatternToString,
-  CBORPattern, BoolPattern, NullPattern, NumberPattern, TextPattern,
-  ByteStringPattern, DatePattern, ArrayPattern, MapPattern, KnownValuePattern, TaggedPattern,
-  registerBoolPatternFactory, registerNullPatternFactory, registerNumberPatternFactory,
-  registerTextPatternFactory, registerByteStringPatternFactory, registerDatePatternFactory,
-  registerArrayPatternFactory, registerMapPatternFactory, registerKnownValuePatternFactory,
-  registerTaggedPatternFactory, registerCBORPatternFactory,
+  leafCbor,
+  leafNumber,
+  leafText,
+  leafByteString,
+  leafTag,
+  leafArray,
+  leafMap,
+  leafBool,
+  leafNull,
+  leafDate,
+  leafKnownValue,
+  leafPatternPathsWithCaptures,
+  leafPatternCompile,
+  leafPatternIsComplex,
+  leafPatternToString,
+  CBORPattern,
+  BoolPattern,
+  NullPattern,
+  NumberPattern,
+  TextPattern,
+  ByteStringPattern,
+  DatePattern,
+  ArrayPattern,
+  MapPattern,
+  KnownValuePattern,
+  TaggedPattern,
+  registerBoolPatternFactory,
+  registerNullPatternFactory,
+  registerNumberPatternFactory,
+  registerTextPatternFactory,
+  registerByteStringPatternFactory,
+  registerDatePatternFactory,
+  registerArrayPatternFactory,
+  registerMapPatternFactory,
+  registerKnownValuePatternFactory,
+  registerTaggedPatternFactory,
+  registerCBORPatternFactory,
 } from "./leaf";
 
 // Import structure patterns
 import {
   type StructurePattern,
-  structureLeaf, structureSubject, structurePredicate, structureObject,
-  structureAssertions, structureDigest, structureNode, structureObscured, structureWrapped,
-  structurePatternPathsWithCaptures, structurePatternCompile, structurePatternIsComplex, structurePatternToString,
-  LeafStructurePattern, SubjectPattern, PredicatePattern, ObjectPattern,
-  AssertionsPattern, DigestPattern, NodePattern, ObscuredPattern, WrappedPattern,
-  registerLeafStructurePatternFactory, registerSubjectPatternFactory, registerPredicatePatternFactory,
-  registerObjectPatternFactory, registerAssertionsPatternFactory, registerDigestPatternFactory,
-  registerNodePatternFactory, registerObscuredPatternFactory, registerWrappedPatternFactory,
+  structureLeaf,
+  structureSubject,
+  structurePredicate,
+  structureObject,
+  structureAssertions,
+  structureDigest,
+  structureNode,
+  structureObscured,
+  structureWrapped,
+  structurePatternPathsWithCaptures,
+  structurePatternCompile,
+  structurePatternIsComplex,
+  structurePatternToString,
+  LeafStructurePattern,
+  SubjectPattern,
+  PredicatePattern,
+  ObjectPattern,
+  AssertionsPattern,
+  DigestPattern,
+  NodePattern,
+  ObscuredPattern,
+  WrappedPattern,
+  registerLeafStructurePatternFactory,
+  registerSubjectPatternFactory,
+  registerPredicatePatternFactory,
+  registerObjectPatternFactory,
+  registerAssertionsPatternFactory,
+  registerDigestPatternFactory,
+  registerNodePatternFactory,
+  registerObscuredPatternFactory,
+  registerWrappedPatternFactory,
 } from "./structure";
 
 // Import meta patterns
 import {
   type MetaPattern,
-  metaAny, metaAnd, metaOr, metaNot, metaCapture, metaSearch, metaTraverse, metaGroup,
-  metaPatternPathsWithCaptures, metaPatternCompile, metaPatternIsComplex, metaPatternToString,
+  metaAny,
+  metaAnd,
+  metaOr,
+  metaNot,
+  metaCapture,
+  metaSearch,
+  metaTraverse,
+  metaGroup,
+  metaPatternPathsWithCaptures,
+  metaPatternCompile,
+  metaPatternIsComplex,
+  metaPatternToString,
   metaPatternCollectCaptureNames,
-  AnyPattern, AndPattern, OrPattern, NotPattern, CapturePattern, SearchPattern, TraversePattern, GroupPattern,
-  registerAnyPatternFactory, registerAndPatternFactory, registerOrPatternFactory, registerNotPatternFactory,
-  registerCapturePatternFactory, registerSearchPatternFactory, registerTraversePatternFactory, registerGroupPatternFactory,
+  AnyPattern,
+  AndPattern,
+  OrPattern,
+  NotPattern,
+  CapturePattern,
+  SearchPattern,
+  TraversePattern,
+  GroupPattern,
+  registerAnyPatternFactory,
+  registerAndPatternFactory,
+  registerOrPatternFactory,
+  registerNotPatternFactory,
+  registerCapturePatternFactory,
+  registerSearchPatternFactory,
+  registerTraversePatternFactory,
+  registerGroupPatternFactory,
 } from "./meta";
 
 /**
@@ -101,7 +180,7 @@ export function patternMeta(meta: MetaPattern): Pattern {
  */
 export function patternPathsWithCaptures(
   pattern: Pattern,
-  haystack: Envelope
+  haystack: Envelope,
 ): [Path[], Map<string, Path[]>] {
   switch (pattern.type) {
     case "Leaf":
@@ -148,7 +227,7 @@ export function patternCompile(
   pattern: Pattern,
   code: Instr[],
   literals: Pattern[],
-  captures: string[]
+  captures: string[],
 ): void {
   switch (pattern.type) {
     case "Leaf":
@@ -504,8 +583,9 @@ export function wrapped(): Pattern {
 
 /**
  * Creates a new Pattern that matches wrapped envelopes and descends.
+ * Named `unwrapEnvelope` to avoid conflict with Result.unwrap.
  */
-export function unwrap(): Pattern {
+export function unwrapEnvelope(): Pattern {
   return patternStructure(structureWrapped(WrappedPattern.unwrapMatching(any())));
 }
 
@@ -572,7 +652,12 @@ export function traverse(patterns: Pattern[]): Pattern {
 /**
  * Creates a new Pattern that matches with repetition.
  */
-export function repeat(pattern: Pattern, min: number, max?: number, reluctance: Reluctance = Reluctance.Greedy): Pattern {
+export function repeat(
+  pattern: Pattern,
+  min: number,
+  max?: number,
+  reluctance: Reluctance = Reluctance.Greedy,
+): Pattern {
   const interval = max !== undefined ? Interval.from(min, max) : Interval.atLeast(min);
   const quantifier = new Quantifier(interval, reluctance);
   return patternMeta(metaGroup(GroupPattern.repeat(pattern, quantifier)));
@@ -628,3 +713,7 @@ function registerAllFactories(): void {
 
 // Register factories immediately on module load
 registerAllFactories();
+
+// Register VM pattern functions to resolve circular dependencies
+import { registerVMPatternFunctions } from "./vm";
+registerVMPatternFunctions(patternPathsWithCaptures, patternMatches, patternPaths);

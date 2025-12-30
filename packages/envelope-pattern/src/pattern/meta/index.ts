@@ -6,7 +6,10 @@
  * @module envelope-pattern/pattern/meta
  */
 
-// Types used by submodules (re-exported only)
+import type { Envelope } from "@bcts/envelope";
+import type { Path } from "../../format";
+import type { Instr } from "../vm";
+import type { Pattern } from "../index";
 
 // Re-export all meta pattern types
 export { AnyPattern, registerAnyPatternFactory } from "./any-pattern";
@@ -104,7 +107,7 @@ export function metaGroup(pattern: GroupPattern): MetaPattern {
  */
 export function metaPatternPathsWithCaptures(
   pattern: MetaPattern,
-  haystack: Envelope
+  haystack: Envelope,
 ): [Path[], Map<string, Path[]>] {
   switch (pattern.type) {
     case "Any":
@@ -133,7 +136,7 @@ export function metaPatternCompile(
   pattern: MetaPattern,
   code: Instr[],
   literals: Pattern[],
-  captures: string[]
+  captures: string[],
 ): void {
   switch (pattern.type) {
     case "Any":

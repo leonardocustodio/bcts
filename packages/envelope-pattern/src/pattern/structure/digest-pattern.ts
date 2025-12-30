@@ -38,6 +38,7 @@ function bytesToLatin1(bytes: Uint8Array): string {
  * Corresponds to the Rust `DigestPattern` enum in digest_pattern.rs
  */
 export type DigestPatternType =
+  | { readonly type: "Any" }
   | { readonly type: "Digest"; readonly digest: Digest }
   | { readonly type: "Prefix"; readonly prefix: Uint8Array }
   | { readonly type: "BinaryRegex"; readonly regex: RegExp };
@@ -52,6 +53,13 @@ export class DigestPattern implements Matcher {
 
   private constructor(pattern: DigestPatternType) {
     this.#pattern = pattern;
+  }
+
+  /**
+   * Creates a new DigestPattern that matches any digest.
+   */
+  static any(): DigestPattern {
+    return new DigestPattern({ type: "Any" });
   }
 
   /**
@@ -88,6 +96,10 @@ export class DigestPattern implements Matcher {
     let isHit = false;
 
     switch (this.#pattern.type) {
+      case "Any":
+        // Any digest matches - every envelope has a digest
+        isHit = true;
+        break;
       case "Digest":
         isHit = digest.equals(this.#pattern.digest);
         break;
@@ -136,6 +148,8 @@ export class DigestPattern implements Matcher {
 
   toString(): string {
     switch (this.#pattern.type) {
+      case "Any":
+        return "digest";
       case "Digest":
         return `digest(${this.#pattern.digest})`;
       case "Prefix":
@@ -153,9 +167,11 @@ export class DigestPattern implements Matcher {
       return false;
     }
     switch (this.#pattern.type) {
+      case "Any":
+        return true;
       case "Digest":
         return this.#pattern.digest.equals(
-          (other.#pattern as { type: "Digest"; digest: Digest }).digest
+          (other.#pattern as { type: "Digest"; digest: Digest }).digest,
         );
       case "Prefix": {
         const thisPrefix = this.#pattern.prefix;
@@ -167,8 +183,10 @@ export class DigestPattern implements Matcher {
         return true;
       }
       case "BinaryRegex":
-        return this.#pattern.regex.source ===
-          (other.#pattern as { type: "BinaryRegex"; regex: RegExp }).regex.source;
+        return (
+          this.#pattern.regex.source ===
+          (other.#pattern as { type: "BinaryRegex"; regex: RegExp }).regex.source
+        );
     }
   }
 
@@ -177,6 +195,8 @@ export class DigestPattern implements Matcher {
    */
   hashCode(): number {
     switch (this.#pattern.type) {
+      case "Any":
+        return 0;
       case "Digest": {
         // Hash based on first few bytes of digest
         const data = this.#pattern.digest.data();

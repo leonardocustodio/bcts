@@ -171,18 +171,28 @@ export class TaggedPattern implements Matcher {
         return true;
       case "Tag": {
         const otherTag = other.#inner as { variant: "Tag"; tag: Tag; pattern: DCBORPattern };
-        return this.#inner.tag.value === otherTag.tag.value &&
-          patternDisplay(this.#inner.pattern) === patternDisplay(otherTag.pattern);
+        return (
+          this.#inner.tag.value === otherTag.tag.value &&
+          patternDisplay(this.#inner.pattern) === patternDisplay(otherTag.pattern)
+        );
       }
       case "Name": {
         const otherName = other.#inner as { variant: "Name"; name: string; pattern: DCBORPattern };
-        return this.#inner.name === otherName.name &&
-          patternDisplay(this.#inner.pattern) === patternDisplay(otherName.pattern);
+        return (
+          this.#inner.name === otherName.name &&
+          patternDisplay(this.#inner.pattern) === patternDisplay(otherName.pattern)
+        );
       }
       case "Regex": {
-        const otherRegex = other.#inner as { variant: "Regex"; regex: RegExp; pattern: DCBORPattern };
-        return this.#inner.regex.source === otherRegex.regex.source &&
-          patternDisplay(this.#inner.pattern) === patternDisplay(otherRegex.pattern);
+        const otherRegex = other.#inner as {
+          variant: "Regex";
+          regex: RegExp;
+          pattern: DCBORPattern;
+        };
+        return (
+          this.#inner.regex.source === otherRegex.regex.source &&
+          patternDisplay(this.#inner.pattern) === patternDisplay(otherRegex.pattern)
+        );
       }
     }
   }
@@ -195,7 +205,7 @@ export class TaggedPattern implements Matcher {
       case "Any":
         return 0;
       case "Tag":
-        return Number(BigInt(this.#inner.tag.value) & BigInt(0xFFFFFFFF));
+        return Number(BigInt(this.#inner.tag.value) & BigInt(0xffffffff));
       case "Name":
         return simpleStringHash(this.#inner.name);
       case "Regex":
@@ -211,7 +221,7 @@ function simpleStringHash(str: string): number {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32-bit integer
   }
   return hash;

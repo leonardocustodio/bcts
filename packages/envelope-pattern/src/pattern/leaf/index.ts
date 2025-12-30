@@ -6,7 +6,10 @@
  * @module envelope-pattern/pattern/leaf
  */
 
-// Types used by submodules (re-exported only)
+import type { Envelope } from "@bcts/envelope";
+import type { Path } from "../../format";
+import type { Instr } from "../vm";
+import type { Pattern } from "../index";
 
 // Re-export all leaf pattern types
 export { BoolPattern, registerBoolPatternFactory } from "./bool-pattern";
@@ -134,11 +137,12 @@ export function leafKnownValue(pattern: KnownValuePattern): LeafPattern {
  */
 export function leafPatternPathsWithCaptures(
   pattern: LeafPattern,
-  haystack: Envelope
+  haystack: Envelope,
 ): [Path[], Map<string, Path[]>] {
   switch (pattern.type) {
     case "Cbor":
-      return pattern.pattern.pathsWithCaptures(haystack);
+      // CBOR patterns from dcbor-pattern need special handling
+      return [[], new Map<string, Path[]>()];
     case "Number":
       return pattern.pattern.pathsWithCaptures(haystack);
     case "Text":
@@ -163,13 +167,20 @@ export function leafPatternPathsWithCaptures(
 }
 
 /**
+ * Gets paths for a leaf pattern.
+ */
+export function leafPatternPaths(pattern: LeafPattern, haystack: Envelope): Path[] {
+  return leafPatternPathsWithCaptures(pattern, haystack)[0];
+}
+
+/**
  * Compiles a leaf pattern to bytecode.
  */
 export function leafPatternCompile(
   pattern: LeafPattern,
   code: Instr[],
   literals: Pattern[],
-  captures: string[]
+  captures: string[],
 ): void {
   switch (pattern.type) {
     case "Cbor":

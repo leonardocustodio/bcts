@@ -28,7 +28,8 @@ export function registerNodePatternFactory(factory: (pattern: NodePattern) => Pa
  */
 export type NodePatternType =
   | { readonly type: "Any" }
-  | { readonly type: "AssertionsInterval"; readonly interval: Interval };
+  | { readonly type: "AssertionsInterval"; readonly interval: Interval }
+  | { readonly type: "WithSubject"; readonly subjectPattern: Pattern };
 
 /**
  * Pattern for matching node envelopes.
@@ -53,9 +54,7 @@ export class NodePattern implements Matcher {
    * Creates a new NodePattern that matches a node with the specified count of assertions.
    */
   static interval(min: number, max?: number): NodePattern {
-    const interval = max !== undefined
-      ? Interval.from(min, max)
-      : Interval.atLeast(min);
+    const interval = max !== undefined ? Interval.from(min, max) : Interval.atLeast(min);
     return new NodePattern({ type: "AssertionsInterval", interval });
   }
 
@@ -67,10 +66,32 @@ export class NodePattern implements Matcher {
   }
 
   /**
+   * Creates a new NodePattern with a subject pattern constraint.
+   */
+  static withSubject(subjectPattern: Pattern): NodePattern {
+    return new NodePattern({ type: "WithSubject", subjectPattern });
+  }
+
+  /**
    * Gets the pattern type.
    */
   get patternType(): NodePatternType {
     return this.#pattern;
+  }
+
+  /**
+   * Gets the subject pattern if this is a WithSubject type, undefined otherwise.
+   */
+  subjectPattern(): Pattern | undefined {
+    return this.#pattern.type === "WithSubject" ? this.#pattern.subjectPattern : undefined;
+  }
+
+  /**
+   * Gets the assertion patterns (empty array if none).
+   */
+  assertionPatterns(): Pattern[] {
+    // NodePattern doesn't support assertion patterns directly; return empty array
+    return [];
   }
 
   pathsWithCaptures(haystack: Envelope): [Path[], Map<string, Path[]>] {
@@ -86,6 +107,10 @@ export class NodePattern implements Matcher {
         break;
       case "AssertionsInterval":
         isHit = this.#pattern.interval.contains(haystack.assertions().length);
+        break;
+      case "WithSubject":
+        // For WithSubject, we match if the node exists (subject pattern matching done at higher level)
+        isHit = true;
         break;
     }
 
@@ -118,6 +143,8 @@ export class NodePattern implements Matcher {
         return "node";
       case "AssertionsInterval":
         return `node(${this.#pattern.interval})`;
+      case "WithSubject":
+        return `node(${this.#pattern.subjectPattern})`;
     }
   }
 
@@ -128,12 +155,17 @@ export class NodePattern implements Matcher {
     if (this.#pattern.type !== other.#pattern.type) {
       return false;
     }
-    if (this.#pattern.type === "Any") {
-      return true;
+    switch (this.#pattern.type) {
+      case "Any":
+        return true;
+      case "AssertionsInterval":
+        return this.#pattern.interval.equals(
+          (other.#pattern as { type: "AssertionsInterval"; interval: Interval }).interval,
+        );
+      case "WithSubject":
+        // Simple reference equality for pattern (could be improved with deep equality)
+        return this.#pattern.subjectPattern === (other.#pattern as { type: "WithSubject"; subjectPattern: Pattern }).subjectPattern;
     }
-    return this.#pattern.interval.equals(
-      (other.#pattern as { type: "AssertionsInterval"; interval: Interval }).interval
-    );
   }
 
   /**
@@ -146,6 +178,8 @@ export class NodePattern implements Matcher {
       case "AssertionsInterval":
         // Simple hash based on interval min/max
         return this.#pattern.interval.min() * 31 + (this.#pattern.interval.max() ?? 0);
+      case "WithSubject":
+        return 1;
     }
   }
 }

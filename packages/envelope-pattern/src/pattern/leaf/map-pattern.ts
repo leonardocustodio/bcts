@@ -54,9 +54,7 @@ export class MapPattern implements Matcher {
    * Creates a new MapPattern that matches maps within a size range.
    */
   static interval(min: number, max?: number): MapPattern {
-    const interval = max !== undefined
-      ? Interval.from(min, max)
-      : Interval.atLeast(min);
+    const interval = max !== undefined ? Interval.from(min, max) : Interval.atLeast(min);
     return new MapPattern({ type: "Interval", interval });
   }
 
@@ -134,7 +132,7 @@ export class MapPattern implements Matcher {
         return true;
       case "Interval":
         return this.#pattern.interval.equals(
-          (other.#pattern as { type: "Interval"; interval: Interval }).interval
+          (other.#pattern as { type: "Interval"; interval: Interval }).interval,
         );
     }
   }

@@ -77,7 +77,9 @@ export function isOk<T>(result: Result<T>): result is { readonly ok: true; reado
 /**
  * Type guard for failed results.
  */
-export function isErr<T>(result: Result<T>): result is { readonly ok: false; readonly error: EnvelopePatternError } {
+export function isErr<T>(
+  result: Result<T>,
+): result is { readonly ok: false; readonly error: EnvelopePatternError } {
   return !result.ok;
 }
 

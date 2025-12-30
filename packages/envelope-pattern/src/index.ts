@@ -9,20 +9,19 @@
 // Re-export types from dcbor-pattern that are used in this package
 export { Interval, Quantifier, Reluctance } from "@bcts/dcbor-pattern";
 
-// TODO: Implement error types
-// export * from "./error";
+// Error types
+export * from "./error";
 
-// TODO: Implement format utilities
-// export * from "./format";
+// Format utilities
+export * from "./format";
 
-// TODO: Implement pattern types
-// export * from "./pattern";
+// Pattern types and matching
+export * from "./pattern";
 
-// TODO: Implement parsing
-// export * from "./parse";
+// Parsing
+export * from "./parse";
 
 /**
- * Placeholder - package implementation pending.
- * See PLAN.md for implementation details.
+ * Package version.
  */
 export const VERSION = "1.0.0-alpha.11";

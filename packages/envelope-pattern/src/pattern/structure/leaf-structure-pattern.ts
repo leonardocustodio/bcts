@@ -16,7 +16,9 @@ import type { Pattern } from "../index";
 // Forward declaration for Pattern factory
 let createStructureLeafPattern: ((pattern: LeafStructurePattern) => Pattern) | undefined;
 
-export function registerLeafStructurePatternFactory(factory: (pattern: LeafStructurePattern) => Pattern): void {
+export function registerLeafStructurePatternFactory(
+  factory: (pattern: LeafStructurePattern) => Pattern,
+): void {
   createStructureLeafPattern = factory;
 }
 

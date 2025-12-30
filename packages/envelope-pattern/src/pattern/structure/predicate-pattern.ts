@@ -15,7 +15,9 @@ import type { Pattern } from "../index";
 // Forward declaration for Pattern factory
 let createStructurePredicatePattern: ((pattern: PredicatePattern) => Pattern) | undefined;
 
-export function registerPredicatePatternFactory(factory: (pattern: PredicatePattern) => Pattern): void {
+export function registerPredicatePatternFactory(
+  factory: (pattern: PredicatePattern) => Pattern,
+): void {
   createStructurePredicatePattern = factory;
 }
 
@@ -59,6 +61,13 @@ export class PredicatePattern implements Matcher {
    */
   get patternType(): PredicatePatternType {
     return this.#pattern;
+  }
+
+  /**
+   * Gets the inner pattern if this is a Pattern type, undefined otherwise.
+   */
+  innerPattern(): Pattern | undefined {
+    return this.#pattern.type === "Pattern" ? this.#pattern.pattern : undefined;
   }
 
   pathsWithCaptures(haystack: Envelope): [Path[], Map<string, Path[]>] {

@@ -26,7 +26,9 @@ import type { Pattern } from "../index";
 // Forward declaration for Pattern factory
 let createLeafKnownValuePattern: ((pattern: KnownValuePattern) => Pattern) | undefined;
 
-export function registerKnownValuePatternFactory(factory: (pattern: KnownValuePattern) => Pattern): void {
+export function registerKnownValuePatternFactory(
+  factory: (pattern: KnownValuePattern) => Pattern,
+): void {
   createLeafKnownValuePattern = factory;
 }
 
@@ -145,14 +147,17 @@ export class KnownValuePattern implements Matcher {
       case "Any":
         return true;
       case "Value":
-        return this.#inner.value.valueBigInt() ===
-          (other.#inner as { variant: "Value"; value: KnownValue }).value.valueBigInt();
+        return (
+          this.#inner.value.valueBigInt() ===
+          (other.#inner as { variant: "Value"; value: KnownValue }).value.valueBigInt()
+        );
       case "Named":
-        return this.#inner.name ===
-          (other.#inner as { variant: "Named"; name: string }).name;
+        return this.#inner.name === (other.#inner as { variant: "Named"; name: string }).name;
       case "Regex":
-        return this.#inner.pattern.source ===
-          (other.#inner as { variant: "Regex"; pattern: RegExp }).pattern.source;
+        return (
+          this.#inner.pattern.source ===
+          (other.#inner as { variant: "Regex"; pattern: RegExp }).pattern.source
+        );
     }
   }
 
@@ -164,7 +169,7 @@ export class KnownValuePattern implements Matcher {
       case "Any":
         return 0;
       case "Value":
-        return Number(this.#inner.value.valueBigInt() & BigInt(0xFFFFFFFF));
+        return Number(this.#inner.value.valueBigInt() & BigInt(0xffffffff));
       case "Named":
         return simpleStringHash(this.#inner.name);
       case "Regex":
@@ -180,7 +185,7 @@ function simpleStringHash(str: string): number {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32-bit integer
   }
   return hash;

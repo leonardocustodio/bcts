@@ -16,7 +16,9 @@ import type { Pattern } from "../index";
 // Forward declaration for Pattern factory
 let createStructureObscuredPattern: ((pattern: ObscuredPattern) => Pattern) | undefined;
 
-export function registerObscuredPatternFactory(factory: (pattern: ObscuredPattern) => Pattern): void {
+export function registerObscuredPatternFactory(
+  factory: (pattern: ObscuredPattern) => Pattern,
+): void {
   createStructureObscuredPattern = factory;
 }
 

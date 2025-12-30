@@ -129,9 +129,14 @@ export class TextPattern implements Matcher {
       case "Any":
         return true;
       case "Value":
-        return (this.#inner as { value: string }).value === (other.#inner as { value: string }).value;
+        return (
+          (this.#inner as { value: string }).value === (other.#inner as { value: string }).value
+        );
       case "Regex":
-        return (this.#inner as { pattern: RegExp }).pattern.source === (other.#inner as { pattern: RegExp }).pattern.source;
+        return (
+          (this.#inner as { pattern: RegExp }).pattern.source ===
+          (other.#inner as { pattern: RegExp }).pattern.source
+        );
     }
   }
 
@@ -141,7 +146,9 @@ export class TextPattern implements Matcher {
   hashCode(): number {
     let hash = 0;
     switch (this.#inner.variant) {
-      case "Any": hash = 1; break;
+      case "Any":
+        hash = 1;
+        break;
       case "Value": {
         const val = (this.#inner as { value: string }).value;
         for (let i = 0; i < val.length; i++) {

@@ -12,11 +12,11 @@ import type { Matcher } from "../matcher";
 import type { Instr } from "../vm";
 import type { Pattern } from "../index";
 
-// Forward declaration for Pattern factory
-let _createMetaSearchPattern: ((pattern: SearchPattern) => Pattern) | undefined;
+// Forward declaration for Pattern factory (used for late binding)
+export let createMetaSearchPattern: ((pattern: SearchPattern) => Pattern) | undefined;
 
 export function registerSearchPatternFactory(factory: (pattern: SearchPattern) => Pattern): void {
-  _createMetaSearchPattern = factory;
+  createMetaSearchPattern = factory;
 }
 
 /**
@@ -79,7 +79,7 @@ export class SearchPattern implements Matcher {
     const seen = new Set<string>();
     const uniquePaths: Path[] = [];
     for (const path of resultPaths) {
-      const digestPath = path.map(e => e.digest().hex).join(",");
+      const digestPath = path.map((e) => e.digest().hex).join(",");
       if (!seen.has(digestPath)) {
         seen.add(digestPath);
         uniquePaths.push(path);
@@ -95,7 +95,7 @@ export class SearchPattern implements Matcher {
   #walkEnvelope(
     envelope: Envelope,
     pathToCurrent: Envelope[],
-    visitor: (envelope: Envelope, path: Envelope[]) => void
+    visitor: (envelope: Envelope, path: Envelope[]) => void,
   ): void {
     // Visit this node
     visitor(envelope, pathToCurrent);

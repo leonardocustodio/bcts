@@ -12,11 +12,13 @@ import type { Matcher } from "../matcher";
 import type { Instr } from "../vm";
 import type { Pattern } from "../index";
 
-// Forward declaration for Pattern factory
-let _createMetaTraversePattern: ((pattern: TraversePattern) => Pattern) | undefined;
+// Forward declaration for Pattern factory (used for late binding)
+export let createMetaTraversePattern: ((pattern: TraversePattern) => Pattern) | undefined;
 
-export function registerTraversePatternFactory(factory: (pattern: TraversePattern) => Pattern): void {
-  _createMetaTraversePattern = factory;
+export function registerTraversePatternFactory(
+  factory: (pattern: TraversePattern) => Pattern,
+): void {
+  createMetaTraversePattern = factory;
 }
 
 /**
@@ -113,7 +115,9 @@ export class TraversePattern implements Matcher {
   }
 
   toString(): string {
-    return this.patterns().map(p => String(p)).join(" -> ");
+    return this.patterns()
+      .map((p) => String(p))
+      .join(" -> ");
   }
 
   /**

@@ -12,11 +12,11 @@ import type { Matcher } from "../matcher";
 import type { Instr } from "../vm";
 import type { Pattern } from "../index";
 
-// Forward declaration for Pattern factory (may be used for late binding)
-let _createMetaAndPattern: ((pattern: AndPattern) => Pattern) | undefined;
+// Forward declaration for Pattern factory (used for late binding)
+export let createMetaAndPattern: ((pattern: AndPattern) => Pattern) | undefined;
 
 export function registerAndPatternFactory(factory: (pattern: AndPattern) => Pattern): void {
-  _createMetaAndPattern = factory;
+  createMetaAndPattern = factory;
 }
 
 /**
@@ -46,7 +46,7 @@ export class AndPattern implements Matcher {
   }
 
   pathsWithCaptures(haystack: Envelope): [Path[], Map<string, Path[]>] {
-    const allMatch = this.#patterns.every(pattern => {
+    const allMatch = this.#patterns.every((pattern) => {
       const matcher = pattern as unknown as Matcher;
       return matcher.matches(haystack);
     });
@@ -74,12 +74,13 @@ export class AndPattern implements Matcher {
   isComplex(): boolean {
     // The pattern is complex if it contains more than one pattern, or if
     // the one pattern is complex itself.
-    return this.#patterns.length > 1 ||
-      this.#patterns.some(p => (p as unknown as Matcher).isComplex());
+    return (
+      this.#patterns.length > 1 || this.#patterns.some((p) => (p as unknown as Matcher).isComplex())
+    );
   }
 
   toString(): string {
-    return this.#patterns.map(p => String(p)).join(" & ");
+    return this.#patterns.map((p) => String(p)).join(" & ");
   }
 
   /**

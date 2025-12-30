@@ -12,11 +12,11 @@ import type { Matcher } from "../matcher";
 import type { Instr } from "../vm";
 import type { Pattern } from "../index";
 
-// Forward declaration for Pattern factory
-let _createStructureSubjectPattern: ((pattern: SubjectPattern) => Pattern) | undefined;
+// Forward declaration for Pattern factory (used for late binding)
+export let createStructureSubjectPattern: ((pattern: SubjectPattern) => Pattern) | undefined;
 
 export function registerSubjectPatternFactory(factory: (pattern: SubjectPattern) => Pattern): void {
-  _createStructureSubjectPattern = factory;
+  createStructureSubjectPattern = factory;
 }
 
 /**
@@ -59,6 +59,13 @@ export class SubjectPattern implements Matcher {
    */
   get patternType(): SubjectPatternType {
     return this.#pattern;
+  }
+
+  /**
+   * Gets the inner pattern if this is a Pattern type, undefined otherwise.
+   */
+  innerPattern(): Pattern | undefined {
+    return this.#pattern.type === "Pattern" ? this.#pattern.pattern : undefined;
   }
 
   pathsWithCaptures(haystack: Envelope): [Path[], Map<string, Path[]>] {

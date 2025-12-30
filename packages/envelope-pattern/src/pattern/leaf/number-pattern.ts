@@ -193,10 +193,16 @@ export class NumberPattern implements Matcher {
       case "GreaterThanOrEqual":
       case "LessThan":
       case "LessThanOrEqual":
-        return (this.#inner as { value: number }).value === (other.#inner as { value: number }).value;
+        return (
+          (this.#inner as { value: number }).value === (other.#inner as { value: number }).value
+        );
       case "Range":
-        return (this.#inner as { min: number; max: number }).min === (other.#inner as { min: number; max: number }).min &&
-               (this.#inner as { min: number; max: number }).max === (other.#inner as { min: number; max: number }).max;
+        return (
+          (this.#inner as { min: number; max: number }).min ===
+            (other.#inner as { min: number; max: number }).min &&
+          (this.#inner as { min: number; max: number }).max ===
+            (other.#inner as { min: number; max: number }).max
+        );
     }
   }
 
@@ -206,16 +212,36 @@ export class NumberPattern implements Matcher {
   hashCode(): number {
     let hash = 0;
     switch (this.#inner.variant) {
-      case "Any": hash = 1; break;
-      case "Value": hash = 2 * 31 + (this.#inner as { value: number }).value; break;
-      case "Range": hash = 3 * 31 + (this.#inner as { min: number }).min + (this.#inner as { max: number }).max; break;
-      case "GreaterThan": hash = 4 * 31 + (this.#inner as { value: number }).value; break;
-      case "GreaterThanOrEqual": hash = 5 * 31 + (this.#inner as { value: number }).value; break;
-      case "LessThan": hash = 6 * 31 + (this.#inner as { value: number }).value; break;
-      case "LessThanOrEqual": hash = 7 * 31 + (this.#inner as { value: number }).value; break;
-      case "NaN": hash = 8; break;
-      case "Infinity": hash = 9; break;
-      case "NegInfinity": hash = 10; break;
+      case "Any":
+        hash = 1;
+        break;
+      case "Value":
+        hash = 2 * 31 + (this.#inner as { value: number }).value;
+        break;
+      case "Range":
+        hash = 3 * 31 + (this.#inner as { min: number }).min + (this.#inner as { max: number }).max;
+        break;
+      case "GreaterThan":
+        hash = 4 * 31 + (this.#inner as { value: number }).value;
+        break;
+      case "GreaterThanOrEqual":
+        hash = 5 * 31 + (this.#inner as { value: number }).value;
+        break;
+      case "LessThan":
+        hash = 6 * 31 + (this.#inner as { value: number }).value;
+        break;
+      case "LessThanOrEqual":
+        hash = 7 * 31 + (this.#inner as { value: number }).value;
+        break;
+      case "NaN":
+        hash = 8;
+        break;
+      case "Infinity":
+        hash = 9;
+        break;
+      case "NegInfinity":
+        hash = 10;
+        break;
     }
     return hash;
   }

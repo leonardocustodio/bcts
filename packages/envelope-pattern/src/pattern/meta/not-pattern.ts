@@ -12,11 +12,11 @@ import type { Matcher } from "../matcher";
 import type { Instr } from "../vm";
 import type { Pattern } from "../index";
 
-// Forward declaration for Pattern factory
-let _createMetaNotPattern: ((pattern: NotPattern) => Pattern) | undefined;
+// Forward declaration for Pattern factory (used for late binding)
+export let createMetaNotPattern: ((pattern: NotPattern) => Pattern) | undefined;
 
 export function registerNotPatternFactory(factory: (pattern: NotPattern) => Pattern): void {
-  _createMetaNotPattern = factory;
+  createMetaNotPattern = factory;
 }
 
 /**
@@ -48,9 +48,7 @@ export class NotPattern implements Matcher {
   pathsWithCaptures(haystack: Envelope): [Path[], Map<string, Path[]>] {
     // If the inner pattern doesn't match, then we return the current envelope as a match
     const matcher = this.#pattern as unknown as Matcher;
-    const paths = !matcher.matches(haystack)
-      ? [[haystack]]
-      : [];
+    const paths = !matcher.matches(haystack) ? [[haystack]] : [];
     return [paths, new Map<string, Path[]>()];
   }
 

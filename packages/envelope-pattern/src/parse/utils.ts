@@ -271,7 +271,11 @@ export function parseArrayInner(src: string): Result<[Pattern, number]> {
       if (nextCh !== undefined && /\d/.test(nextCh)) {
         // {n,m} - range
         const secondStart = pos.value;
-        while (pos.value < src.length && src[pos.value] !== undefined && /\d/.test(src[pos.value]!)) {
+        while (
+          pos.value < src.length &&
+          src[pos.value] !== undefined &&
+          /\d/.test(src[pos.value]!)
+        ) {
           pos.value++;
         }
         const secondNum = parseInt(src.slice(secondStart, pos.value), 10);

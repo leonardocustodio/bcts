@@ -24,7 +24,9 @@ import type { Pattern } from "../index";
 // Forward declaration for Pattern factory
 let createLeafByteStringPattern: ((pattern: ByteStringPattern) => Pattern) | undefined;
 
-export function registerByteStringPatternFactory(factory: (pattern: ByteStringPattern) => Pattern): void {
+export function registerByteStringPatternFactory(
+  factory: (pattern: ByteStringPattern) => Pattern,
+): void {
   createLeafByteStringPattern = factory;
 }
 
@@ -138,7 +140,10 @@ export class ByteStringPattern implements Matcher {
         return true;
       }
       case "BinaryRegex":
-        return (this.#inner as { pattern: RegExp }).pattern.source === (other.#inner as { pattern: RegExp }).pattern.source;
+        return (
+          (this.#inner as { pattern: RegExp }).pattern.source ===
+          (other.#inner as { pattern: RegExp }).pattern.source
+        );
     }
   }
 
@@ -148,7 +153,9 @@ export class ByteStringPattern implements Matcher {
   hashCode(): number {
     let hash = 0;
     switch (this.#inner.variant) {
-      case "Any": hash = 1; break;
+      case "Any":
+        hash = 1;
+        break;
       case "Value": {
         const val = (this.#inner as { value: Uint8Array }).value;
         for (let i = 0; i < val.length; i++) {

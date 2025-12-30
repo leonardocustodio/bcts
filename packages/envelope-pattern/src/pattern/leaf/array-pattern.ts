@@ -35,7 +35,8 @@ export function registerArrayPatternFactory(factory: (pattern: ArrayPattern) => 
 export type ArrayPatternType =
   | { readonly type: "Any" }
   | { readonly type: "Interval"; readonly interval: Interval }
-  | { readonly type: "DCBORPattern"; readonly pattern: DCBORPattern };
+  | { readonly type: "DCBORPattern"; readonly pattern: DCBORPattern }
+  | { readonly type: "WithPatterns"; readonly patterns: Pattern[] };
 
 /**
  * Pattern for matching array values in envelope leaf nodes.
@@ -70,9 +71,7 @@ export class ArrayPattern implements Matcher {
    * Creates a new ArrayPattern that matches arrays within a length range.
    */
   static interval(min: number, max?: number): ArrayPattern {
-    const interval = max !== undefined
-      ? Interval.from(min, max)
-      : Interval.atLeast(min);
+    const interval = max !== undefined ? Interval.from(min, max) : Interval.atLeast(min);
     return new ArrayPattern({ type: "Interval", interval });
   }
 
@@ -81,6 +80,13 @@ export class ArrayPattern implements Matcher {
    */
   static fromDcborPattern(dcborPattern: DCBORPattern): ArrayPattern {
     return new ArrayPattern({ type: "DCBORPattern", pattern: dcborPattern });
+  }
+
+  /**
+   * Creates a new ArrayPattern with envelope patterns for element matching.
+   */
+  static withPatterns(patterns: Pattern[]): ArrayPattern {
+    return new ArrayPattern({ type: "WithPatterns", patterns });
   }
 
   /**
@@ -117,7 +123,10 @@ export class ArrayPattern implements Matcher {
 
       case "DCBORPattern": {
         // Delegate to dcbor-pattern for matching
-        const { paths: dcborPaths, captures: dcborCaptures } = dcborPatternPathsWithCaptures(this.#pattern.pattern, cbor);
+        const { paths: dcborPaths, captures: dcborCaptures } = dcborPatternPathsWithCaptures(
+          this.#pattern.pattern,
+          cbor,
+        );
 
         if (dcborPaths.length > 0) {
           // Convert dcbor paths to envelope paths
@@ -154,6 +163,14 @@ export class ArrayPattern implements Matcher {
 
         return [[], new Map<string, Path[]>()];
       }
+
+      case "WithPatterns":
+        // For envelope patterns, match if array length equals patterns count
+        // Full element-by-element matching would require additional implementation
+        if (array.length === this.#pattern.patterns.length) {
+          return [[[haystack]], new Map<string, Path[]>()];
+        }
+        return [[], new Map<string, Path[]>()];
     }
   }
 
@@ -184,6 +201,8 @@ export class ArrayPattern implements Matcher {
         return `[{${this.#pattern.interval}}]`;
       case "DCBORPattern":
         return dcborPatternDisplay(this.#pattern.pattern);
+      case "WithPatterns":
+        return `[${this.#pattern.patterns.map(String).join(", ")}]`;
     }
   }
 
@@ -199,12 +218,25 @@ export class ArrayPattern implements Matcher {
         return true;
       case "Interval":
         return this.#pattern.interval.equals(
-          (other.#pattern as { type: "Interval"; interval: Interval }).interval
+          (other.#pattern as { type: "Interval"; interval: Interval }).interval,
         );
       case "DCBORPattern":
         // Compare using display representation
-        return dcborPatternDisplay(this.#pattern.pattern) ===
-          dcborPatternDisplay((other.#pattern as { type: "DCBORPattern"; pattern: DCBORPattern }).pattern);
+        return (
+          dcborPatternDisplay(this.#pattern.pattern) ===
+          dcborPatternDisplay(
+            (other.#pattern as { type: "DCBORPattern"; pattern: DCBORPattern }).pattern,
+          )
+        );
+      case "WithPatterns": {
+        const otherPatterns = (other.#pattern as { type: "WithPatterns"; patterns: Pattern[] })
+          .patterns;
+        if (this.#pattern.patterns.length !== otherPatterns.length) return false;
+        for (let i = 0; i < this.#pattern.patterns.length; i++) {
+          if (this.#pattern.patterns[i] !== otherPatterns[i]) return false;
+        }
+        return true;
+      }
     }
   }
 
@@ -221,6 +253,8 @@ export class ArrayPattern implements Matcher {
       case "DCBORPattern":
         // Simple hash based on display string
         return simpleStringHash(dcborPatternDisplay(this.#pattern.pattern));
+      case "WithPatterns":
+        return this.#pattern.patterns.length;
     }
   }
 }
@@ -232,7 +266,7 @@ function simpleStringHash(str: string): number {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32-bit integer
   }
   return hash;

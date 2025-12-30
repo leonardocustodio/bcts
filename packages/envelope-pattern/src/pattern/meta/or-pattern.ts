@@ -12,11 +12,11 @@ import type { Matcher } from "../matcher";
 import type { Instr } from "../vm";
 import type { Pattern } from "../index";
 
-// Forward declaration for Pattern factory
-let _createMetaOrPattern: ((pattern: OrPattern) => Pattern) | undefined;
+// Forward declaration for Pattern factory (used for late binding)
+export let createMetaOrPattern: ((pattern: OrPattern) => Pattern) | undefined;
 
 export function registerOrPatternFactory(factory: (pattern: OrPattern) => Pattern): void {
-  _createMetaOrPattern = factory;
+  createMetaOrPattern = factory;
 }
 
 /**
@@ -46,7 +46,7 @@ export class OrPattern implements Matcher {
   }
 
   pathsWithCaptures(haystack: Envelope): [Path[], Map<string, Path[]>] {
-    const anyMatch = this.#patterns.some(pattern => {
+    const anyMatch = this.#patterns.some((pattern) => {
       const matcher = pattern as unknown as Matcher;
       return matcher.matches(haystack);
     });
@@ -111,12 +111,13 @@ export class OrPattern implements Matcher {
   isComplex(): boolean {
     // The pattern is complex if it contains more than one pattern, or if
     // the one pattern is complex itself.
-    return this.#patterns.length > 1 ||
-      this.#patterns.some(p => (p as unknown as Matcher).isComplex());
+    return (
+      this.#patterns.length > 1 || this.#patterns.some((p) => (p as unknown as Matcher).isComplex())
+    );
   }
 
   toString(): string {
-    return this.#patterns.map(p => String(p)).join(" | ");
+    return this.#patterns.map((p) => String(p)).join(" | ");
   }
 
   /**

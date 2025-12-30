@@ -61,6 +61,13 @@ export class ObjectPattern implements Matcher {
     return this.#pattern;
   }
 
+  /**
+   * Gets the inner pattern if this is a Pattern type, undefined otherwise.
+   */
+  innerPattern(): Pattern | undefined {
+    return this.#pattern.type === "Pattern" ? this.#pattern.pattern : undefined;
+  }
+
   pathsWithCaptures(haystack: Envelope): [Path[], Map<string, Path[]>] {
     const object = haystack.asObject?.();
 

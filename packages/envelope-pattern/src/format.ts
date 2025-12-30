@@ -97,9 +97,9 @@ export function defaultFormatPathsOpts(): FormatPathsOpts {
  * Builder for FormatPathsOpts.
  */
 export class FormatPathsOptsBuilder {
-  #indent: boolean = true;
+  #indent = true;
   #elementFormat: PathElementFormat = defaultPathElementFormat();
-  #lastElementOnly: boolean = false;
+  #lastElementOnly = false;
 
   /**
    * Sets whether to indent each path element.
@@ -214,7 +214,10 @@ function truncateWithEllipsis(s: string, maxLength?: number): string {
  * @param opts - Formatting options
  * @returns The formatted path string
  */
-export function formatPathOpt(path: Path, opts: FormatPathsOpts = defaultFormatPathsOpts()): string {
+export function formatPathOpt(
+  path: Path,
+  opts: FormatPathsOpts = defaultFormatPathsOpts(),
+): string {
   if (opts.lastElementOnly) {
     // Only format the last element, no indentation
     const element = path[path.length - 1];
@@ -283,7 +286,7 @@ export function formatPath(path: Path): string {
 export function formatPathsWithCapturesOpt(
   paths: Path[],
   captures: Map<string, Path[]>,
-  opts: FormatPathsOpts = defaultFormatPathsOpts()
+  opts: FormatPathsOpts = defaultFormatPathsOpts(),
 ): string {
   const result: string[] = [];
 
@@ -354,7 +357,10 @@ export function formatPathsWithCaptures(paths: Path[], captures: Map<string, Pat
  * @param opts - Formatting options
  * @returns The formatted string
  */
-export function formatPathsOpt(paths: Path[], opts: FormatPathsOpts = defaultFormatPathsOpts()): string {
+export function formatPathsOpt(
+  paths: Path[],
+  opts: FormatPathsOpts = defaultFormatPathsOpts(),
+): string {
   return formatPathsWithCapturesOpt(paths, new Map(), opts);
 }
 
