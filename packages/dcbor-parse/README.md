@@ -1,13 +1,13 @@
-# Blockchain Commons Pattern Matcher for dCBOR (TypeScript)
+# Blockchain Commons dCBOR Diagnostic Parser (TypeScript)
 
 > Disclaimer: This package is under active development and APIs may change.
 
 ## Introduction
 
-`@bcts/dcbor-pattern` provides a powerful pattern matching language for querying and extracting data from [dCBOR](https://github.com/leonardocustodio/bcts/packages/dcbor) (Deterministic CBOR) structures. It supports value matching, structural patterns, and meta-patterns with named captures.
+`@bcts/dcbor-parse` provides tools for parsing and composing the [CBOR diagnostic notation](https://datatracker.ietf.org/doc/html/rfc8949#name-diagnostic-notation) into [dCBOR](https://datatracker.ietf.org/doc/draft-mcnally-deterministic-cbor/) (Deterministic CBOR) data items.
 
-The pattern language is designed to be expressive yet concise, allowing you to match complex nested structures with simple pattern expressions.
+It is intended for use in testing, debugging, and other scenarios where a human-readable representation of dCBOR is useful.
 
 ## Rust Reference Implementation
 
-This TypeScript implementation is based on [bc-dcbor-pattern-rust](https://github.com/BlockchainCommons/bc-dcbor-pattern-rust) **v0.10.0** ([commit](https://github.com/BlockchainCommons/bc-dcbor-pattern-rust/tree/b8fbfa0aad2a38ce18fa4ca33d2bb5481fa80038)).
+This TypeScript implementation is based on [bc-dcbor-parse-rust](https://github.com/BlockchainCommons/bc-dcbor-parse-rust) **v0.10.0** ([commit](https://github.com/BlockchainCommons/bc-dcbor-parse-rust/tree/df2c4279982a35e1c1ead8ecd9f8bb16c9bd6add)).

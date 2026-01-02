@@ -1,8 +1,8 @@
 {
   "name": "@bcts/dcbor-parse",
-  "version": "1.0.0-alpha.12",
+  "version": "1.0.0-alpha.1",
   "type": "module",
-  "description": "Pattern matching for dCBOR (Deterministic CBOR) for TypeScript",
+  "description": "dCBOR Diagnostic Parser and Composer for TypeScript",
   "license": "BSD-2-Clause-Patent",
   "contributors": [
     {
@@ -20,7 +20,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/leonardocustodio/bcts.git",
-    "directory": "packages/dcbor-pattern"
+    "directory": "packages/dcbor-parse"
   },
   "bugs": {
     "url": "https://github.com/leonardocustodio/bcts/issues"
@@ -57,11 +57,10 @@
   "keywords": [
     "cbor",
     "dcbor",
-    "pattern",
-    "matching",
+    "parser",
+    "diagnostic",
     "blockchain-commons",
-    "query",
-    "search"
+    "serialization"
   ],
   "engines": {
     "node": ">=18.0.0"
@@ -78,8 +77,8 @@
   },
   "dependencies": {
     "@bcts/dcbor": "workspace:*",
-    "@bcts/components": "workspace:*",
-    "@bcts/tags": "workspace:*",
-    "@bcts/known-values": "workspace:*"
+    "@bcts/uniform-resources": "workspace:*",
+    "@bcts/known-values": "workspace:*",
+    "@bcts/tags": "workspace:*"
   }
 }
