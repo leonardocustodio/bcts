@@ -7,7 +7,7 @@
  */
 
 import { type Cbor, cbor, CborMap } from "@bcts/dcbor";
-import { type ParseError, type ParseResult } from "./error";
+import type { ParseError } from "./error";
 import { parseDcborItem } from "./parse";
 
 /**

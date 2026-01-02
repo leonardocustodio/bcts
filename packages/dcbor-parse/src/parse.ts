@@ -12,12 +12,10 @@ import type { UR } from "@bcts/uniform-resources";
 import {
   type Span,
   span,
-  type ParseError,
   ParseError as PE,
   type ParseResult,
   ok,
   err,
-  isOk,
   isDefaultError,
 } from "./error";
 import { type Token, Lexer } from "./token";
@@ -182,24 +180,24 @@ function parseItemToken(token: Token, lexer: Lexer): ParseResult<Cbor> {
       return parseNameTag(token.value, lexer);
 
     case "KnownValueNumber":
-      return ok(cbor(new KnownValue(token.value)));
+      return ok(new KnownValue(token.value).taggedCbor());
 
     case "KnownValueName": {
       // Empty string means Unit (value 0)
       if (token.value === "") {
-        return ok(cbor(new KnownValue(0)));
+        return ok(new KnownValue(0).taggedCbor());
       }
 
       const knownValue = knownValueForName(token.value);
       if (knownValue !== undefined) {
-        return ok(cbor(knownValue));
+        return ok(knownValue.taggedCbor());
       }
       const tokenSpan = lexer.span();
       return err(PE.unknownKnownValueName(token.value, span(tokenSpan.start + 1, tokenSpan.end - 1)));
     }
 
     case "Unit":
-      return ok(cbor(new KnownValue(0)));
+      return ok(new KnownValue(0).taggedCbor());
 
     case "BracketOpen":
       return parseArray(lexer);
@@ -221,7 +219,7 @@ function parseString(s: string, tokenSpan: Span): ParseResult<Cbor> {
   return err(PE.unrecognizedToken(tokenSpan));
 }
 
-function tagForName(name: string): number | undefined {
+function tagForName(name: string): number | bigint | undefined {
   return getGlobalTagsStore().tagForName(name)?.value;
 }
 

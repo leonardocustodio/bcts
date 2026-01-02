@@ -11,7 +11,6 @@ import { UR } from "@bcts/uniform-resources";
 import {
   type Span,
   span,
-  type ParseError,
   ParseError as PE,
   type ParseResult,
   ok,
@@ -373,7 +372,6 @@ export class Lexer {
       return undefined;
     }
 
-    const start = this.#position;
     const hexRegex = /^[0-9a-fA-F]*/;
     const remaining = this.#source.slice(this.#position);
     const match = remaining.match(hexRegex);
