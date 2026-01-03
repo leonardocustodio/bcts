@@ -3,7 +3,7 @@
  * Equivalent to Rust's cmd/match.rs
  */
 
-import { Cbor, type Result } from "@bcts/dcbor";
+import { type Cbor, type Result, decodeCbor, hexToBytes } from "@bcts/dcbor";
 import { parseDcborItem } from "@bcts/dcbor-parse";
 import {
   parse as parsePattern,
@@ -106,19 +106,11 @@ export function execMatch(
       }
       case "hex": {
         const inputStr = new TextDecoder().decode(inputData).trim();
-        const tryResult = Cbor.fromHex(inputStr);
-        if (!tryResult.ok) {
-          return { ok: false, error: new Error(String(tryResult.error)) };
-        }
-        cbor = tryResult.value;
+        cbor = decodeCbor(hexToBytes(inputStr));
         break;
       }
       case "bin": {
-        const tryResult = Cbor.fromData(inputData);
-        if (!tryResult.ok) {
-          return { ok: false, error: new Error(String(tryResult.error)) };
-        }
-        cbor = tryResult.value;
+        cbor = decodeCbor(inputData);
         break;
       }
       default:

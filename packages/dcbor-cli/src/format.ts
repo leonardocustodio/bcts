@@ -4,7 +4,14 @@
  * Equivalent to the format-related code in Rust's main.rs
  */
 
-import { type Cbor, type Result } from "@bcts/dcbor";
+import {
+  type Cbor,
+  type Result,
+  diagnosticOpt,
+  hexOpt,
+  bytesToHex,
+  cborData,
+} from "@bcts/dcbor";
 
 /**
  * Input format options
@@ -29,22 +36,22 @@ export function formatOutput(
     switch (outFormat) {
       case "diag":
         if (annotate) {
-          return { ok: true, value: cbor.diagnosticAnnotated() };
+          return { ok: true, value: diagnosticOpt(cbor, { annotate: true }) };
         } else {
-          return { ok: true, value: cbor.diagnostic() };
+          return { ok: true, value: diagnosticOpt(cbor) };
         }
 
       case "hex":
         if (annotate) {
-          return { ok: true, value: cbor.hexAnnotated() };
+          return { ok: true, value: hexOpt(cbor, { annotate: true }) };
         } else {
-          return { ok: true, value: cbor.hex() };
+          return { ok: true, value: bytesToHex(cborData(cbor)) };
         }
 
       case "bin":
         // For binary output, return hex representation
         // The caller will handle converting to actual binary
-        return { ok: true, value: cbor.hex() };
+        return { ok: true, value: bytesToHex(cborData(cbor)) };
 
       case "none":
         return { ok: true, value: "" };

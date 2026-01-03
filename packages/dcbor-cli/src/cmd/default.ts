@@ -3,7 +3,7 @@
  * Equivalent to Rust's cmd/default.rs
  */
 
-import { Cbor, type Result } from "@bcts/dcbor";
+import { type Cbor, type Result, decodeCbor, hexToBytes } from "@bcts/dcbor";
 import { parseDcborItem } from "@bcts/dcbor-parse";
 import type { Exec } from "./index.js";
 import {
@@ -63,28 +63,16 @@ export function execDefaultWithReader(
       }
       case "hex": {
         if (args.input !== undefined) {
-          const tryResult = Cbor.fromHex(args.input);
-          if (!tryResult.ok) {
-            return { ok: false, error: new Error(String(tryResult.error)) };
-          }
-          cbor = tryResult.value;
+          cbor = decodeCbor(hexToBytes(args.input));
         } else {
-          const hex = readString().trim();
-          const tryResult = Cbor.fromHex(hex);
-          if (!tryResult.ok) {
-            return { ok: false, error: new Error(String(tryResult.error)) };
-          }
-          cbor = tryResult.value;
+          const hexStr = readString().trim();
+          cbor = decodeCbor(hexToBytes(hexStr));
         }
         break;
       }
       case "bin": {
         const data = readData();
-        const tryResult = Cbor.fromData(data);
-        if (!tryResult.ok) {
-          return { ok: false, error: new Error(String(tryResult.error)) };
-        }
-        cbor = tryResult.value;
+        cbor = decodeCbor(data);
         break;
       }
       default:
