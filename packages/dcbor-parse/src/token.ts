@@ -257,16 +257,16 @@ export class Lexer {
     // ISO-8601 date: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS...
     const dateRegex = /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?)?/;
     const remaining = this.#source.slice(this.#position);
-    const match = remaining.match(dateRegex);
+    const match = dateRegex.exec(remaining);
 
-    if (match) {
+    if (match !== null) {
       const dateStr = match[0];
       this.#position += dateStr.length;
       this.#tokenEnd = this.#position;
 
       try {
         const date = DCborDate.fromString(dateStr);
-        return ok(Token.dateLiteral(date));
+        return ok(token.dateLiteral(date));
       } catch {
         return err(PE.invalidDateString(dateStr, this.span()));
       }
@@ -297,7 +297,7 @@ export class Lexer {
           return err(PE.invalidTagValue(numStr, span(this.#tokenStart, this.#tokenStart + numStr.length)));
         }
 
-        return ok(Token.tagValue(tagValue));
+        return ok(token.tagValue(tagValue));
       }
 
       // It's a regular number
@@ -305,7 +305,7 @@ export class Lexer {
       this.#tokenEnd = this.#position;
 
       const num = parseFloat(numStr);
-      return ok(Token.number(num));
+      return ok(token.number(num));
     }
 
     return undefined;
@@ -323,7 +323,7 @@ export class Lexer {
       this.#position += fullMatch.length;
       this.#tokenEnd = this.#position;
 
-      return ok(Token.tagName(name));
+      return ok(token.tagName(name));
     }
 
     return undefined;
@@ -345,7 +345,7 @@ export class Lexer {
       this.#tokenEnd = this.#position;
 
       // Return the full string including quotes
-      return ok(Token.string(fullMatch));
+      return ok(token.string(fullMatch));
     }
 
     // Invalid string - try to find where it ends for better error reporting
@@ -394,7 +394,7 @@ export class Lexer {
 
     // Decode hex
     const bytes = hexToBytes(hexPart);
-    return ok(Token.byteStringHex(bytes));
+    return ok(token.byteStringHex(bytes));
   }
 
   #tryMatchByteStringBase64(): ParseResult<Token> | undefined {
@@ -426,7 +426,7 @@ export class Lexer {
     // Decode base64
     try {
       const bytes = base64ToBytes(base64Part);
-      return ok(Token.byteStringBase64(bytes));
+      return ok(token.byteStringBase64(bytes));
     } catch {
       return err(PE.invalidBase64String(this.span()));
     }
@@ -441,7 +441,7 @@ export class Lexer {
     if (this.#source[this.#position + 1] === "'") {
       this.#position += 2;
       this.#tokenEnd = this.#position;
-      return ok(Token.knownValueName(""));
+      return ok(token.knownValueName(""));
     }
 
     // Check for numeric known value: '0' or '[1-9][0-9]*'
@@ -460,7 +460,7 @@ export class Lexer {
         return err(PE.invalidKnownValue(numStr, span(this.#tokenStart + 1, this.#tokenEnd - 1)));
       }
 
-      return ok(Token.knownValueNumber(value));
+      return ok(token.knownValueNumber(value));
     }
 
     // Check for named known value: '[a-zA-Z_][a-zA-Z0-9_-]*'
@@ -473,7 +473,7 @@ export class Lexer {
       this.#position += fullMatch.length;
       this.#tokenEnd = this.#position;
 
-      return ok(Token.knownValueName(name));
+      return ok(token.knownValueName(name));
     }
 
     // Invalid known value
@@ -501,7 +501,7 @@ export class Lexer {
 
       try {
         const ur = UR.fromURString(fullMatch);
-        return ok(Token.ur(ur));
+        return ok(token.ur(ur));
       } catch (e) {
         const errorMsg = e instanceof Error ? e.message : String(e);
         return err(PE.invalidUr(errorMsg, this.span()));
@@ -515,14 +515,14 @@ export class Lexer {
     const ch = this.#source[this.#position];
 
     const punctuation: Record<string, Token> = {
-      "{": Token.braceOpen(),
-      "}": Token.braceClose(),
-      "[": Token.bracketOpen(),
-      "]": Token.bracketClose(),
-      "(": Token.parenthesisOpen(),
-      ")": Token.parenthesisClose(),
-      ":": Token.colon(),
-      ",": Token.comma(),
+      "{": token.braceOpen(),
+      "}": token.braceClose(),
+      "[": token.bracketOpen(),
+      "]": token.bracketClose(),
+      "(": token.parenthesisOpen(),
+      ")": token.parenthesisClose(),
+      ":": token.colon(),
+      ",": token.comma(),
     };
 
     const token = punctuation[ch];

@@ -46,7 +46,7 @@
 export { parseDcborItem, parseDcborItemPartial } from "./parse";
 
 // Token types
-export { Token, Lexer } from "./token";
+export { type Token, token, Lexer } from "./token";
 
 // Error types
 export {
