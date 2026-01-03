@@ -280,9 +280,9 @@ export class Lexer {
     // Or just a number
     const numberRegex = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/;
     const remaining = this.#source.slice(this.#position);
-    const match = remaining.match(numberRegex);
+    const match = numberRegex.exec(remaining);
 
-    if (match) {
+    if (match !== null) {
       const numStr = match[0];
       const nextChar = this.#source[this.#position + numStr.length];
 
@@ -315,9 +315,9 @@ export class Lexer {
     // Tag name: identifier followed by (
     const tagNameRegex = /^[a-zA-Z_][a-zA-Z0-9_-]*\(/;
     const remaining = this.#source.slice(this.#position);
-    const match = remaining.match(tagNameRegex);
+    const match = tagNameRegex.exec(remaining);
 
-    if (match) {
+    if (match !== null) {
       const fullMatch = match[0];
       const name = fullMatch.slice(0, -1); // Remove trailing (
       this.#position += fullMatch.length;
@@ -335,11 +335,12 @@ export class Lexer {
     }
 
     // JavaScript-style string with escape sequences
+    // eslint-disable-next-line no-control-regex
     const stringRegex = /^"([^"\\\x00-\x1F]|\\(["\\bnfrt/]|u[a-fA-F0-9]{4}))*"/;
     const remaining = this.#source.slice(this.#position);
-    const match = remaining.match(stringRegex);
+    const match = stringRegex.exec(remaining);
 
-    if (match) {
+    if (match !== null) {
       const fullMatch = match[0];
       this.#position += fullMatch.length;
       this.#tokenEnd = this.#position;
@@ -374,8 +375,8 @@ export class Lexer {
 
     const hexRegex = /^[0-9a-fA-F]*/;
     const remaining = this.#source.slice(this.#position);
-    const match = remaining.match(hexRegex);
-    const hexPart = match ? match[0] : "";
+    const match = hexRegex.exec(remaining);
+    const hexPart = match !== null ? match[0] : "";
 
     this.#position += hexPart.length;
 
@@ -405,8 +406,8 @@ export class Lexer {
 
     const base64Regex = /^[A-Za-z0-9+/=]*/;
     const remaining = this.#source.slice(this.#position);
-    const match = remaining.match(base64Regex);
-    const base64Part = match ? match[0] : "";
+    const match = base64Regex.exec(remaining);
+    const base64Part = match !== null ? match[0] : "";
 
     this.#position += base64Part.length;
 
@@ -447,9 +448,9 @@ export class Lexer {
     // Check for numeric known value: '0' or '[1-9][0-9]*'
     const numericRegex = /^'(0|[1-9][0-9]*)'/;
     const remaining = this.#source.slice(this.#position);
-    let match = remaining.match(numericRegex);
+    let match = numericRegex.exec(remaining);
 
-    if (match) {
+    if (match !== null) {
       const fullMatch = match[0];
       const numStr = match[1];
       this.#position += fullMatch.length;
@@ -465,9 +466,9 @@ export class Lexer {
 
     // Check for named known value: '[a-zA-Z_][a-zA-Z0-9_-]*'
     const nameRegex = /^'([a-zA-Z_][a-zA-Z0-9_-]*)'/;
-    match = remaining.match(nameRegex);
+    match = nameRegex.exec(remaining);
 
-    if (match) {
+    if (match !== null) {
       const fullMatch = match[0];
       const name = match[1];
       this.#position += fullMatch.length;
@@ -492,9 +493,9 @@ export class Lexer {
     // ur:type/data
     const urRegex = /^ur:([a-zA-Z0-9][a-zA-Z0-9-]*)\/([a-zA-Z]{8,})/;
     const remaining = this.#source.slice(this.#position);
-    const match = remaining.match(urRegex);
+    const match = urRegex.exec(remaining);
 
-    if (match) {
+    if (match !== null) {
       const fullMatch = match[0];
       this.#position += fullMatch.length;
       this.#tokenEnd = this.#position;
