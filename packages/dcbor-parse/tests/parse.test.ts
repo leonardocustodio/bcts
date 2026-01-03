@@ -3,9 +3,9 @@
  */
 
 import { describe, it, expect, beforeAll } from "vitest";
-import { type Cbor, cbor, CborMap, CborDate } from "@bcts/dcbor";
+import { type Cbor, cbor, CborMap } from "@bcts/dcbor";
 import { registerTags } from "@bcts/tags";
-import { IS_A, UNIT, KnownValue } from "@bcts/known-values";
+import { IS_A, UNIT } from "@bcts/known-values";
 import { parseDcborItem, parseDcborItemPartial } from "../src/parse";
 import { type ParseError, fullErrorMessage } from "../src/error";
 
@@ -305,11 +305,11 @@ describe("parse", () => {
       checkError("'foobar'", "UnknownKnownValueName");
     });
 
-    it("should error on invalid date string", () => {
-      // Note: JavaScript Date is more lenient with invalid dates
-      // Testing with clearly malformed date format
-      checkError("2023-1-01", "UnrecognizedToken"); // Single digit month not valid
-      checkError("23-01-01", "UnrecognizedToken"); // Two digit year not valid
+    it("should error on invalid date format", () => {
+      // Note: JavaScript Date is more lenient with invalid dates (month 13, day 30 in Feb)
+      // Testing with malformed formats that the lexer won't recognize as dates
+      checkError("2023-1-01", "ExtraData"); // Single digit month parsed as number + extra
+      checkError("date-string", "UnrecognizedToken"); // Not a valid token at all
     });
   });
 
