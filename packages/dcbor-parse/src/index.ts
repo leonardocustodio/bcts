@@ -54,7 +54,7 @@ export {
   span,
   defaultSpan,
   type ParseError,
-  ParseError as ParseErrorConstructor,
+  parseError,
   type ParseResult,
   ok,
   err,

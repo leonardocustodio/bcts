@@ -59,8 +59,8 @@ export type ParseError =
   | { readonly type: "InvalidDateString"; readonly dateString: string; readonly span: Span }
   | { readonly type: "DuplicateMapKey"; readonly span: Span };
 
-// Error constructors
-export const ParseError = {
+// Error constructors (lowercase to differentiate from the type)
+export const parseError = {
   emptyInput(): ParseError {
     return { type: "EmptyInput" };
   },
@@ -306,7 +306,7 @@ export function fullErrorMessage(error: ParseError, source: string): string {
  * Corresponds to Rust `Error::default()`
  */
 export function defaultParseError(): ParseError {
-  return ParseError.unrecognizedToken(defaultSpan());
+  return parseError.unrecognizedToken(defaultSpan());
 }
 
 /**

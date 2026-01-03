@@ -48,8 +48,8 @@ export type Token =
   | { readonly type: "Unit" }
   | { readonly type: "UR"; readonly value: UR };
 
-// Token constructors
-export const Token = {
+// Token constructors (lowercase to differentiate from the type)
+export const token = {
   bool(value: boolean): Token {
     return { type: "Bool", value };
   },
@@ -227,23 +227,23 @@ export class Lexer {
   }
 
   #tryMatchKeyword(): ParseResult<Token> | undefined {
-    const keywords: Array<[string, Token]> = [
-      ["true", Token.bool(true)],
-      ["false", Token.bool(false)],
-      ["null", Token.null()],
-      ["NaN", Token.nan()],
-      ["Infinity", Token.infinity()],
-      ["-Infinity", Token.negInfinity()],
-      ["Unit", Token.unit()],
+    const keywords: [string, Token][] = [
+      ["true", token.bool(true)],
+      ["false", token.bool(false)],
+      ["null", token.null()],
+      ["NaN", token.nan()],
+      ["Infinity", token.infinity()],
+      ["-Infinity", token.negInfinity()],
+      ["Unit", token.unit()],
     ];
 
-    for (const [keyword, token] of keywords) {
+    for (const [keyword, tok] of keywords) {
       if (this.#matchLiteral(keyword)) {
         // Make sure it's not part of a longer identifier
         const nextChar = this.#source[this.#position];
         if (nextChar === undefined || !this.#isIdentifierChar(nextChar)) {
           this.#tokenEnd = this.#position;
-          return ok(token);
+          return ok(tok);
         }
         // Reset position if it was a partial match
         this.#position = this.#tokenStart;
