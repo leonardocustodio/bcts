@@ -4,7 +4,7 @@
  */
 
 import type { Result } from "@bcts/dcbor";
-import { composeDcborArray } from "@bcts/dcbor-parse";
+import { composeDcborArray, composeErrorMessage } from "@bcts/dcbor-parse";
 import type { Exec } from "./index.js";
 import { type OutputFormat, formatOutput } from "../format.js";
 
@@ -26,7 +26,7 @@ export interface ArrayCommandArgs {
 export function execArray(args: ArrayCommandArgs): Result<string, Error> {
   const result = composeDcborArray(args.elements);
   if (!result.ok) {
-    return { ok: false, error: new Error(String(result.error)) };
+    return { ok: false, error: new Error(composeErrorMessage(result.error)) };
   }
   return formatOutput(result.value, args.out, args.annotate);
 }

@@ -10,10 +10,18 @@ export default defineConfig({
   sourcemap: true,
   minify: false,
   outDir: "dist",
+  target: "es2022",
+  globalName: "bctsDcborParse",
   external: [
     "@bcts/dcbor",
-    "@bcts/ur",
     "@bcts/known-values",
-    "@bcts/tags",
+    "@bcts/uniform-resources",
   ],
+  outputOptions: {
+    globals: {
+      "@bcts/dcbor": "bctsDcbor",
+      "@bcts/known-values": "bctsKnownValues",
+      "@bcts/uniform-resources": "bctsUniformResources",
+    },
+  },
 });
