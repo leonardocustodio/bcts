@@ -5,7 +5,7 @@
  * Command line tool for creating and managing Provenance Marks.
  */
 
-/* eslint-disable no-console, no-undef, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable no-console, no-undef, no-restricted-globals, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */
 
 import { Command, Option } from "commander";
 import { VERSION } from "./index.js";
@@ -55,7 +55,7 @@ program
   )
   .option("--info <payload>", "Hex-encoded dCBOR or UR payload to embed in the mark's info field.")
   .option("--info-tag <tag>", "CBOR tag value to associate with an unknown UR type.")
-  .action(async (pathArg: string, options) => {
+  .action((pathArg: string, options) => {
     try {
       const args = defaultNewCommandArgs();
       args.path = pathArg;
@@ -78,7 +78,7 @@ program
       };
 
       const cmd = new NewCommand(args);
-      const output = await cmd.exec();
+      const output = cmd.exec();
       if (output !== "") {
         console.log(output);
       }
@@ -104,7 +104,7 @@ program
   )
   .option("--info <payload>", "Hex-encoded dCBOR or UR payload to embed in the mark's info field.")
   .option("--info-tag <tag>", "CBOR tag value to associate with an unknown UR type.")
-  .action(async (pathArg: string, options) => {
+  .action((pathArg: string, options) => {
     try {
       const args = defaultNextCommandArgs();
       args.path = pathArg;
@@ -122,7 +122,7 @@ program
       };
 
       const cmd = new NextCommand(args);
-      const output = await cmd.exec();
+      const output = cmd.exec();
       if (output !== "") {
         console.log(output);
       }
@@ -149,7 +149,7 @@ program
       .choices(["markdown", "ur", "json"])
       .default("markdown"),
   )
-  .action(async (pathArg: string, options) => {
+  .action((pathArg: string, options) => {
     try {
       const args = defaultPrintCommandArgs();
       args.path = pathArg;
@@ -161,7 +161,7 @@ program
       }
 
       const cmd = new PrintCommand(args);
-      const output = await cmd.exec();
+      const output = cmd.exec();
       if (output !== "") {
         console.log(output);
       }
@@ -184,7 +184,7 @@ program
       .choices(["text", "json-compact", "json-pretty"])
       .default("text"),
   )
-  .action(async (marksArg: string[], options) => {
+  .action((marksArg: string[], options) => {
     try {
       // Validate that either marks or dir is provided
       if (marksArg.length === 0 && options.dir === undefined) {
@@ -203,7 +203,7 @@ program
       args.format = parseValidateFormat(options.format);
 
       const cmd = new ValidateCommand(args);
-      const output = await cmd.exec();
+      const output = cmd.exec();
       if (output !== "") {
         console.log(output);
       }

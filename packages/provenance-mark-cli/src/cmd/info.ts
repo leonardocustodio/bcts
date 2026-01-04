@@ -4,7 +4,7 @@
  * Shared arguments for supplying provenance mark `info` payloads.
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument */
 
 import { type Cbor, cbor, decodeCbor, expectTag } from "@bcts/dcbor";
 import { UR } from "@bcts/uniform-resources";
