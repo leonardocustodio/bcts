@@ -6,7 +6,13 @@
 
 import type { ExecAsync } from "../exec.js";
 import { readEnvelope, readPassword, ASKPASS_HELP, ASKPASS_LONG_HELP } from "../utils.js";
-import { SymmetricKey, PrivateKeyBase, PrivateKeys } from "@bcts/components";
+import { PrivateKeyBase, PrivateKeys } from "@bcts/components";
+import {
+  symmetricKeyFromURString,
+  envelopeIsLockedWithPassword,
+  envelopeUnlockSubject,
+  envelopeIsLockedWithSshAgent,
+} from "../placeholders.js";
 
 export { ASKPASS_HELP, ASKPASS_LONG_HELP };
 
@@ -48,27 +54,14 @@ export class DecryptCommand implements ExecAsync {
 
     if (this.args.key) {
       // If a content key is provided, decrypt the subject using it
-      const key = SymmetricKey.fromURString(this.args.key);
-      try {
-        const decrypted = envelope.decryptSubject(key);
-        return decrypted.urString();
-      } catch {
-        throw new Error("decrypt failed");
-      }
+      // TODO: SymmetricKey.fromURString not implemented
+      symmetricKeyFromURString(this.args.key);
     }
 
     if (this.args.password !== undefined) {
       // If a password is provided, unlock the subject using it
-      if (!envelope.isLockedWithPassword()) {
-        throw new Error("envelope is not locked with a password");
-      }
-      const password = await readPassword(
-        "Decryption password:",
-        this.args.password || undefined,
-        this.args.askpass,
-      );
-      const unlocked = envelope.unlockSubject(new TextEncoder().encode(password));
-      return unlocked.urString();
+      // TODO: Envelope.isLockedWithPassword and unlockSubject not implemented
+      envelopeIsLockedWithPassword();
     }
 
     if (this.args.recipient) {
@@ -93,11 +86,8 @@ export class DecryptCommand implements ExecAsync {
 
     if (this.args.sshId !== undefined) {
       // If an SSH identity is provided, decrypt the subject using the SSH agent
-      if (!envelope.isLockedWithSshAgent()) {
-        throw new Error("envelope is not locked with an SSH agent");
-      }
-      const unlocked = envelope.unlockSubject(this.args.sshId);
-      return unlocked.urString();
+      // TODO: Envelope.isLockedWithSshAgent and unlockSubject not implemented
+      envelopeIsLockedWithSshAgent();
     }
 
     throw new Error(

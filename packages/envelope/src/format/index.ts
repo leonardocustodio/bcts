@@ -11,4 +11,3 @@ export type { TreeFormatOptions } from "./tree";
 import "./hex";
 import "./diagnostic";
 import "./tree";
-import "./ur";
