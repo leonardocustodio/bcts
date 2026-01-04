@@ -1,67 +1,230 @@
 #!/usr/bin/env node
 /**
- * provenance CLI - Command line tool for creating and managing Provenance Marks
+ * provenance CLI - 1:1 port of main.rs
+ *
+ * Command line tool for creating and managing Provenance Marks.
  */
 
-import { Command } from "commander";
+import { Command, Option } from "commander";
 import { VERSION } from "./index.js";
+import {
+  NewCommand,
+  defaultNewCommandArgs,
+  parseResolution,
+  parseOutputFormat,
+  NextCommand,
+  defaultNextCommandArgs,
+  PrintCommand,
+  defaultPrintCommandArgs,
+  ValidateCommand,
+  defaultValidateCommandArgs,
+  parseValidateFormat,
+  parseSeed,
+} from "./cmd/index.js";
 
 const program = new Command();
 
 program
   .name("provenance")
-  .description("Command line tool for creating and managing Provenance Marks")
+  .description("A tool for managing provenance mark chains and generating provenance marks.")
   .version(VERSION);
 
+// New command - Initialize a directory with a new provenance mark chain
 program
   .command("new")
-  .description("Create a new provenance mark chain")
-  .argument("<dir>", "Directory to create the chain in")
-  .option("--seed <base64>", "Seed for the chain (default: random)")
-  .option("--resolution <level>", "Resolution: low, medium, quartile, high", "quartile")
-  .option("--comment <text>", "Comment for genesis mark", "Genesis mark.")
-  .option("--quiet", "Suppress status messages")
-  .action((_dir, _options) => {
-    // TODO: Implement new command
-    console.error("new command is not yet implemented");
-    process.exit(1);
+  .description("Initialize a directory with a new provenance mark chain.")
+  .argument("<path>", "Path to directory to be created. Must not already exist.")
+  .option(
+    "-s, --seed <seed>",
+    "A seed to use for the provenance mark chain (base64, hex, or ur:seed). If not supplied, a random seed is generated.",
+  )
+  .addOption(
+    new Option("-r, --resolution <level>", "The resolution of the provenance mark chain.")
+      .choices(["low", "medium", "quartile", "high"])
+      .default("quartile"),
+  )
+  .option("-c, --comment <text>", "A comment to be included for the genesis mark.", "Genesis mark.")
+  .option("-d, --date <date>", "The date of the genesis mark. If not supplied, the current date is used.")
+  .option("-q, --quiet", "Suppress informational status output on stderr/stdout.", false)
+  .addOption(
+    new Option("--format <format>", "Output format for the creation summary.")
+      .choices(["markdown", "ur", "json"])
+      .default("markdown"),
+  )
+  .option("--info <payload>", "Hex-encoded dCBOR or UR payload to embed in the mark's info field.")
+  .option("--info-tag <tag>", "CBOR tag value to associate with an unknown UR type.")
+  .action(async (pathArg: string, options) => {
+    try {
+      const args = defaultNewCommandArgs();
+      args.path = pathArg;
+      args.resolution = parseResolution(options.resolution);
+      args.comment = options.comment;
+      args.quiet = options.quiet;
+      args.format = parseOutputFormat(options.format);
+
+      if (options.seed !== undefined) {
+        args.seed = parseSeed(options.seed);
+      }
+
+      if (options.date !== undefined) {
+        args.date = parseDate(options.date);
+      }
+
+      args.info = {
+        info: options.info,
+        infoTag: options.infoTag !== undefined ? parseInt(options.infoTag, 10) : undefined,
+      };
+
+      const cmd = new NewCommand(args);
+      const output = await cmd.exec();
+      if (output !== "") {
+        console.log(output);
+      }
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.error(`Error: ${message}`);
+      process.exit(1);
+    }
   });
 
+// Next command - Generate the next provenance mark in a chain
 program
   .command("next")
-  .description("Generate the next mark in a chain")
-  .argument("<dir>", "Chain directory")
-  .option("--comment <text>", "Comment for the new mark", "Blank.")
-  .option("--format <fmt>", "Output format: markdown, ur, json", "markdown")
-  .option("--quiet", "Suppress status messages")
-  .action((_dir, _options) => {
-    // TODO: Implement next command
-    console.error("next command is not yet implemented");
-    process.exit(1);
+  .description("Generate the next provenance mark in a chain.")
+  .argument("<path>", "Path to the chain's directory. Must already exist.")
+  .option("-c, --comment <text>", "A comment to be included for the mark.", "Blank.")
+  .option("-d, --date <date>", "The date of the next mark. If not supplied, the current date is used.")
+  .option("-q, --quiet", "Suppress informational status output on stderr/stdout.", false)
+  .addOption(
+    new Option("--format <format>", "Output format for the mark.")
+      .choices(["markdown", "ur", "json"])
+      .default("markdown"),
+  )
+  .option("--info <payload>", "Hex-encoded dCBOR or UR payload to embed in the mark's info field.")
+  .option("--info-tag <tag>", "CBOR tag value to associate with an unknown UR type.")
+  .action(async (pathArg: string, options) => {
+    try {
+      const args = defaultNextCommandArgs();
+      args.path = pathArg;
+      args.comment = options.comment;
+      args.quiet = options.quiet;
+      args.format = parseOutputFormat(options.format);
+
+      if (options.date !== undefined) {
+        args.date = parseDate(options.date);
+      }
+
+      args.info = {
+        info: options.info,
+        infoTag: options.infoTag !== undefined ? parseInt(options.infoTag, 10) : undefined,
+      };
+
+      const cmd = new NextCommand(args);
+      const output = await cmd.exec();
+      if (output !== "") {
+        console.log(output);
+      }
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.error(`Error: ${message}`);
+      process.exit(1);
+    }
   });
 
+// Print command - Print marks from a chain
 program
   .command("print")
-  .description("Print marks from a chain")
-  .argument("<dir>", "Chain directory")
-  .option("--start <n>", "First mark to print", "0")
-  .option("--end <n>", "Last mark to print")
-  .action((_dir, _options) => {
-    // TODO: Implement print command
-    console.error("print command is not yet implemented");
-    process.exit(1);
+  .description("Prints provenance marks in a chain.")
+  .argument("<path>", "Path to the chain's directory. Must already exist.")
+  .option(
+    "-s, --start <n>",
+    "The sequence number of the first mark to print. If not supplied, the first mark (genesis mark) is used.",
+    "0",
+  )
+  .option("-e, --end <n>", "The sequence number of the last mark to print. If not supplied, the last mark in the chain is used.")
+  .addOption(
+    new Option("--format <format>", "Output format for the rendered marks.")
+      .choices(["markdown", "ur", "json"])
+      .default("markdown"),
+  )
+  .action(async (pathArg: string, options) => {
+    try {
+      const args = defaultPrintCommandArgs();
+      args.path = pathArg;
+      args.start = parseInt(options.start, 10);
+      args.format = parseOutputFormat(options.format);
+
+      if (options.end !== undefined) {
+        args.end = parseInt(options.end, 10);
+      }
+
+      const cmd = new PrintCommand(args);
+      const output = await cmd.exec();
+      if (output !== "") {
+        console.log(output);
+      }
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.error(`Error: ${message}`);
+      process.exit(1);
+    }
   });
 
+// Validate command - Validate one or more provenance marks
 program
   .command("validate")
-  .description("Validate provenance marks")
-  .argument("[urs...]", "Provenance mark URs to validate")
-  .option("--dir <path>", "Validate all marks in directory")
-  .option("--warn", "Warn instead of error on issues")
-  .action((_urs, _options) => {
-    // TODO: Implement validate command
-    console.error("validate command is not yet implemented");
-    process.exit(1);
+  .description("Validate one or more provenance marks.")
+  .argument("[marks...]", "One or more provenance mark URs to validate.")
+  .option("-d, --dir <path>", "Path to a chain directory containing marks to validate.")
+  .option("-w, --warn", "Report issues as warnings without failing.", false)
+  .addOption(
+    new Option("--format <format>", "Output format for the validation report.")
+      .choices(["text", "json-compact", "json-pretty"])
+      .default("text"),
+  )
+  .action(async (marksArg: string[], options) => {
+    try {
+      // Validate that either marks or dir is provided
+      if (marksArg.length === 0 && options.dir === undefined) {
+        console.error("Error: Either provide marks to validate or use --dir to validate marks from a directory.");
+        process.exit(1);
+      }
+      if (marksArg.length > 0 && options.dir !== undefined) {
+        console.error("Error: Cannot provide both marks and --dir.");
+        process.exit(1);
+      }
+
+      const args = defaultValidateCommandArgs();
+      args.marks = marksArg;
+      args.dir = options.dir;
+      args.warn = options.warn;
+      args.format = parseValidateFormat(options.format);
+
+      const cmd = new ValidateCommand(args);
+      const output = await cmd.exec();
+      if (output !== "") {
+        console.log(output);
+      }
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.error(`Error: ${message}`);
+      process.exit(1);
+    }
   });
+
+/**
+ * Parse a date string.
+ *
+ * Supports ISO 8601 formats like:
+ * - 2023-02-08
+ * - 2023-02-08T15:30:45Z
+ */
+function parseDate(dateStr: string): Date {
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) {
+    throw new Error(`Invalid date: ${dateStr}`);
+  }
+  return date;
+}
 
 program.parse();

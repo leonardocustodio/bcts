@@ -4,6 +4,8 @@
  * Helper functions for CLI operations.
  */
 
+/* eslint-disable no-restricted-globals */
+
 import * as fs from "fs";
 import * as path from "path";
 

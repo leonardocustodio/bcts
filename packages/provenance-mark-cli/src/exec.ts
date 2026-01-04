@@ -19,5 +19,5 @@ export interface Exec {
    * Execute the command and return the output string.
    * @throws Error if the command fails
    */
-  exec(): Promise<ExecResult>;
+  exec(): ExecResult;
 }

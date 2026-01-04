@@ -50,7 +50,7 @@ function parseSeedUr(input: string): ProvenanceSeed {
     const ur = UR.fromURString(input);
     const seed = Seed.fromUr(ur);
     return seedFromExact(seed.data());
-  } catch (e) {
+  } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e);
     throw new Error(`failed to parse seed UR: ${message}`);
   }
