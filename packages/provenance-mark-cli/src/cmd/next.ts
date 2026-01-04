@@ -8,10 +8,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import {
-  ProvenanceMarkGenerator,
-  ProvenanceMarkInfo,
-} from "@bcts/provenance-mark";
+import { ProvenanceMarkGenerator, ProvenanceMarkInfo } from "@bcts/provenance-mark";
 
 import type { Exec } from "../exec.js";
 import { readExistingDirectoryPath } from "../utils.js";

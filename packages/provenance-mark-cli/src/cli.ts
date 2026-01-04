@@ -46,7 +46,10 @@ program
       .default("quartile"),
   )
   .option("-c, --comment <text>", "A comment to be included for the genesis mark.", "Genesis mark.")
-  .option("-d, --date <date>", "The date of the genesis mark. If not supplied, the current date is used.")
+  .option(
+    "-d, --date <date>",
+    "The date of the genesis mark. If not supplied, the current date is used.",
+  )
   .option("-q, --quiet", "Suppress informational status output on stderr/stdout.", false)
   .addOption(
     new Option("--format <format>", "Output format for the creation summary.")
@@ -95,7 +98,10 @@ program
   .description("Generate the next provenance mark in a chain.")
   .argument("<path>", "Path to the chain's directory. Must already exist.")
   .option("-c, --comment <text>", "A comment to be included for the mark.", "Blank.")
-  .option("-d, --date <date>", "The date of the next mark. If not supplied, the current date is used.")
+  .option(
+    "-d, --date <date>",
+    "The date of the next mark. If not supplied, the current date is used.",
+  )
   .option("-q, --quiet", "Suppress informational status output on stderr/stdout.", false)
   .addOption(
     new Option("--format <format>", "Output format for the mark.")
@@ -143,7 +149,10 @@ program
     "The sequence number of the first mark to print. If not supplied, the first mark (genesis mark) is used.",
     "0",
   )
-  .option("-e, --end <n>", "The sequence number of the last mark to print. If not supplied, the last mark in the chain is used.")
+  .option(
+    "-e, --end <n>",
+    "The sequence number of the last mark to print. If not supplied, the last mark in the chain is used.",
+  )
   .addOption(
     new Option("--format <format>", "Output format for the rendered marks.")
       .choices(["markdown", "ur", "json"])
@@ -188,7 +197,9 @@ program
     try {
       // Validate that either marks or dir is provided
       if (marksArg.length === 0 && options.dir === undefined) {
-        console.error("Error: Either provide marks to validate or use --dir to validate marks from a directory.");
+        console.error(
+          "Error: Either provide marks to validate or use --dir to validate marks from a directory.",
+        );
         process.exit(1);
       }
       if (marksArg.length > 0 && options.dir !== undefined) {

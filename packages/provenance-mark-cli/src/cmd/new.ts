@@ -49,9 +49,7 @@ export enum Resolution {
 /**
  * Convert Resolution to ProvenanceMarkResolution.
  */
-function resolutionToProvenanceMarkResolution(
-  res: Resolution,
-): ProvenanceMarkResolution {
+function resolutionToProvenanceMarkResolution(res: Resolution): ProvenanceMarkResolution {
   switch (res) {
     case Resolution.Low:
       return ProvenanceMarkResolution.Low;
@@ -78,9 +76,7 @@ export function parseResolution(value: string): Resolution {
     case "high":
       return Resolution.High;
     default:
-      throw new Error(
-        `Invalid resolution: ${value}. Must be one of: low, medium, quartile, high`,
-      );
+      throw new Error(`Invalid resolution: ${value}. Must be one of: low, medium, quartile, high`);
   }
 }
 
@@ -96,9 +92,7 @@ export function parseOutputFormat(value: string): OutputFormat {
     case "json":
       return OutputFormat.Json;
     default:
-      throw new Error(
-        `Invalid format: ${value}. Must be one of: markdown, ur, json`,
-      );
+      throw new Error(`Invalid format: ${value}. Must be one of: markdown, ur, json`);
   }
 }
 
@@ -161,9 +155,7 @@ export class NewCommand implements Exec {
     fs.mkdirSync(marksPath);
 
     // Create the generator
-    const resolution = resolutionToProvenanceMarkResolution(
-      this.args.resolution,
-    );
+    const resolution = resolutionToProvenanceMarkResolution(this.args.resolution);
     let generator: ProvenanceMarkGenerator;
     if (this.args.seed !== undefined) {
       generator = ProvenanceMarkGenerator.newWithSeed(resolution, this.args.seed);

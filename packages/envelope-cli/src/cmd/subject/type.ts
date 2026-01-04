@@ -21,11 +21,7 @@ export class TypeCommand implements Exec {
 
   exec(): string {
     const subjectValue = readSubjectValue(this.args);
-    return parseDataTypeToEnvelope(
-      this.args.subjectType,
-      subjectValue,
-      this.args.urTag
-    ).urString();
+    return parseDataTypeToEnvelope(this.args.subjectType, subjectValue, this.args.urTag).urString();
   }
 }
 

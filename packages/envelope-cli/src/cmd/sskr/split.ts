@@ -46,9 +46,7 @@ export class SplitCommand implements Exec {
     const envelope = readEnvelope(this.args.envelope);
 
     if (this.args.groupThreshold > this.args.groups.length) {
-      throw new Error(
-        "Group threshold must be less than or equal to the number of groups"
-      );
+      throw new Error("Group threshold must be less than or equal to the number of groups");
     }
 
     const regex = /(\d{1,2})-of-(\d{1,2})/;
@@ -76,9 +74,7 @@ export class SplitCommand implements Exec {
     let flattenedShares = groupedShares.flat();
 
     if (this.args.recipients.length > 0) {
-      const recipients = this.args.recipients.map((r) =>
-        PublicKeys.fromURString(r)
-      );
+      const recipients = this.args.recipients.map((r) => PublicKeys.fromURString(r));
       flattenedShares = flattenedShares.map((share) => {
         let result = share;
         for (const recipient of recipients) {

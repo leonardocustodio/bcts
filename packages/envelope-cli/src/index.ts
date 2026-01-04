@@ -16,11 +16,7 @@ export type { SubjectArgsLike } from "./subject-args.js";
 export type { PredObjArgsLike } from "./pred-obj-args.js";
 
 // Data type utilities
-export {
-  parseDataType,
-  parseDataTypeToEnvelope,
-  DATA_TYPE_HELP,
-} from "./data-types.js";
+export { parseDataType, parseDataTypeToEnvelope, DATA_TYPE_HELP } from "./data-types.js";
 
 // Utility functions
 export {

@@ -41,7 +41,7 @@ export function parseTargetDigests(target: string[]): Set<Digest> | undefined {
  */
 export function outputDigests(digests: Set<Digest>): string {
   const orderedDigests = Array.from(digests).sort((a, b) =>
-    a.urString().localeCompare(b.urString())
+    a.urString().localeCompare(b.urString()),
   );
   return orderedDigests.map((d) => d.urString()).join(" ");
 }
@@ -95,27 +95,15 @@ export class WalkCommand implements Exec {
 
     switch (this.args.command.type) {
       case "matching":
-        return matchingCmd.execWithEnvelopeAndTarget(
-          this.args.command.args,
-          envelope,
-          target
-        );
+        return matchingCmd.execWithEnvelopeAndTarget(this.args.command.args, envelope, target);
       case "unelide":
         return unelideCmd.execWithEnvelope(this.args.command.args, envelope);
       case "decrypt":
         return decryptCmd.execWithEnvelope(this.args.command.args, envelope);
       case "decompress":
-        return decompressCmd.execWithEnvelopeAndTarget(
-          this.args.command.args,
-          envelope,
-          target
-        );
+        return decompressCmd.execWithEnvelopeAndTarget(this.args.command.args, envelope, target);
       case "replace":
-        return replaceCmd.execWithEnvelopeAndTarget(
-          this.args.command.args,
-          envelope,
-          target
-        );
+        return replaceCmd.execWithEnvelopeAndTarget(this.args.command.args, envelope, target);
     }
   }
 }

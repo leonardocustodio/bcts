@@ -110,9 +110,7 @@ function parseSeedBase64(input: string): ProvenanceSeed {
  */
 function seedFromExact(bytes: Uint8Array): ProvenanceSeed {
   if (bytes.length !== PROVENANCE_SEED_LENGTH) {
-    throw new Error(
-      `seed must be ${PROVENANCE_SEED_LENGTH} bytes but found ${bytes.length}`,
-    );
+    throw new Error(`seed must be ${PROVENANCE_SEED_LENGTH} bytes but found ${bytes.length}`);
   }
   return ProvenanceSeed.fromBytes(bytes);
 }

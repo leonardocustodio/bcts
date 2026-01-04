@@ -55,7 +55,7 @@ export class ExportCommand implements ExecAsync {
         const password = await readPassword(
           "Key encryption password: ",
           this.args.password,
-          this.args.askpass
+          this.args.askpass,
         );
         return sshPrivateKey.toOpensshEncrypted(password);
       }
@@ -91,9 +91,7 @@ export class ExportCommand implements ExecAsync {
       }
       return sshPublicKey.toOpenssh();
     } catch (e) {
-      if (
-        (e as Error).message === "UR is not a PublicKeys with an SSH public key."
-      ) {
+      if ((e as Error).message === "UR is not a PublicKeys with an SSH public key.") {
         throw e;
       }
       // Not PublicKeys, try next
@@ -115,7 +113,7 @@ export class ExportCommand implements ExecAsync {
     }
 
     throw new Error(
-      "Invalid object for export. Supported types are SSH ur:signing-private-key, SSH ur:signing-public-key, SSH ur:crypto-pubkeys, and ur:signature."
+      "Invalid object for export. Supported types are SSH ur:signing-private-key, SSH ur:signing-public-key, SSH ur:crypto-pubkeys, and ur:signature.",
     );
   }
 }

@@ -19,9 +19,7 @@ export interface CommandArgs {
  * Execute decrypt with envelope.
  */
 export function execWithEnvelope(args: CommandArgs, envelope: Envelope): string {
-  const symmetricKeys = args.keys.map((urString) =>
-    SymmetricKey.fromURString(urString)
-  );
+  const symmetricKeys = args.keys.map((urString) => SymmetricKey.fromURString(urString));
   const result = envelope.walkDecrypt(symmetricKeys);
   return result.urString();
 }

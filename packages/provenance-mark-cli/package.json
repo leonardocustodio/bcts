@@ -82,7 +82,6 @@
     "@bcts/envelope": "workspace:*",
     "@bcts/known-values": "workspace:*",
     "@bcts/provenance-mark": "workspace:*",
-    "@bcts/tags": "workspace:*",
     "@bcts/uniform-resources": "workspace:*",
     "commander": "^13.1.0"
   }

@@ -18,7 +18,7 @@ export interface CommandArgs {}
 export function execWithEnvelopeAndTarget(
   _args: CommandArgs,
   envelope: Envelope,
-  target: Set<Digest> | undefined
+  target: Set<Digest> | undefined,
 ): string {
   const result = envelope.walkDecompress(target);
   return result.urString();

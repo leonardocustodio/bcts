@@ -37,9 +37,7 @@ export enum ValidateFormat {
 /**
  * Convert ValidateFormat to ValidationReportFormat.
  */
-function formatToValidationReportFormat(
-  format: ValidateFormat,
-): ValidationReportFormat {
+function formatToValidationReportFormat(format: ValidateFormat): ValidationReportFormat {
   switch (format) {
     case ValidateFormat.Text:
       return ValidationReportFormat.Text;
@@ -62,9 +60,7 @@ export function parseValidateFormat(value: string): ValidateFormat {
     case "json-pretty":
       return ValidateFormat.JsonPretty;
     default:
-      throw new Error(
-        `Invalid format: ${value}. Must be one of: text, json-compact, json-pretty`,
-      );
+      throw new Error(`Invalid format: ${value}. Must be one of: text, json-compact, json-pretty`);
   }
 }
 
@@ -120,10 +116,7 @@ export class ValidateCommand implements Exec {
     const report = validate(marks);
 
     // Format the output
-    const output = formatReport(
-      report,
-      formatToValidationReportFormat(this.args.format),
-    );
+    const output = formatReport(report, formatToValidationReportFormat(this.args.format));
 
     // Determine if we should fail
     if (hasIssues(report) && !this.args.warn) {
@@ -177,9 +170,7 @@ export class ValidateCommand implements Exec {
         return ProvenanceMark.fromUntaggedCbor(cborValue);
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
-        throw new Error(
-          `Failed to decode provenance mark from '${urString}': ${message}`,
-        );
+        throw new Error(`Failed to decode provenance mark from '${urString}': ${message}`);
       }
     }
 
@@ -206,10 +197,7 @@ export class ValidateCommand implements Exec {
    *
    * Corresponds to Rust `extract_provenance_mark_from_envelope()`
    */
-  private extractProvenanceMarkFromEnvelope(
-    envelope: Envelope,
-    urString: string,
-  ): ProvenanceMark {
+  private extractProvenanceMarkFromEnvelope(envelope: Envelope, urString: string): ProvenanceMark {
     // If the envelope is wrapped, unwrap it to get to the actual content
     let workingEnvelope = envelope;
     if (envelope.isWrapped()) {
@@ -220,14 +208,11 @@ export class ValidateCommand implements Exec {
     }
 
     // Find all assertions with the 'provenance' predicate
-    const provenanceAssertions =
-      workingEnvelope.assertionsWithPredicate(PROVENANCE);
+    const provenanceAssertions = workingEnvelope.assertionsWithPredicate(PROVENANCE);
 
     // Verify exactly one provenance assertion exists
     if (provenanceAssertions.length === 0) {
-      throw new Error(
-        `Envelope in '${urString}' does not contain a 'provenance' assertion`,
-      );
+      throw new Error(`Envelope in '${urString}' does not contain a 'provenance' assertion`);
     }
     if (provenanceAssertions.length > 1) {
       throw new Error(
@@ -239,9 +224,7 @@ export class ValidateCommand implements Exec {
     const provenanceAssertion = provenanceAssertions[0];
     const objectEnvelope = provenanceAssertion.object();
     if (objectEnvelope === undefined) {
-      throw new Error(
-        `Failed to extract object from provenance assertion in '${urString}'`,
-      );
+      throw new Error(`Failed to extract object from provenance assertion in '${urString}'`);
     }
 
     // The object should be decodable as a ProvenanceMark.

@@ -6,10 +6,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import {
-  ProvenanceMarkGenerator,
-  ProvenanceMarkInfo,
-} from "@bcts/provenance-mark";
+import { ProvenanceMarkGenerator, ProvenanceMarkInfo } from "@bcts/provenance-mark";
 
 import type { Exec } from "../exec.js";
 import { readExistingDirectoryPath } from "../utils.js";
@@ -86,9 +83,7 @@ export class PrintCommand implements Exec {
     for (let seq = startSeq; seq <= endSeq; seq++) {
       const markPath = path.join(dirPath, "marks", `mark-${seq}.json`);
       const markJson = fs.readFileSync(markPath, "utf-8");
-      const markInfo = ProvenanceMarkInfo.fromJSON(
-        JSON.parse(markJson) as Record<string, unknown>,
-      );
+      const markInfo = ProvenanceMarkInfo.fromJSON(JSON.parse(markJson) as Record<string, unknown>);
       markInfos.push(markInfo);
     }
 

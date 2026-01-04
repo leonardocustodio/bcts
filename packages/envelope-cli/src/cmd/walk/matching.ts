@@ -37,7 +37,7 @@ export function defaultArgs(): CommandArgs {
 export function execWithEnvelopeAndTarget(
   args: CommandArgs,
   envelope: Envelope,
-  target: Set<Digest> | undefined
+  target: Set<Digest> | undefined,
 ): string {
   const obscureTypes: ObscureType[] = [];
 

@@ -47,7 +47,7 @@ export class ImportCommand implements ExecAsync {
         const password = await readPassword(
           "Key decryption password: ",
           this.args.password,
-          this.args.askpass
+          this.args.askpass,
         );
         return signingPrivateKey.decrypt(password).urString();
       }
@@ -73,7 +73,7 @@ export class ImportCommand implements ExecAsync {
     }
 
     throw new Error(
-      "Invalid object for import. Supported types are SSH private key, public key, and signature."
+      "Invalid object for import. Supported types are SSH private key, public key, and signature.",
     );
   }
 }

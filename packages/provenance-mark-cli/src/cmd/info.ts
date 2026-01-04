@@ -4,11 +4,8 @@
  * Shared arguments for supplying provenance mark `info` payloads.
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument */
-
-import { type Cbor, cbor, decodeCbor, expectTag } from "@bcts/dcbor";
+import { type Cbor, cbor, decodeCbor, isTagged, tagValue, getGlobalTagsStore } from "@bcts/dcbor";
 import { UR } from "@bcts/uniform-resources";
-import { tagForName } from "@bcts/tags";
 import { hexToBytes } from "../utils.js";
 
 /**
@@ -88,9 +85,7 @@ function parseInfo(raw: string, tagOverride?: number): Cbor {
     } catch (urErr) {
       const hexMsg = hexErr instanceof Error ? hexErr.message : String(hexErr);
       const urMsg = urErr instanceof Error ? urErr.message : String(urErr);
-      throw new Error(
-        `failed to parse --info payload as hex (${hexMsg}) or UR (${urMsg})`,
-      );
+      throw new Error(`failed to parse --info payload as hex (${hexMsg}) or UR (${urMsg})`);
     }
   }
 }
@@ -112,12 +107,10 @@ function parseUrPayload(input: string, tagOverride?: number): Cbor {
   const typeStr = ur.urTypeStr();
 
   // Check if we have a registered tag for this UR type
-  const registeredTag = tagForName(typeStr);
+  const registeredTag = getGlobalTagsStore().tagForName(typeStr);
 
   if (registeredTag !== undefined && tagOverride !== undefined) {
-    throw new Error(
-      `UR type '${typeStr}' has a known CBOR tag; --info-tag must not be supplied`,
-    );
+    throw new Error(`UR type '${typeStr}' has a known CBOR tag; --info-tag must not be supplied`);
   }
 
   const expectedTag = registeredTag ?? tagOverride;
@@ -138,17 +131,16 @@ function parseUrPayload(input: string, tagOverride?: number): Cbor {
  */
 function ensureTag(cborValue: Cbor, expectedTag: number, typeStr: string): Cbor {
   // Check if already tagged
-  try {
-    const [tag, _inner] = expectTag(cborValue);
-    if (tag !== expectedTag) {
+  if (isTagged(cborValue)) {
+    const tag = tagValue(cborValue);
+    if (tag !== BigInt(expectedTag)) {
       throw new Error(
         `UR type '${typeStr}' encodes CBOR tag ${tag} but ${expectedTag} was expected`,
       );
     }
     // Return as-is if already properly tagged
     return cborValue;
-  } catch {
-    // Not tagged, wrap it
-    return cbor({ tag: expectedTag, value: cborValue });
   }
+  // Not tagged, wrap it
+  return cbor({ tag: expectedTag, value: cborValue });
 }

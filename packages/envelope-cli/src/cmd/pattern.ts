@@ -4,7 +4,12 @@
  * Match the envelope subject against a pattern.
  */
 
-import { Pattern, formatPathsOpt, FormatPathsOpts, PathElementFormat } from "@bcts/envelope-pattern";
+import {
+  Pattern,
+  formatPathsOpt,
+  FormatPathsOpts,
+  PathElementFormat,
+} from "@bcts/envelope-pattern";
 import type { Exec } from "../exec.js";
 import { readEnvelope } from "../utils.js";
 

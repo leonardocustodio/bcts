@@ -61,11 +61,7 @@ export function getAction(args: ElideArgsLike): ObscureAction {
 /**
  * Run elide operation on an envelope.
  */
-export function runElide(
-  args: ElideArgsLike,
-  envelope: Envelope,
-  revealing: boolean
-): Envelope {
+export function runElide(args: ElideArgsLike, envelope: Envelope, revealing: boolean): Envelope {
   const target = getTargetSet(args);
   const action = getAction(args);
   return envelope.elideSetWithAction(target, revealing, action);

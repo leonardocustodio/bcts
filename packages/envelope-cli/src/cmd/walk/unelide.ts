@@ -18,9 +18,7 @@ export interface CommandArgs {
  * Execute unelide with envelope.
  */
 export function execWithEnvelope(args: CommandArgs, envelope: Envelope): string {
-  const unelideEnvelopes = args.envelopes.map((urString) =>
-    Envelope.fromURString(urString)
-  );
+  const unelideEnvelopes = args.envelopes.map((urString) => Envelope.fromURString(urString));
   const result = envelope.walkUnelide(unelideEnvelopes);
   return result.urString();
 }

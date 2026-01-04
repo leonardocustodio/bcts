@@ -21,12 +21,10 @@ export interface CommandArgs {
 export function execWithEnvelopeAndTarget(
   args: CommandArgs,
   envelope: Envelope,
-  targetDigests: Set<Digest> | undefined
+  targetDigests: Set<Digest> | undefined,
 ): string {
   if (!targetDigests) {
-    throw new Error(
-      "walk replace requires --target digests to specify which nodes to replace"
-    );
+    throw new Error("walk replace requires --target digests to specify which nodes to replace");
   }
 
   const replacement = Envelope.fromURString(args.replacement);

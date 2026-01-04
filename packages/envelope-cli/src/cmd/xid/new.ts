@@ -87,22 +87,18 @@ export class NewCommand implements Exec {
 
     try {
       const privateKeyBase = PrivateKeyBase.fromURString(this.args.keys);
-      xidDocument = XIDDocument.new(
-        XIDInceptionKeyOptions.privateKeyBase(privateKeyBase)
-      );
+      xidDocument = XIDDocument.new(XIDInceptionKeyOptions.privateKeyBase(privateKeyBase));
     } catch {
       try {
         const privateKeys = PrivateKeys.fromURString(this.args.keys);
         const publicKeys = privateKeys.publicKeys();
         xidDocument = XIDDocument.new(
-          XIDInceptionKeyOptions.publicAndPrivateKeys(publicKeys, privateKeys)
+          XIDInceptionKeyOptions.publicAndPrivateKeys(publicKeys, privateKeys),
         );
       } catch {
         try {
           const publicKeys = PublicKeys.fromURString(this.args.keys);
-          xidDocument = XIDDocument.new(
-            XIDInceptionKeyOptions.publicKeys(publicKeys)
-          );
+          xidDocument = XIDDocument.new(XIDInceptionKeyOptions.publicKeys(publicKeys));
         } catch {
           throw new Error("Invalid inception key format");
         }
