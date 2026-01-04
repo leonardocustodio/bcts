@@ -802,6 +802,28 @@ export class Envelope implements DigestProvider {
   /// @returns A diagnostic string
   declare diagnostic: () => string;
 
+  /// Returns a UR (Uniform Resource) for this envelope.
+  ///
+  /// @returns A UR containing the envelope
+  declare ur: () => import("@bcts/uniform-resources").UR;
+
+  /// Returns the UR string representation of this envelope.
+  ///
+  /// @returns A UR string like "ur:envelope/..."
+  declare urString: () => string;
+
+  /// Creates an envelope from a UR.
+  ///
+  /// @param ur - The UR to decode
+  /// @returns A new envelope
+  declare static fromUr: (ur: import("@bcts/uniform-resources").UR) => Envelope;
+
+  /// Creates an envelope from a UR string.
+  ///
+  /// @param urString - The UR string to decode
+  /// @returns A new envelope
+  declare static fromUrString: (urString: string) => Envelope;
+
   //
   // Extension methods (implemented via prototype extension in extension modules)
   // These declarations ensure TypeScript recognizes the methods when consuming the package
