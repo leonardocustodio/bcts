@@ -69,7 +69,7 @@
     "@bcts/uniform-resources": "workspace:*",
     "@noble/hashes": "^2.2.0",
     "@scure/bip39": "^2.2.0",
-    "chalk": "^5.6.2",
+    "chalk": "^6.0.0",
     "commander": "^15.0.0"
   },
   "devDependencies": {
@@ -78,11 +78,11 @@
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.0.1",
     "eslint": "^10.6.0",
-    "prettier": "^3.9.1",
+    "prettier": "^3.9.6",
     "ts-node": "^10.9.2",
     "tsdown": "^0.22.3",
     "typedoc": "^0.28.19",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.9"
   }
 }
