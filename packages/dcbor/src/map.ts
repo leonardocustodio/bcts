@@ -5,37 +5,28 @@
  *
  * Map Support in dCBOR
  *
- * A deterministic CBOR map implementation that ensures maps with the same
- * content always produce identical binary encodings, regardless of insertion
- * order.
+ * A deterministic CBOR map that ensures maps with the same content always
+ * produce identical binary encodings, regardless of insertion order.
  *
- * ## Deterministic Map Representation
- *
- * The `CborMap` type follows strict deterministic encoding rules as specified by
- * dCBOR:
- *
- * - Map keys are always sorted in lexicographic order of their encoded CBOR bytes
- * - Duplicate keys are not allowed (enforced by the implementation)
- * - Keys and values can be any type that can be converted to CBOR
- * - Numeric reduction is applied (e.g., 3.0 is stored as integer 3)
- *
- * This deterministic encoding ensures that equivalent maps always produce
- * identical byte representations, which is crucial for applications that rely
- * on consistent hashing, digital signatures, or other cryptographic operations.
+ * This class keeps the historical `@bcts/dcbor` map API (Rust-flavored
+ * `insert`/`containsKey`/`len`/`iter` alongside the JS `Map` vocabulary) but
+ * stores its entries in a `@blockchaincommons/dcbor` `CborMap` — the
+ * canonical implementation owns key ordering (lexicographic by encoded CBOR
+ * bytes), duplicate handling, and the decode-time `setNext` ordering checks.
  *
  * @module map
  */
 
-import { SortedMap } from "collections/sorted-map";
+import { CborMap as BcCborMap } from "@blockchaincommons/dcbor";
+
 import { type Cbor, type CborInput, MajorType } from "./cbor";
-import { cbor, cborData, encodeCbor } from "./cbor";
-import { areBytesEqual, lexicographicallyCompareBytes } from "./stdlib";
+import { cbor, encodeCbor } from "./cbor";
 import { bytesToHex } from "./dump";
 import { diagnostic } from "./diag";
 import { extractCbor } from "./conveniences";
+import { toNew, fromNew, delegating } from "./bridge";
 import { CborError } from "./error";
 
-type MapKey = Uint8Array;
 export interface MapEntry {
   readonly key: Cbor;
   readonly value: Cbor;
@@ -48,20 +39,38 @@ export interface MapEntry {
  * encoded CBOR representation, ensuring deterministic encoding.
  */
 export class CborMap {
-  private _dict: SortedMap<MapKey, MapEntry>;
+  private _map: BcCborMap;
 
   /**
    * Creates a new, empty CBOR Map.
    * Optionally initializes from a JavaScript Map.
    */
   constructor(map?: Map<unknown, unknown>) {
-    this._dict = new SortedMap(null, areBytesEqual, lexicographicallyCompareBytes);
+    this._map = new BcCborMap();
 
     if (map !== undefined) {
       for (const [key, value] of map.entries()) {
         this.set(key as CborInput, value as CborInput);
       }
     }
+  }
+
+  /**
+   * The wrapped canonical `@blockchaincommons/dcbor` map.
+   * @internal
+   */
+  get _inner(): BcCborMap {
+    return this._map;
+  }
+
+  /**
+   * Wrap an existing canonical map without copying entries.
+   * @internal
+   */
+  static _fromInner(inner: BcCborMap): CborMap {
+    const map = new CborMap();
+    map._map = inner;
+    return map;
   }
 
   /**
@@ -77,10 +86,11 @@ export class CborMap {
    * Matches Rust's Map::insert().
    */
   set<K extends CborInput, V extends CborInput>(key: K, value: V): void {
+    // Coerce through this package's `cbor()` first so legacy-only input
+    // shapes (e.g. `{tag, value}` literals) keep their historical meaning.
     const keyCbor = cbor(key);
     const valueCbor = cbor(value);
-    const keyData = cborData(keyCbor);
-    this._dict.set(keyData, { key: keyCbor, value: valueCbor });
+    delegating(() => this._map.set(toNew(keyCbor), toNew(valueCbor)));
   }
 
   /**
@@ -90,24 +100,18 @@ export class CborMap {
     this.set(key, value);
   }
 
-  private _makeKey<K extends CborInput>(key: K): MapKey {
-    const keyCbor = cbor(key);
-    return cborData(keyCbor);
-  }
-
   /**
    * Get a value from the map, given a key.
    * Returns undefined if the key is not present in the map.
    * Matches Rust's Map::get().
    */
   get<K extends CborInput, V>(key: K): V | undefined {
-    const keyData = this._makeKey(key);
-    const value = this._dict.get(keyData);
-    if (value === undefined) {
+    const stored = delegating(() => this._map.get(toNew(cbor(key))));
+    if (stored === undefined) {
       return undefined;
     }
     // Extract CBOR value: primitives become native types, maps/arrays preserve structure
-    return extractCbor(value.value) as V;
+    return extractCbor(fromNew(stored)) as V;
   }
 
   /**
@@ -128,24 +132,19 @@ export class CborMap {
    * Matches Rust's Map::contains_key().
    */
   containsKey<K extends CborInput>(key: K): boolean {
-    const keyData = this._makeKey(key);
-    return this._dict.has(keyData);
+    return delegating(() => this._map.has(toNew(cbor(key))));
   }
 
   delete<K extends CborInput>(key: K): boolean {
-    const keyData = this._makeKey(key);
-    const existed = this._dict.has(keyData);
-    this._dict.delete(keyData);
-    return existed;
+    return delegating(() => this._map.delete(toNew(cbor(key))));
   }
 
   has<K extends CborInput>(key: K): boolean {
-    const keyData = this._makeKey(key);
-    return this._dict.has(keyData);
+    return this.containsKey(key);
   }
 
   clear(): void {
-    this._dict = new SortedMap(null, areBytesEqual, lexicographicallyCompareBytes);
+    this._map.clear();
   }
 
   /**
@@ -153,7 +152,7 @@ export class CborMap {
    * Matches Rust's Map::len().
    */
   get length(): number {
-    return this._dict.length;
+    return this._map.size;
   }
 
   /**
@@ -161,7 +160,7 @@ export class CborMap {
    * Also matches Rust's Map::len().
    */
   get size(): number {
-    return this._dict.length;
+    return this._map.size;
   }
 
   /**
@@ -169,7 +168,7 @@ export class CborMap {
    * Matches Rust's Map::len().
    */
   len(): number {
-    return this._dict.length;
+    return this._map.size;
   }
 
   /**
@@ -177,7 +176,7 @@ export class CborMap {
    * Matches Rust's Map::is_empty().
    */
   isEmpty(): boolean {
-    return this._dict.length === 0;
+    return this._map.size === 0;
   }
 
   /**
@@ -185,10 +184,11 @@ export class CborMap {
    * Keys are sorted in lexicographic order of their encoded CBOR bytes.
    */
   get entriesArray(): MapEntry[] {
-    return this._dict.map((value: MapEntry, _key: MapKey) => ({
-      key: value.key,
-      value: value.value,
-    }));
+    const entries: MapEntry[] = [];
+    for (const [key, value] of this._map.entries()) {
+      entries.push({ key: fromNew(key), value: fromNew(value) });
+    }
+    return entries;
   }
 
   /**
@@ -218,20 +218,8 @@ export class CborMap {
    */
   setNext<K extends CborInput, V extends CborInput>(key: K, value: V): void {
     const keyCbor = cbor(key);
-    const newKey = cborData(keyCbor);
-    if (this._dict.has(newKey)) {
-      throw new CborError({ type: "DuplicateMapKey" });
-    }
-    // Enforce strict ascending order by comparing the new key against the
-    // greatest existing encoded key, read from the sorted store's last item.
-    // Mirrors Rust's insert_next/last_key_value.
-    const greatest = this._dict.store.max();
-    if (greatest !== undefined) {
-      if (lexicographicallyCompareBytes(newKey, greatest.key) <= 0) {
-        throw new CborError({ type: "MisorderedMapKey" });
-      }
-    }
-    this._dict.set(newKey, { key: keyCbor, value: cbor(value) });
+    const valueCbor = cbor(value);
+    delegating(() => this._map.setNext(toNew(keyCbor), toNew(valueCbor)));
   }
 
   get debug(): string {

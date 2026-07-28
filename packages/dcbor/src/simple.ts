@@ -5,12 +5,13 @@
  *
  * CBOR Simple Values (Major Type 7).
  *
+ * The `Simple` value shape is shared verbatim with `@blockchaincommons/dcbor`
+ * (the canonical implementation this package delegates to); encoding of
+ * simple values happens there. This module keeps the legacy type and the
+ * thin inspection helpers.
+ *
  * @module simple
  */
-
-import { MajorType } from "./cbor";
-import { encodeVarInt } from "./varint";
-import { f64CborData } from "./float";
 
 /**
  * Represents CBOR simple values (major type 7).
@@ -72,95 +73,3 @@ export const isFloat = (simple: Simple): simple is { type: "Float"; value: numbe
  */
 export const isNaN = (simple: Simple): boolean =>
   simple.type === "Float" && Number.isNaN(simple.value);
-
-/**
- * Encodes the simple value to its raw CBOR byte representation.
- *
- * Returns the CBOR bytes that represent this simple value according to the
- * dCBOR deterministic encoding rules:
- * - `False` encodes as `0xf4`
- * - `True` encodes as `0xf5`
- * - `Null` encodes as `0xf6`
- * - `Float` values encode according to the IEEE 754 floating point rules,
- *   using the shortest representation that preserves precision.
- */
-export const simpleCborData = (simple: Simple): Uint8Array => {
-  switch (simple.type) {
-    case "False":
-      return encodeVarInt(20, MajorType.Simple);
-    case "True":
-      return encodeVarInt(21, MajorType.Simple);
-    case "Null":
-      return encodeVarInt(22, MajorType.Simple);
-    case "Float":
-      return f64CborData(simple.value);
-  }
-};
-
-/**
- * Compare two Simple values for equality.
- *
- * Two `Simple` values are equal if they're the same variant. For `Float`
- * variants, the contained floating point values are compared for equality,
- * with NaN values considered equal to each other.
- */
-export const simpleEquals = (a: Simple, b: Simple): boolean => {
-  if (a.type !== b.type) return false;
-
-  switch (a.type) {
-    case "False":
-    case "True":
-    case "Null":
-      return true;
-    case "Float": {
-      const bFloat = b as { type: "Float"; value: number };
-      const v1 = a.value;
-      const v2 = bFloat.value;
-      return v1 === v2 || (Number.isNaN(v1) && Number.isNaN(v2));
-    }
-  }
-};
-
-/**
- * Hash a Simple value.
- *
- * **Cross-language note.** Rust derives `Hash` on `Simple` via
- * `f64::to_bits().hash(state)` through `DefaultHasher` (SipHash). JS
- * doesn't expose SipHash, so this implementation uses FNV-1a — a fast
- * non-cryptographic hash. The hash codes therefore **differ between
- * Rust and TS at runtime**; this is intentional and harmless because
- * `Hash` is only used to drive per-runtime hash tables (e.g. dedup in
- * `HashSet<Simple>`). It is **not** part of the deterministic CBOR wire
- * format, which uses bytewise lex on the encoded CBOR (see
- * `lexicographicallyCompareBytes`). Do not rely on these hash values
- * across implementations.
- */
-export const simpleHash = (simple: Simple): number => {
-  // FNV-1a hash. (See doc-comment above for why this differs from Rust.)
-  let hash = 2166136261;
-
-  switch (simple.type) {
-    case "False":
-      hash ^= 0;
-      break;
-    case "True":
-      hash ^= 1;
-      break;
-    case "Null":
-      hash ^= 2;
-      break;
-    case "Float": {
-      // Hash the bit representation of the float
-      const buffer = new ArrayBuffer(8);
-      const view = new DataView(buffer);
-      view.setFloat64(0, simple.value, true);
-      for (let i = 0; i < 8; i++) {
-        hash ^= view.getUint8(i);
-        hash = Math.imul(hash, 16777619);
-      }
-      break;
-    }
-  }
-
-  return hash >>> 0;
-};
