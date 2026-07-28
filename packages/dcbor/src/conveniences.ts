@@ -26,10 +26,12 @@ import {
   type CborSimpleType,
   type CborMethods,
 } from "./cbor";
+import { asFloat as bcAsFloat } from "@blockchaincommons/dcbor";
+
 import type { CborMap } from "./map";
 import { isFloat as isSimpleFloat } from "./simple";
 import { decodeCbor } from "./decode";
-import { ExactF64 } from "./exact";
+import { toNew } from "./bridge";
 import { CborError } from "./error";
 
 // ============================================================================
@@ -363,18 +365,8 @@ export const asFloat = (cbor: Cbor): number | undefined => {
   // dCBOR reduces whole-valued floats to integers (42.0 encodes as 42), so a
   // float-only accessor would wrongly reject them. Returns undefined for
   // non-numeric types and for integers not exactly representable as f64.
-  if (cbor.type === MajorType.Unsigned) {
-    return ExactF64.exactFromU64(cbor.value);
-  }
-  if (cbor.type === MajorType.Negative) {
-    // cbor.value holds the raw magnitude n; the actual value is -1 - n.
-    const f = ExactF64.exactFromU64(cbor.value);
-    return f === undefined ? undefined : -1 - f;
-  }
-  if (cbor.type === MajorType.Simple) {
-    return isSimpleFloat(cbor.value) ? cbor.value.value : undefined;
-  }
-  return undefined;
+  // Delegates the exact-representability check to `@blockchaincommons/dcbor`.
+  return bcAsFloat(toNew(cbor));
 };
 
 /**

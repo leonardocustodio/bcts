@@ -8,12 +8,26 @@
  * The TagsStore provides a centralized registry for CBOR tags,
  * including name resolution and custom summarizer functions.
  *
+ * The store wraps the `@blockchaincommons/dcbor` `TagsStore` — and the
+ * global singleton wraps the canonical package's *global* store — so tag
+ * names and summarizers registered through this legacy API are visible to
+ * the delegated diagnostic/hex formatters (and vice versa).
+ *
  * @module tags-store
  */
+
+import {
+  TagsStore as BcTagsStore,
+  Tag as BcTag,
+  CborError as BcCborError,
+  getGlobalTagsStore as bcGetGlobalTagsStore,
+} from "@blockchaincommons/dcbor";
 
 import type { Cbor, CborNumber } from "./cbor";
 import type { Tag } from "./tag";
 import type { Error as CborErrorType } from "./error";
+import { errorToString } from "./error";
+import { fromNew } from "./bridge";
 
 /**
  * Result type for summarizer functions, matching Rust's Result<String, Error>.
@@ -50,66 +64,79 @@ export type TagsStoreOpt = TagsStore | "global" | "none";
 export interface TagsStoreTrait {
   /**
    * Get the assigned name for a tag, if any.
-   *
-   * @param tag - The tag to look up
-   * @returns The assigned name, or undefined if no name is registered
    */
   assignedNameForTag(tag: Tag): string | undefined;
 
   /**
-   * Get a display name for a tag.
-   *
-   * @param tag - The tag to get a name for
-   * @returns The assigned name if available, otherwise the tag value as a string
+   * Get the name for a tag, falling back to the numeric value as a string.
    */
   nameForTag(tag: Tag): string;
 
   /**
    * Look up a tag by its numeric value.
-   *
-   * @param value - The numeric tag value
-   * @returns The Tag object if found, undefined otherwise
    */
   tagForValue(value: CborNumber): Tag | undefined;
 
   /**
    * Look up a tag by its name.
-   *
-   * @param name - The tag name
-   * @returns The Tag object if found, undefined otherwise
    */
   tagForName(name: string): Tag | undefined;
 
   /**
-   * Get a display name for a tag value.
-   *
-   * @param value - The numeric tag value
-   * @returns The tag name if registered, otherwise the value as a string
+   * Get the name for a numeric tag value, falling back to the value as a string.
    */
   nameForValue(value: CborNumber): string;
 
   /**
-   * Get a custom summarizer function for a tag, if registered.
-   *
-   * @param tag - The numeric tag value
-   * @returns The summarizer function if registered, undefined otherwise
+   * Get the registered summarizer for a tag value, if any.
    */
   summarizer(tag: CborNumber): CborSummarizer | undefined;
 }
 
 /**
+ * Convert a canonical tag (whose `name` may be explicitly `undefined`) to the
+ * legacy `Tag` shape, which omits the property instead.
+ */
+const toLegacyTag = (
+  tag: { value: CborNumber; name?: string | undefined } | undefined,
+): Tag | undefined => {
+  if (tag === undefined) return undefined;
+  return tag.name !== undefined ? { value: tag.value, name: tag.name } : { value: tag.value };
+};
+
+/**
  * Tag registry implementation.
  *
- * Stores tags with their names and optional summarizer functions.
+ * Stores tags with their names and optional summarizer functions, delegating
+ * storage to the canonical `@blockchaincommons/dcbor` store.
  */
 export class TagsStore implements TagsStoreTrait {
-  private readonly _tagsByValue = new Map<string, Tag>();
-  private readonly _tagsByName = new Map<string, Tag>();
-  private readonly _summarizers = new Map<string, CborSummarizer>();
+  private _store: BcTagsStore;
+  /** Original (legacy-signature) summarizers, for the `summarizer()` accessor. */
+  private readonly _legacySummarizers = new Map<string, CborSummarizer>();
 
   constructor() {
     // Start with empty store, matching Rust's Default implementation
     // Tags must be explicitly registered using insert() or registerTags()
+    this._store = new BcTagsStore();
+  }
+
+  /**
+   * The wrapped canonical `@blockchaincommons/dcbor` store.
+   * @internal
+   */
+  get _inner(): BcTagsStore {
+    return this._store;
+  }
+
+  /**
+   * Wrap an existing canonical store without copying registrations.
+   * @internal
+   */
+  static _fromInner(inner: BcTagsStore): TagsStore {
+    const store = new TagsStore();
+    store._store = inner;
+    return store;
   }
 
   /**
@@ -137,8 +164,7 @@ export class TagsStore implements TagsStoreTrait {
       throw new Error(`Tag ${tag.value} must have a non-empty name`);
     }
 
-    const key = this._valueKey(tag.value);
-    const existing = this._tagsByValue.get(key);
+    const existing = this._store.tagForValue(tag.value);
 
     // Rust: if old_name != name { panic!(...) }
     if (existing?.name !== undefined && existing.name !== name) {
@@ -147,8 +173,7 @@ export class TagsStore implements TagsStoreTrait {
       );
     }
 
-    this._tagsByValue.set(key, tag);
-    this._tagsByName.set(name, tag);
+    this._store.register(BcTag.from(tag.value, name));
   }
 
   /**
@@ -175,6 +200,9 @@ export class TagsStore implements TagsStoreTrait {
   /**
    * Register a custom summarizer function for a tag.
    *
+   * The summarizer is adapted and forwarded to the canonical store, so the
+   * delegated diagnostic formatters invoke it (with a legacy-shaped node).
+   *
    * @param tagValue - The numeric tag value
    * @param summarizer - The summarizer function
    *
@@ -187,14 +215,18 @@ export class TagsStore implements TagsStoreTrait {
    * ```
    */
   setSummarizer(tagValue: CborNumber, summarizer: CborSummarizer): void {
-    const key = this._valueKey(tagValue);
-    this._summarizers.set(key, summarizer);
+    this._legacySummarizers.set(this._valueKey(tagValue), summarizer);
+    this._store.setSummarizer(tagValue, (cbor, flat) => {
+      const result = summarizer(fromNew(cbor), flat);
+      if (result.ok) {
+        return result;
+      }
+      return { ok: false, error: BcCborError.custom(errorToString(result.error)) };
+    });
   }
 
   assignedNameForTag(tag: Tag): string | undefined {
-    const key = this._valueKey(tag.value);
-    const stored = this._tagsByValue.get(key);
-    return stored?.name;
+    return this._store.tagForValue(tag.value)?.name;
   }
 
   nameForTag(tag: Tag): string {
@@ -202,12 +234,11 @@ export class TagsStore implements TagsStoreTrait {
   }
 
   tagForValue(value: CborNumber): Tag | undefined {
-    const key = this._valueKey(value);
-    return this._tagsByValue.get(key);
+    return toLegacyTag(this._store.tagForValue(value));
   }
 
   tagForName(name: string): Tag | undefined {
-    return this._tagsByName.get(name);
+    return toLegacyTag(this._store.tagForName(name));
   }
 
   nameForValue(value: CborNumber): string {
@@ -216,16 +247,9 @@ export class TagsStore implements TagsStoreTrait {
   }
 
   summarizer(tag: CborNumber): CborSummarizer | undefined {
-    const key = this._valueKey(tag);
-    return this._summarizers.get(key);
+    return this._legacySummarizers.get(this._valueKey(tag));
   }
 
-  /**
-   * Create a string key for a numeric tag value.
-   * Handles both number and bigint types.
-   *
-   * @private
-   */
   private _valueKey(value: CborNumber): string {
     return value.toString();
   }
@@ -243,7 +267,8 @@ let globalTagsStore: TagsStore | undefined;
 /**
  * Get the global tags store instance.
  *
- * Creates the instance on first access.
+ * Creates the instance on first access, wrapping the canonical package's
+ * global store so registrations are shared with the delegated formatters.
  *
  * @returns The global TagsStore instance
  *
@@ -254,7 +279,7 @@ let globalTagsStore: TagsStore | undefined;
  * ```
  */
 export const getGlobalTagsStore = (): TagsStore => {
-  globalTagsStore ??= new TagsStore();
+  globalTagsStore ??= TagsStore._fromInner(bcGetGlobalTagsStore());
   return globalTagsStore;
 };
 

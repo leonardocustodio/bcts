@@ -4,12 +4,13 @@
  *
  */
 
+import { encodeCbor as bcEncodeCbor } from "@blockchaincommons/dcbor";
+
 import { CborMap } from "./map";
 import type { Simple } from "./simple";
-import { simpleCborData, isFloat as isSimpleFloat } from "./simple";
+import { isFloat as isSimpleFloat } from "./simple";
 import { hasFractionalPart } from "./float";
-import { encodeVarInt } from "./varint";
-import { concatBytes } from "./stdlib";
+import { toNew, delegating } from "./bridge";
 import { bytesToHex, hexOpt } from "./dump";
 import { hexToBytes } from "./dump";
 import { tagValuesEqual, type Tag } from "./tag";
@@ -475,61 +476,13 @@ export const cborHex = (value: CborInput): string => {
 /**
  * Encode a CBOR value to binary data.
  * Matches Rust's `CBOR::to_cbor_data()` method.
+ *
+ * Delegates to `@blockchaincommons/dcbor` — the canonical encoder — via the
+ * structural node bridge.
  */
 export const cborData = (value: CborInput): Uint8Array => {
   const c = cbor(value);
-  switch (c.type) {
-    case MajorType.Unsigned: {
-      return encodeVarInt(c.value, MajorType.Unsigned);
-    }
-    case MajorType.Negative: {
-      // Value is already stored as the magnitude to encode (matching Rust)
-      return encodeVarInt(c.value, MajorType.Negative);
-    }
-    case MajorType.ByteString: {
-      if (c.value instanceof Uint8Array) {
-        const lengthBytes = encodeVarInt(c.value.length, MajorType.ByteString);
-        return new Uint8Array([...lengthBytes, ...c.value]);
-      }
-      break;
-    }
-    case MajorType.Text: {
-      if (typeof c.value === "string") {
-        const utf8Bytes = new TextEncoder().encode(c.value);
-        const lengthBytes = encodeVarInt(utf8Bytes.length, MajorType.Text);
-        return new Uint8Array([...lengthBytes, ...utf8Bytes]);
-      }
-      break;
-    }
-    case MajorType.Tagged: {
-      if (typeof c.tag === "bigint" || typeof c.tag === "number") {
-        const tagBytes = encodeVarInt(c.tag, MajorType.Tagged);
-        const valueBytes = cborData(c.value);
-        return new Uint8Array([...tagBytes, ...valueBytes]);
-      }
-      break;
-    }
-    case MajorType.Simple: {
-      // Use the simpleCborData function from simple.ts
-      return simpleCborData(c.value);
-    }
-    case MajorType.Array: {
-      const arrayBytes = c.value.map(cborData);
-      const flatArrayBytes = concatBytes(arrayBytes);
-      const lengthBytes = encodeVarInt(c.value.length, MajorType.Array);
-      return new Uint8Array([...lengthBytes, ...flatArrayBytes]);
-    }
-    case MajorType.Map: {
-      const entries = c.value.entriesArray;
-      const arrayBytes = entries.map(({ key, value }) =>
-        concatBytes([cborData(key), cborData(value)]),
-      );
-      const flatArrayBytes = concatBytes(arrayBytes);
-      const lengthBytes = encodeVarInt(entries.length, MajorType.Map);
-      return new Uint8Array([...lengthBytes, ...flatArrayBytes]);
-    }
-  }
-  throw new CborError({ type: "WrongType" });
+  return delegating(() => bcEncodeCbor(toNew(c)));
 };
 
 export const encodeCbor = (value: CborInput): Uint8Array => {

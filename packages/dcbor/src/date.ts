@@ -7,9 +7,12 @@
  *
  * A CBOR-friendly representation of a date and time.
  *
- * The `CborDate` type provides a wrapper around JavaScript's native `Date` that
- * supports encoding and decoding to/from CBOR with tag 1, following the CBOR
- * date/time standard specified in RFC 8949.
+ * The `CborDate` type keeps the historical `@bcts/dcbor` API
+ * (`fromTimestamp`/`timestamp()`/`fromDatetime`/`datetime()` alongside the
+ * tagged-CBOR protocol methods) but wraps the canonical
+ * `@blockchaincommons/dcbor` `CborDate`, which owns timestamp normalization
+ * (Rust `Date::from_timestamp` parity), strict RFC-3339 parsing, and
+ * ISO-8601 formatting.
  *
  * When encoded to CBOR, dates are represented as tag 1 followed by a numeric
  * value representing the number of seconds since (or before) the Unix epoch
@@ -18,6 +21,8 @@
  *
  * @module date
  */
+
+import { CborDate as BcCborDate } from "@blockchaincommons/dcbor";
 
 import { type Cbor, MajorType } from "./cbor";
 import { cbor } from "./cbor";
@@ -32,41 +37,10 @@ import {
   extractTaggedContent,
 } from "./cbor-tagged";
 import { CborError } from "./error";
-
-/**
- * Normalize a timestamp (seconds since the Unix epoch) to whole seconds plus a
- * non-negative, sub-second nanosecond part, matching Rust's
- * `Date::from_timestamp` so dates round-trip byte-identically with the reference.
- *
- * The nanosecond part is computed like Rust's `as u32` cast: truncated toward
- * zero and clamped to [0, u32::MAX]. So a negative fraction floors the value
- * (`-1.5` becomes `-1.0`) and sub-nanosecond precision is dropped
- * (`1.0000000005` becomes `1.0`).
- *
- * @internal
- */
-function normalizeTimestampSeconds(seconds: number): number {
-  if (!Number.isFinite(seconds)) {
-    // chrono has no representation for a non-finite instant; reject with a
-    // typed error.
-    throw new CborError({ type: "InvalidDate", message: "non-finite timestamp" });
-  }
-  const whole = Math.trunc(seconds);
-  let nsecs = Math.trunc((seconds - whole) * 1_000_000_000);
-  if (nsecs < 0) {
-    nsecs = 0;
-  } else if (nsecs > 0xffffffff) {
-    nsecs = 0xffffffff;
-  }
-  return whole + nsecs / 1_000_000_000;
-}
+import { delegating } from "./bridge";
 
 /**
  * A CBOR-friendly representation of a date and time.
- *
- * The `CborDate` type provides a wrapper around JavaScript's native `Date` that
- * supports encoding and decoding to/from CBOR with tag 1, following the CBOR
- * date/time standard specified in RFC 8949.
  *
  * When encoded to CBOR, dates are represented as tag 1 followed by a numeric
  * value representing the number of seconds since (or before) the Unix epoch
@@ -100,28 +74,16 @@ function normalizeTimestampSeconds(seconds: number): number {
  */
 export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDecodable<CborDate> {
   /**
-   * Canonical timestamp in seconds since the Unix epoch as a JS `number`
-   * (`f64`). dCBOR encodes Date (tag 1) as a numeric value in seconds, so
-   * keeping `_seconds` as the source of truth avoids the millisecond-only
-   * round-trip precision loss that going through a JS `Date` instance
-   * introduced in earlier versions of this port.
-   *
-   * f64 still bounds the achievable precision (~16 decimal digits, so
-   * roughly microseconds for current epoch values); Rust's
-   * `chrono::DateTime<Utc>` retains nanoseconds in memory but encodes
-   * to the same f64 over the wire, so the *encode/decode round-trip* is
-   * byte-identical.
+   * The wrapped canonical `@blockchaincommons/dcbor` date. It stores the
+   * normalized timestamp (seconds since the Unix epoch as an `f64`), so
+   * encoding, equality, and ordering match the Rust reference exactly.
    */
-  private _seconds: number;
+  private _date: BcCborDate;
 
   /**
    * Creates a new `CborDate` from the given JavaScript `Date`.
    *
-   * This method creates a new `CborDate` instance by wrapping a
-   * JavaScript `Date`.
-   *
    * @param dateTime - A `Date` instance to wrap
-   *
    * @returns A new `CborDate` instance
    *
    * @example
@@ -131,9 +93,7 @@ export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDeco
    * ```
    */
   static fromDatetime(dateTime: Date): CborDate {
-    const instance = new CborDate();
-    instance._seconds = dateTime.getTime() / 1000;
-    return instance;
+    return new CborDate(delegating(() => BcCborDate.fromDate(dateTime)));
   }
 
   /**
@@ -144,7 +104,6 @@ export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDeco
    * @param year - The year component (e.g., 2023)
    * @param month - The month component (1-12)
    * @param day - The day component (1-31)
-   *
    * @returns A new `CborDate` instance
    *
    * @example
@@ -152,12 +111,9 @@ export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDeco
    * // Create February 8, 2023
    * const date = CborDate.fromYmd(2023, 2, 8);
    * ```
-   *
-   * @throws Error if the provided components do not form a valid date.
    */
   static fromYmd(year: number, month: number, day: number): CborDate {
-    const dt = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
-    return CborDate.fromDatetime(dt);
+    return new CborDate(delegating(() => BcCborDate.fromYmd(year, month, day)));
   }
 
   /**
@@ -170,7 +126,6 @@ export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDeco
    * @param hour - The hour component (0-23)
    * @param minute - The minute component (0-59)
    * @param second - The second component (0-59)
-   *
    * @returns A new `CborDate` instance
    *
    * @example
@@ -178,8 +133,6 @@ export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDeco
    * // Create February 8, 2023, 15:30:45 UTC
    * const date = CborDate.fromYmdHms(2023, 2, 8, 15, 30, 45);
    * ```
-   *
-   * @throws Error if the provided components do not form a valid date and time.
    */
   static fromYmdHms(
     year: number,
@@ -189,21 +142,21 @@ export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDeco
     minute: number,
     second: number,
   ): CborDate {
-    const dt = new Date(Date.UTC(year, month - 1, day, hour, minute, second, 0));
-    return CborDate.fromDatetime(dt);
+    return new CborDate(
+      delegating(() => BcCborDate.fromYmdHms(year, month, day, hour, minute, second)),
+    );
   }
 
   /**
    * Creates a new `CborDate` from seconds since (or before) the Unix epoch.
    *
-   * This method creates a new `CborDate` representing the specified number of
-   * seconds since the Unix epoch (1970-01-01T00:00:00Z). Negative values
-   * represent times before the epoch.
+   * The value is normalized on construction (matching Rust's
+   * `Date::from_timestamp`) so the stored value — and thus its encoding,
+   * equality, and ordering — matches the reference.
    *
    * @param secondsSinceUnixEpoch - Seconds from the Unix epoch (positive or
    *   negative), which can include a fractional part for sub-second
    *   precision
-   *
    * @returns A new `CborDate` instance
    *
    * @example
@@ -219,27 +172,20 @@ export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDeco
    * ```
    */
   static fromTimestamp(secondsSinceUnixEpoch: number): CborDate {
-    const instance = new CborDate();
-    // Normalize on construction so the stored value (and thus its encoding,
-    // equality, and ordering) matches the reference.
-    instance._seconds = normalizeTimestampSeconds(secondsSinceUnixEpoch);
-    return instance;
+    return new CborDate(delegating(() => BcCborDate.fromEpochSeconds(secondsSinceUnixEpoch)));
   }
 
   /**
    * Creates a new `CborDate` from a string containing an ISO-8601 (RFC-3339)
    * date (with or without time).
    *
-   * This method parses a string representation of a date or date-time in
-   * ISO-8601/RFC-3339 format and creates a new `CborDate` instance. It
-   * supports both full date-time strings (e.g., "2023-02-08T15:30:45Z")
-   * and date-only strings (e.g., "2023-02-08").
+   * Accepts only strict RFC-3339 date-times (with seconds and an explicit
+   * `Z`/±HH:MM offset) or bare `YYYY-MM-DD` dates (read as UTC midnight),
+   * matching Rust's `Date::from_string`.
    *
    * @param value - A string containing a date or date-time in ISO-8601/RFC-3339
    *   format
-   *
    * @returns A new `CborDate` instance if parsing succeeds
-   *
    * @throws Error if the string cannot be parsed as a valid date or date-time
    *
    * @example
@@ -252,40 +198,7 @@ export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDeco
    * ```
    */
   static fromString(value: string): CborDate {
-    // Accept only strict RFC-3339 date-times (with seconds and an explicit
-    // `Z`/±HH:MM offset) or bare `YYYY-MM-DD` dates (read as UTC midnight),
-    // matching Rust's `Date::from_string`. The plain `new Date()` parser is far
-    // more lenient (and engine-dependent), so we gate it behind explicit regexes.
-    const invalidDate = new CborError({ type: "InvalidDate", message: "Invalid date string" });
-
-    // RFC-3339 date-time: `YYYY-MM-DDThh:mm:ss[.frac](Z|±hh:mm)`.
-    const rfc3339 = /^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(\.\d+)?([Zz]|[+-]\d{2}:\d{2})$/;
-    // Date-only: `YYYY-MM-DD`.
-    const dateOnly = /^\d{4}-\d{2}-\d{2}$/;
-
-    let parsed: Date;
-    if (rfc3339.test(value)) {
-      parsed = new Date(value);
-    } else if (dateOnly.test(value)) {
-      // Treat a bare date as UTC midnight (chrono uses 00:00:00 UTC).
-      parsed = new Date(`${value}T00:00:00Z`);
-    } else {
-      throw invalidDate;
-    }
-
-    // `new Date` rolls impossible dates over (`2023-02-30` becomes Mar 2)
-    // rather than failing, so check the `YYYY-MM-DD` portion is a real calendar
-    // date. The first 10 chars are always `YYYY-MM-DD` given the regexes above.
-    const [y, m, d] = value.slice(0, 10).split("-").map(Number);
-    const probe = new Date(Date.UTC(y, m - 1, d));
-    const calendarValid =
-      probe.getUTCFullYear() === y && probe.getUTCMonth() === m - 1 && probe.getUTCDate() === d;
-
-    // ...and reject any residual unparseable input (e.g. an out-of-range time).
-    if (!calendarValid || isNaN(parsed.getTime())) {
-      throw invalidDate;
-    }
-    return CborDate.fromDatetime(parsed);
+    return new CborDate(delegating(() => BcCborDate.fromString(value)));
   }
 
   /**
@@ -299,7 +212,7 @@ export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDeco
    * ```
    */
   static now(): CborDate {
-    return CborDate.fromDatetime(new Date());
+    return new CborDate(delegating(() => BcCborDate.now()));
   }
 
   /**
@@ -307,7 +220,6 @@ export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDeco
    * duration.
    *
    * @param durationMs - The duration in milliseconds to add to the current time
-   *
    * @returns A new `CborDate` instance representing the current UTC date and time plus
    * the duration
    *
@@ -326,9 +238,6 @@ export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDeco
   /**
    * Returns the underlying JavaScript `Date` object.
    *
-   * This method provides access to the wrapped JavaScript `Date`
-   * instance.
-   *
    * @returns The wrapped `Date` instance
    *
    * @example
@@ -339,14 +248,12 @@ export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDeco
    * ```
    */
   datetime(): Date {
-    return new Date(this._seconds * 1000);
+    return this._date.toDate();
   }
 
   /**
    * Returns the `CborDate` as the number of seconds since the Unix epoch.
    *
-   * This method converts the date to a floating-point number representing
-   * the number of seconds since the Unix epoch (1970-01-01T00:00:00Z).
    * Negative values represent times before the epoch. The fractional
    * part represents sub-second precision.
    *
@@ -359,7 +266,7 @@ export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDeco
    * ```
    */
   timestamp(): number {
-    return this._seconds;
+    return this._date.epochSeconds;
   }
 
   /**
@@ -459,9 +366,7 @@ export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDeco
    * representing the number of seconds since the Unix epoch.
    *
    * @param cbor - The untagged CBOR value
-   *
    * @returns This CborDate instance (mutated)
-   *
    * @throws Error if the CBOR value is not a valid timestamp
    */
   fromUntaggedCbor(cbor: Cbor): CborDate {
@@ -497,9 +402,9 @@ export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDeco
         throw new CborError({ type: "WrongType" });
     }
 
-    // Normalize the decoded value so it re-encodes to the same bytes as the
-    // reference (e.g. a tag-1 float of -1.5 decodes and re-encodes as integer -1).
-    this._seconds = normalizeTimestampSeconds(timestamp);
+    // Normalization (so the value re-encodes to the same bytes as the
+    // reference) happens in the canonical `fromEpochSeconds`.
+    this._date = delegating(() => BcCborDate.fromEpochSeconds(timestamp));
     return this;
   }
 
@@ -507,9 +412,7 @@ export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDeco
    * Creates a `CborDate` from a tagged CBOR value with tag 1.
    *
    * @param cbor - Tagged CBOR value
-   *
    * @returns This CborDate instance (mutated)
-   *
    * @throws Error if the CBOR value has the wrong tag or cannot be decoded
    */
   fromTaggedCbor(cbor: Cbor): CborDate {
@@ -559,28 +462,12 @@ export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDeco
    *
    * // A date with time will display as date and time
    * const date2 = CborDate.fromYmdHms(2023, 2, 8, 15, 30, 45);
-   * // Returns "2023-02-08T15:30:45.000Z"
+   * // Returns "2023-02-08T15:30:45Z"
    * console.log(date2.toString());
    * ```
    */
   toString(): string {
-    const dt = new Date(this._seconds * 1000);
-    // Check only hours, minutes, and seconds (not milliseconds) to match Rust behavior
-    const hasTime = dt.getUTCHours() !== 0 || dt.getUTCMinutes() !== 0 || dt.getUTCSeconds() !== 0;
-
-    if (!hasTime) {
-      // Midnight (with possible subsecond precision) - show only date
-      const datePart = dt.toISOString().split("T")[0];
-      if (datePart === undefined) {
-        throw new CborError({ type: "Custom", message: "Invalid ISO string format" });
-      }
-      return datePart;
-    } else {
-      // Show full ISO datetime without milliseconds (matches Rust's SecondsFormat::Secs)
-      const iso = dt.toISOString();
-      // Remove milliseconds: "2023-02-08T15:30:45.000Z" -> "2023-02-08T15:30:45Z"
-      return iso.replace(/\.\d{3}Z$/, "Z");
-    }
+    return this._date.toString();
   }
 
   /**
@@ -590,7 +477,7 @@ export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDeco
    * @returns true if dates represent the same moment in time
    */
   equals(other: CborDate): boolean {
-    return this._seconds === other._seconds;
+    return this.timestamp() === other.timestamp();
   }
 
   /**
@@ -600,8 +487,8 @@ export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDeco
    * @returns -1 if this < other, 0 if equal, 1 if this > other
    */
   compare(other: CborDate): number {
-    if (this._seconds < other._seconds) return -1;
-    if (this._seconds > other._seconds) return 1;
+    if (this.timestamp() < other.timestamp()) return -1;
+    if (this.timestamp() > other.timestamp()) return 1;
     return 0;
   }
 
@@ -614,7 +501,7 @@ export class CborDate implements CborTagged, CborTaggedEncodable, CborTaggedDeco
     return this.toString();
   }
 
-  private constructor() {
-    this._seconds = Date.now() / 1000;
+  private constructor(date?: BcCborDate) {
+    this._date = date ?? BcCborDate.now();
   }
 }
