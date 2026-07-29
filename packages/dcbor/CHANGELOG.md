@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.0.0-beta.6] - 2026-07-29
+
+### Changed
+
+- All dCBOR wire-format logic (encoding, decoding, canonical map ordering,
+  diagnostics, hex annotation, dates, bignums, varints) is now delegated to
+  [`@blockchaincommons/dcbor`](https://github.com/BlockchainCommons/bc-dcbor-ts),
+  the canonical dCBOR implementation for TypeScript. The `@bcts/dcbor` public
+  API is unchanged; the package is now a compatibility layer over the canonical
+  implementation.
+
+### Removed
+
+- The `byte-data` and `collections` dependencies, along with the local
+  implementations they backed (`exact.ts`, `string-util.ts`, and the hand-rolled
+  varint/float/bignum/date codecs), now supplied by `@blockchaincommons/dcbor`.
+
 ## [1.0.0-beta.5] - 2026-07-01
 
 ### Fixed

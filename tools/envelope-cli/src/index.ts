@@ -10,7 +10,7 @@
  * @packageDocumentation
  */
 
-export const VERSION = "1.0.0-alpha.13";
+export const VERSION = "1.0.0-beta.6";
 
 // Core types
 export type { Exec, ExecAsync } from "./exec.js";

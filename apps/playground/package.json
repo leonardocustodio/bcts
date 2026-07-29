@@ -24,27 +24,27 @@
     "@bcts/tags": "workspace:*",
     "@bcts/uniform-resources": "workspace:*",
     "@bcts/xid": "workspace:*",
-    "@nuxt/ui": "^4.9.0",
+    "@nuxt/ui": "^4.10.0",
     "@paulmillr/qr": "^0.3.0",
-    "@tailwindcss/vite": "^4.3.1",
-    "tailwindcss": "^4.3.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "tailwindcss": "^4.3.3",
     "vue-draggable-plus": "^0.6.1",
-    "vue-router": "^5.1.0"
+    "vue-router": "^5.2.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@iconify-json/heroicons": "^1.2.3",
-    "@iconify-json/lucide": "^1.2.114",
-    "@iconify-json/simple-icons": "^1.2.87",
+    "@iconify-json/lucide": "^1.2.120",
+    "@iconify-json/simple-icons": "^1.2.92",
     "@nuxt/eslint": "^1.16.0",
-    "@nuxthub/core": "0.10.7",
-    "@nuxtjs/seo": "5.3.1",
-    "@types/node": "^26.0.1",
-    "eslint": "^10.6.0",
-    "nuxt": "^4.4.8",
+    "@nuxthub/core": "0.10.8",
+    "@nuxtjs/seo": "5.3.6",
+    "@types/node": "^26.1.2",
+    "eslint": "^10.8.0",
+    "nuxt": "^4.5.1",
     "nuxt-gtag": "4.1.0",
     "typescript": "^6.0.3",
-    "vue-tsc": "^3.3.5",
-    "wrangler": "^4.105.0"
+    "vue-tsc": "^3.3.8",
+    "wrangler": "^4.115.0"
   }
 }

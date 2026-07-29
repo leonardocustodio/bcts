@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0-beta.6] - 2026-07-29
+
+### Changed
+
+- Workspace version bump
+
+### Fixed
+
+- `--version` and the exported `VERSION` constant now report the real package
+  version; the constant had drifted and still reported `1.0.0-alpha.13`.
+
 ## [1.0.0-beta.5] - 2026-07-01
 
 ### Changed
