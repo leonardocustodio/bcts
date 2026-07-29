@@ -61,7 +61,7 @@
     "eslint": "^10.8.0",
     "tsdown": "^0.22.14",
     "typedoc": "^0.28.20",
-    "typescript": "^7.0.2",
+    "typescript": "^6.0.3",
     "vitest": "^4.1.10"
   },
   "dependencies": {
