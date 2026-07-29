@@ -43,7 +43,7 @@
     "eslint": "^10.8.0",
     "nuxt": "^4.5.1",
     "nuxt-gtag": "4.1.0",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "vue-tsc": "^3.3.8",
     "wrangler": "^4.115.0"
   }
